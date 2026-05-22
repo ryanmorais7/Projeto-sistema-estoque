@@ -3,7 +3,8 @@
 Sistema web de gerenciamento de estoque para lojas de celulares e acessórios, desenvolvido com HTML, CSS e JavaScript.
 
 O projeto possui dashboard administrativo, controle de produtos, métricas de estoque, filtros, login e ações CRUD para gerenciamento dos itens.
-Url: https://vaultrmorais.vercel.app/
+
+ https://vaultrmorais.vercel.app/
 ---
 
 ## 🚀 Funcionalidades
