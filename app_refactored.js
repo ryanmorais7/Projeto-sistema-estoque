@@ -1,3 +1,12 @@
+const supabaseUrl = 'https://vkoqsjfykybrtwhhrpiz.supabase.co';
+
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrb3FzamZ5a3licnR3aGhycGl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MjM3MzcsImV4cCI6MjA5NTE5OTczN30.i3u9fTjbx022oqa4LwKpF8BMLfehBVEv560peCbnWSM';
+
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
 // ============================================
 // CONSTANTS & DATA
 // ============================================
@@ -116,8 +125,20 @@ function saveProducts() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
 }
 
-function loadProducts() {
-  products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+async function loadProducts() {
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*');
+
+  if (error) {
+    console.error('Erro ao carregar produtos:', error);
+    return;
+  }
+
+  products = data || [];
+
+  applyFilters();
+  updateDashboard();
 }
 
 function saveTheme(theme) {
@@ -822,10 +843,12 @@ function initEventListeners() {
 // INITIALIZATION
 // ============================================
 
-function init() {
+async function init() {
   loadTheme();
   checkAuth();
-  loadProducts();
+
+  await loadProducts();
+
   initEventListeners();
   updateModelOptions();
   applyFilters();
@@ -834,3 +857,14 @@ function init() {
 
 // Start app
 document.addEventListener('DOMContentLoaded', init);
+
+async function testConnection() {
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*');
+
+  console.log('DADOS:', data);
+  console.log('ERRO:', error);
+}
+
+testConnection();
