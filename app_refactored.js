@@ -121,10 +121,6 @@ let currentUser = null;
 // STORAGE & AUTH
 // ============================================
 
-function saveProducts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-}
-
 async function loadProducts() {
   const { data, error } = await supabaseClient
     .from('products')
@@ -596,8 +592,7 @@ async function handleFormSubmit(event) {
     imageData = existing ? existing.image || '' : '';
   }
 
-  const newProduct = {
-    id: editingId || Date.now().toString(),
+  const productData = {
     type: DOM.formInputs.type.value,
     brand,
     model,
@@ -609,22 +604,46 @@ async function handleFormSubmit(event) {
     notes: DOM.formInputs.notes.value.trim(),
   };
   
-  if (newProduct.price < 0 || newProduct.quantity < 0) {
+  if (productData.price < 0 || productData.quantity < 0) {
     showToast('❌ Valores inválidos.', 'error');
     return;
   }
-  
+
+  let error;
+
   if (editingId) {
-    products = products.map(p => p.id === editingId ? newProduct : p);
-    showToast(`✅ ${brand} ${model} atualizado!`, 'success');
+    // ATUALIZAR NO SUPABASE
+    const response = await supabaseClient
+      .from('products')
+      .update(productData)
+      .eq('id', editingId);
+
+    error = response.error;
+
+    if (!error) {
+      showToast(`✅ ${brand} ${model} atualizado!`, 'success');
+    }
   } else {
-    products.unshift(newProduct);
-    showToast(`✅ ${brand} ${model} cadastrado!`, 'success');
+    // INSERIR NO SUPABASE
+    const response = await supabaseClient
+      .from('products')
+      .insert(productData);
+
+    error = response.error;
+
+    if (!error) {
+      showToast(`✅ ${brand} ${model} cadastrado!`, 'success');
+    }
   }
-  
-  saveProducts();
-  applyFilters();
-  updateDashboard();
+
+  if (error) {
+    console.error('Erro ao salvar produto:', error);
+    showToast('❌ Erro ao salvar no banco de dados.', 'error');
+    return;
+  }
+
+  // Recarrega a lista a partir do SUPABASE
+  await loadProducts();
   resetForm();
 }
 
