@@ -35,6 +35,8 @@
   --text-tertiary: #9ca3af;
   --border-color: #e5e7eb;
   --border-light: #f3f4f6;
+  --brand-subtitle: #6b7280;
+  --brand-subtitle-strong: #374151;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -121,6 +123,8 @@ html[data-theme="dark"] {
   --text-tertiary: #94a3b8;
   --border-color: #475569;
   --border-light: #1e293b;
+  --brand-subtitle: #cbd5e1;
+  --brand-subtitle-strong: #f8fafc;
   
   /* Dark Mode Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -289,8 +293,17 @@ button:disabled {
 
 .brand p {
   margin: 8px 0 0;
-  color: #6b7280;
+  color: var(--brand-subtitle);
   font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  max-width: 38rem;
+}
+
+.brand p strong {
+  font-weight: 700;
+  color: var(--brand-subtitle-strong);
 }
 
 
