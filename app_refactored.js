@@ -593,16 +593,16 @@ async function handleFormSubmit(event) {
   }
 
   const productData = {
-    type: DOM.formInputs.type.value,
-    brand,
-    model,
-    color: DOM.formInputs.color.value.trim(),
-    manufacture: DOM.formInputs.manufacture.value.trim(),
-    price: parsePriceValue(DOM.formInputs.price.value),
-    quantity: Number(DOM.formInputs.quantity.value),
-    image: imageData,
-    notes: DOM.formInputs.notes.value.trim(),
-  };
+  type: DOM.formInputs.type.value,
+  brand,
+  model,
+  color: DOM.formInputs.color.value.trim(),
+  manufacture: DOM.formInputs.manufacture.value.trim(),
+  price: parsePriceValue(DOM.formInputs.price.value),
+  quantity: Number(DOM.formInputs.quantity.value),
+  notes: DOM.formInputs.notes.value.trim(),
+};
+
   
   if (productData.price < 0 || productData.quantity < 0) {
     showToast('❌ Valores inválidos.', 'error');
@@ -651,18 +651,27 @@ async function handleFormSubmit(event) {
 // PRODUCT OPERATIONS
 // ============================================
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
   const product = products.find(p => p.id === id);
   if (!product || !confirm(`Remover ${product.brand} ${product.model}?`)) return;
-  
-  products = products.filter(p => p.id !== id);
-  saveProducts();
-  applyFilters();
-  updateDashboard();
+
+  const { error } = await supabaseClient
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Erro ao remover produto:', error);
+    showToast('❌ Erro ao remover produto no banco de dados.', 'error');
+    return;
+  }
+
+  await loadProducts();   // recarrega lista a partir do Supabase
   showToast(`✅ Produto removido.`, 'success');
 }
 
-function sellProduct(id, amount) {
+
+async function sellProduct(id, amount) {
   const product = products.find(p => p.id === id);
   if (!product) return;
   
@@ -675,13 +684,24 @@ function sellProduct(id, amount) {
     showToast('❌ Quantidade maior que estoque.', 'error');
     return;
   }
-  
-  product.quantity -= amount;
-  saveProducts();
-  applyFilters();
-  updateDashboard();
+
+  const newQuantity = product.quantity - amount;
+
+  const { error } = await supabaseClient
+    .from('products')
+    .update({ quantity: newQuantity })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Erro ao atualizar quantidade:', error);
+    showToast('❌ Erro ao registrar venda no banco de dados.', 'error');
+    return;
+  }
+
+  await loadProducts();   // recarrega lista do Supabase
   showToast(`✅ ${amount}x ${product.brand} ${product.model} vendido!`, 'success');
 }
+
 
 // ============================================
 // DASHBOARD
@@ -874,8 +894,8 @@ async function init() {
   updateDashboard();
 }
 
-// Start app
-document.addEventListener('DOMContentLoaded', init);
+// Start app diretamente
+init();
 
 async function testConnection() {
   const { data, error } = await supabaseClient
