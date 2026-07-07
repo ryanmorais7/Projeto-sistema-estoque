@@ -1,0 +1,30 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # roda toda segunda e quinta às 09:00 UTC
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping-vault:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Vault Supabase
+        run: |
+          curl -X POST "${{ secrets.VAULT_SUPABASE_URL }}/rest/v1/keep_alive" \
+            -H "apikey: ${{ secrets.VAULT_SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VAULT_SUPABASE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+  ping-airguia:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping AirGuia Supabase
+        run: |
+          curl -X POST "${{ secrets.AIRGUIA_SUPABASE_URL }}/rest/v1/keep_alive" \
+            -H "apikey: ${{ secrets.AIRGUIA_SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.AIRGUIA_SUPABASE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
