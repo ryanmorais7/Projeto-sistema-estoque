@@ -8,11 +8,12 @@
   <meta property="og:title" content="Vault - Controle de Estoque Profissional" />
   <meta property="og:description" content="Gestão de estoque, IMEI e conservação para lojas de celular e acessórios." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='630' fill='url(%23g)'/%3E%3Ctext x='80' y='330' font-family='Arial, sans-serif' font-size='120' font-weight='800' fill='white'%3EVault%3C/text%3E%3Ctext x='80' y='400' font-family='Arial, sans-serif' font-size='36' fill='%23e0e7ff'%3EControle de estoque profissional%3C/text%3E%3C/svg%3E" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'%3E%3Crect x='7' y='2' width='10' height='20' rx='2' ry='2'/%3E%3Cline x1='11' y1='18' x2='13' y2='18'/%3E%3C/svg%3E" />
+  <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230B0E14'/%3E%3Cstop offset='1' stop-color='%23131826'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='630' fill='url(%23g)'/%3E%3Ctext x='80' y='330' font-family='Arial, sans-serif' font-size='120' font-weight='800' fill='%237C6FFA'%3EVault%3C/text%3E%3Ctext x='80' y='400' font-family='Arial, sans-serif' font-size='36' fill='%2322D3C5'%3EControle de estoque profissional%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237C6FFA' stroke-width='2'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3Ccircle cx='12' cy='16' r='1.5' fill='%2322D3C5' stroke='none'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -84,11 +85,10 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
-          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
+          <svg class="icon icon-sm vault-emblem" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"></circle>
           </svg>
           <h1>Painel</h1>
         </div>
@@ -140,17 +140,8 @@
       </nav>
       <div class="sidebar-footer">
         <button class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">
-          <svg class="icon-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
+          <i class="ti ti-moon theme-icon theme-icon-dark"></i>
+          <i class="ti ti-sun theme-icon theme-icon-light"></i>
         </button>
         <button class="logout-button" id="logout-button">
           <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -164,7 +155,7 @@
     </aside>
 
     <main class="app-shell">
-      <header>
+      <header class="header-bar">
         <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -172,184 +163,211 @@
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
-        <div class="brand">
-          <h1>Vault</h1>
-          <p id="loja-atual-nome">Controle de estoque para loja de celulares e acessórios</p>
+        <div class="header-titles">
+          <h1 class="header-page-title" id="header-page-title">Dashboard</h1>
+          <p class="header-page-subtitle" id="header-page-subtitle">Visão geral da loja</p>
         </div>
-        <div class="header-user">
-          <span id="user-display"></span>
+        <div class="header-identity">
+          <div class="header-avatar" id="header-avatar">--</div>
+          <div class="header-identity-text">
+            <span class="header-loja-nome" id="loja-atual-nome"></span>
+            <span class="header-user-email" id="user-display"></span>
+          </div>
         </div>
       </header>
 
     <section id="dashboard" class="tab-panel active" role="tabpanel">
-      <h2>Dashboard</h2>
+
+      <div class="dashboard-hero card">
+        <div class="dashboard-hero-value">
+          <span class="dashboard-hero-label">Saldo total em estoque</span>
+          <span class="dashboard-hero-amount" id="dash-value">R$ 0,00</span>
+        </div>
+        <div class="vault-dial" id="vault-dial-container"></div>
+        <div class="vault-dial-legend" id="vault-dial-legend"></div>
+      </div>
+
       <div class="dashboard-grid">
         <div class="dashboard-card card">
           <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Total de Produtos</span>
-            <span class="dashboard-card-icon">🧾</span>
+            <span class="dashboard-card-title">Vendas hoje</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-receipt-2"></i></span>
+          </div>
+          <div class="dashboard-card-value" id="dash-vendas-hoje">0</div>
+          <div class="dashboard-card-subtitle" id="dash-vendas-hoje-valor">R$ 0,00</div>
+          <div class="dashboard-card-trend hidden" id="dash-vendas-hoje-trend"></div>
+        </div>
+
+        <div class="dashboard-card card">
+          <div class="dashboard-card-header">
+            <span class="dashboard-card-title">Produtos cadastrados</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--roxo"><i class="ti ti-package"></i></span>
           </div>
           <div class="dashboard-card-value" id="dash-total">0</div>
-          <div class="dashboard-card-subtitle">produtos cadastrados</div>
-          <canvas class="kpi-sparkline hidden" data-metric="total"></canvas>
+          <div class="dashboard-card-subtitle">no estoque</div>
         </div>
 
         <div class="dashboard-card card">
           <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Valor Total</span>
-            <span class="dashboard-card-icon">💸</span>
+            <span class="dashboard-card-title">Ticket médio</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--ambar"><i class="ti ti-chart-bar"></i></span>
           </div>
-          <div class="dashboard-card-value" id="dash-value">R$ 0,00</div>
-          <div class="dashboard-card-subtitle">em estoque</div>
-          <canvas class="kpi-sparkline hidden" data-metric="valor"></canvas>
+          <div class="dashboard-card-value" id="dash-ticket-medio">R$ 0,00</div>
+          <div class="dashboard-card-subtitle">últimos 30 dias</div>
         </div>
 
-        <div class="dashboard-card card">
+        <div class="dashboard-card card dashboard-card-alertas" id="dashboard-alertas-card">
           <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Estoque Baixo</span>
-            <span class="dashboard-card-icon">⚠️</span>
+            <span class="dashboard-card-title">Alertas</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--neutro" id="dashboard-alertas-icon-box"><i class="ti ti-check"></i></span>
           </div>
-          <div class="dashboard-card-value" id="dash-low">0</div>
-          <div class="dashboard-card-subtitle">produtos com 1-5 unidades</div>
-          <canvas class="kpi-sparkline hidden" data-metric="baixo"></canvas>
-        </div>
-
-        <div class="dashboard-card card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Sem Estoque</span>
-            <span class="dashboard-card-icon">⛔</span>
-          </div>
-          <div class="dashboard-card-value" id="dash-zero">0</div>
-          <div class="dashboard-card-subtitle">produtos zerados</div>
-          <canvas class="kpi-sparkline hidden" data-metric="zero"></canvas>
-        </div>
-
-        <div class="dashboard-card dashboard-card-alert card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">IMEI Impedido</span>
-            <span class="dashboard-card-icon">🚫</span>
-          </div>
-          <div class="dashboard-card-value" id="dash-imei-impedido">0</div>
-          <div class="dashboard-card-subtitle">unidades não negociáveis</div>
-          <canvas class="kpi-sparkline hidden" data-metric="impedido"></canvas>
+          <div class="dashboard-card-value hidden" id="dash-imei-impedido">0</div>
+          <div class="dashboard-card-subtitle" id="dashboard-alertas-subtitle">Tudo certo por aqui</div>
         </div>
       </div>
 
-      <div class="dashboard-charts-grid">
-        <div class="card chart-card">
-          <div class="filters-title">📊 Distribuição por marca</div>
-          <div class="chart-container chart-container-sm">
-            <canvas id="dashboard-brand-chart"></canvas>
+      <div class="dashboard-split-grid">
+        <div class="card dashboard-panel-card">
+          <div class="filters-title"><i class="ti ti-trending-up filters-title-icon filters-title-icon--primary"></i>Top marcas em valor</div>
+          <div class="dashboard-brandlist" id="dashboard-brandlist"></div>
+          <div class="dashboard-panel-empty hidden" id="dashboard-brandlist-empty">
+            <p>Cadastre seu primeiro produto pra ver aqui as marcas com maior valor em estoque.</p>
+            <button type="button" class="secondary" id="dashboard-brandlist-cta">+ Cadastrar produto</button>
           </div>
         </div>
 
-        <div class="card chart-card">
-          <div class="filters-title">📦 Distribuição por status de venda</div>
-          <div class="chart-container chart-container-sm">
-            <canvas id="dashboard-status-venda-chart"></canvas>
+        <div class="card dashboard-panel-card">
+          <div class="dashboard-panel-header">
+            <div class="filters-title"><i class="ti ti-alert-triangle filters-title-icon filters-title-icon--warning"></i>Estoque baixo</div>
+            <span class="dashboard-panel-count hidden" id="dashboard-lowstock-count"></span>
           </div>
+          <ul class="dashboard-lowstock-list" id="dashboard-lowstock-list"></ul>
+          <p class="dashboard-lowstock-empty hidden" id="dashboard-lowstock-empty"></p>
+          <button type="button" class="dashboard-panel-link hidden" id="dashboard-lowstock-vertodos">Ver todos →</button>
         </div>
+      </div>
 
-        <div class="card chart-card chart-card-wide">
-          <div class="filters-title">🏆 Top 5 produtos com maior estoque parado</div>
-          <div class="chart-container chart-container-sm">
-            <canvas id="dashboard-top5-chart"></canvas>
-          </div>
-        </div>
+      <div class="card chart-card dashboard-vendas7d-card">
+        <div class="filters-title"><i class="ti ti-chart-line filters-title-icon filters-title-icon--teal"></i>Vendas últimos 7 dias</div>
+        <div class="vendas7d-chart" id="dashboard-vendas7d-chart"></div>
       </div>
     </section>
 
     <section id="cadastro" class="tab-panel" role="tabpanel">
-      <h2>Cadastro de produto</h2>
-      <form id="product-form" class="card form-card">
-        <div class="grid">
-          <label>
-            Tipo
-            <select id="type" required>
-              <option value="aparelhos">Aparelhos</option>
-              <option value="capinhas">Capinhas</option>
-              <option value="peliculas">Películas</option>
-              <option value="acessorios">Acessórios</option>
-            </select>
-          </label>
-          <label>
-            Marca
-            <select id="brand" required>
-              <option value="">-- Selecione a marca --</option>
-              <option value="Samsung">Samsung</option>
-              <option value="Apple">Apple</option>
-              <option value="Xiaomi">Xiaomi</option>
-              <option value="Motorola">Motorola</option>
-              <option value="LG">LG</option>
-              <option value="Huawei">Huawei</option>
-              <option value="OnePlus">OnePlus</option>
-              <option value="TCL">TCL</option>
-              <option value="Nokia">Nokia</option>
-              <option value="Realme">Realme</option>
-              <option value="Vivo">Vivo</option>
-              <option value="Oppo">Oppo</option>
-              <option value="Sony">Sony</option>
-              <option value="Google Pixel">Google Pixel</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </label>
-          <label>
-            Modelo
-            <select id="model" required>
-              <option value="">-- Selecione a marca primeiro --</option>
-            </select>
-          </label>
-          <label>
-            Cor
-            <select id="color" required>
-              <option value="">-- Selecione a cor --</option>
-              <option value="Preto">Preto</option>
-              <option value="Branco">Branco</option>
-              <option value="Prata">Prata</option>
-              <option value="Cinza">Cinza</option>
-              <option value="Azul">Azul</option>
-              <option value="Vermelho">Vermelho</option>
-              <option value="Verde">Verde</option>
-              <option value="Amarelo">Amarelo</option>
-              <option value="Rosa">Rosa</option>
-              <option value="Dourado">Dourado</option>
-              <option value="Roxo">Roxo</option>
-              <option value="Laranja">Laranja</option>
-              <option value="Marrom">Marrom</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </label>
-          <label>
-            Ano de Fabricação
-            <input id="manufacture" type="text" placeholder="Ex: 2026 / (opcional)" />
-          </label>
-          <label>
-            Preço unitário
-            <input id="price" type="text" inputmode="decimal" placeholder="R$ 0,00" required />
-          </label>
-          <label>
-            Quantidade em estoque
-            <input id="quantity" type="number" min="0" step="1" placeholder="0" required />
-          </label>
-          <label class="full-width">
-            Observações
-            <textarea id="notes" rows="3" placeholder="Ex: Com pop socket, personalizada, detalhes especiais..."></textarea>
-          </label>
-        </div>
+      <div class="cadastro-layout">
+        <form id="product-form" class="cadastro-form">
+          <div class="card cadastro-card">
+            <h3 class="cadastro-card-title">Identificação do produto</h3>
 
-        <div class="unidades-section hidden" id="unidades-section">
-          <div class="unidades-header">
-            <h3>Unidades com IMEI</h3>
-            <button type="button" id="add-unidade-btn" class="secondary">+ Adicionar unidade com IMEI</button>
+            <label class="full-width">
+              Tipo
+              <div class="type-selector" id="type-selector" role="group" aria-label="Tipo de produto">
+                <button type="button" class="type-option" data-type="aparelhos">
+                  <i class="ti ti-device-mobile"></i>
+                  <span>Aparelhos</span>
+                </button>
+                <button type="button" class="type-option" data-type="capinhas">
+                  <i class="ti ti-shield"></i>
+                  <span>Capinhas</span>
+                </button>
+                <button type="button" class="type-option" data-type="peliculas">
+                  <i class="ti ti-square-rounded"></i>
+                  <span>Películas</span>
+                </button>
+                <button type="button" class="type-option" data-type="acessorios">
+                  <i class="ti ti-plug"></i>
+                  <span>Acessórios</span>
+                </button>
+              </div>
+              <input type="hidden" id="type" value="aparelhos" required />
+            </label>
+
+            <div class="grid">
+              <label>
+                Marca
+                <select id="brand" required>
+                  <option value="">-- Selecione a marca --</option>
+                  <option value="Samsung">Samsung</option>
+                  <option value="Apple">Apple</option>
+                  <option value="Xiaomi">Xiaomi</option>
+                  <option value="Motorola">Motorola</option>
+                  <option value="LG">LG</option>
+                  <option value="Huawei">Huawei</option>
+                  <option value="OnePlus">OnePlus</option>
+                  <option value="TCL">TCL</option>
+                  <option value="Nokia">Nokia</option>
+                  <option value="Realme">Realme</option>
+                  <option value="Vivo">Vivo</option>
+                  <option value="Oppo">Oppo</option>
+                  <option value="Sony">Sony</option>
+                  <option value="Google Pixel">Google Pixel</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </label>
+              <label>
+                Modelo
+                <select id="model" required>
+                  <option value="">-- Selecione a marca primeiro --</option>
+                </select>
+              </label>
+              <label class="full-width">
+                Cor
+                <div class="color-palette" id="color-palette" role="group" aria-label="Cor do produto"></div>
+                <input type="hidden" id="color" required />
+              </label>
+              <label>
+                Ano de Fabricação
+                <input id="manufacture" type="text" placeholder="Ex: 2026 / (opcional)" />
+              </label>
+              <label>
+                Preço unitário
+                <input id="price" type="text" inputmode="decimal" placeholder="R$ 0,00" required />
+              </label>
+              <label>
+                Quantidade em estoque
+                <div class="quantity-stepper">
+                  <button type="button" class="quantity-btn" id="quantity-decrement" aria-label="Diminuir quantidade"><i class="ti ti-minus"></i></button>
+                  <input id="quantity" type="number" min="0" step="1" placeholder="0" required />
+                  <button type="button" class="quantity-btn" id="quantity-increment" aria-label="Aumentar quantidade"><i class="ti ti-plus"></i></button>
+                </div>
+              </label>
+            </div>
+
+            <p class="duplicate-warning hidden" id="duplicate-warning"></p>
           </div>
-          <div id="unidades-container"></div>
-        </div>
 
-        <div class="actions">
-          <button type="submit" id="save-button" class="primary">✓ Salvar produto</button>
-          <button type="button" id="cancel-edit" class="secondary hidden">✕ Cancelar</button>
-        </div>
-      </form>
+          <div class="card cadastro-card unidades-section hidden" id="unidades-section">
+            <h3 class="cadastro-card-title">Unidades com IMEI</h3>
+            <div class="unidades-header">
+              <button type="button" id="add-unidade-btn" class="secondary">+ Adicionar unidade com IMEI</button>
+            </div>
+            <p class="unidades-status" id="unidades-status"></p>
+            <div id="unidades-container"></div>
+          </div>
+
+          <div class="card cadastro-card">
+            <h3 class="cadastro-card-title">Observações</h3>
+            <textarea id="notes" rows="3" placeholder="Ex: Com pop socket, personalizada, detalhes especiais..."></textarea>
+          </div>
+
+          <div class="actions">
+            <button type="submit" id="save-button" class="primary">✓ Salvar produto</button>
+            <button type="button" id="cancel-edit" class="secondary hidden">✕ Cancelar</button>
+          </div>
+        </form>
+
+        <aside class="cadastro-preview">
+          <div class="card cadastro-preview-card">
+            <div class="preview-image" id="preview-image">
+              <i class="ti ti-photo"></i>
+            </div>
+            <div class="preview-name preview-placeholder" id="preview-name">Marca e modelo</div>
+            <div class="preview-meta preview-placeholder" id="preview-meta">Cor e tipo</div>
+            <hr class="preview-divider" />
+            <div class="preview-price" id="preview-price">R$ 0,00</div>
+          </div>
+        </aside>
+      </div>
     </section>
 
     <template id="unidade-template">
@@ -357,9 +375,7 @@
         <div class="unidade-block-header">
           <span class="unidade-block-title">Unidade</span>
           <button type="button" class="unidade-remove-btn" title="Remover unidade">
-            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M18 6L6 18M6 6l12 12"></path>
-            </svg>
+            <i class="ti ti-x"></i>
           </button>
         </div>
         <div class="grid">
@@ -406,24 +422,25 @@
     </template>
 
     <section id="estoque" class="tab-panel" role="tabpanel">
-      <h2>Estoque</h2>
       <div class="card filters-card">
-        <div class="filters-title">🔍 Filtros</div>
-        <div class="filters-grid">
-          <div class="filter-group">
-            <label for="filter-search">Buscar produto</label>
-            <input type="text" id="filter-search" placeholder="Marca, modelo, cor..." />
+        <div class="filters-bar">
+          <div class="search-input-wrap">
+            <i class="ti ti-search search-input-icon"></i>
+            <input type="text" id="filter-search" placeholder="Marca, modelo, cor ou IMEI..." />
           </div>
-          <div class="filter-group">
-            <label for="filter-type">Tipo</label>
-            <select id="filter-type">
-              <option value="">Todos</option>
-              <option value="aparelhos">Aparelhos</option>
-              <option value="capinhas">Capinhas</option>
-              <option value="peliculas">Películas</option>
-              <option value="acessorios">Acessórios</option>
-            </select>
+          <div class="type-quickfilter" id="type-quickfilter" role="group" aria-label="Filtrar por tipo">
+            <button type="button" class="type-quickfilter-btn" data-type="aparelhos" title="Aparelhos"><i class="ti ti-device-mobile"></i></button>
+            <button type="button" class="type-quickfilter-btn" data-type="capinhas" title="Capinhas"><i class="ti ti-shield"></i></button>
+            <button type="button" class="type-quickfilter-btn" data-type="peliculas" title="Películas"><i class="ti ti-square-rounded"></i></button>
+            <button type="button" class="type-quickfilter-btn" data-type="acessorios" title="Acessórios"><i class="ti ti-plug"></i></button>
           </div>
+          <input type="hidden" id="filter-type" value="" />
+          <button type="button" class="secondary filters-toggle-btn" id="filters-toggle-btn">
+            <i class="ti ti-adjustments-horizontal"></i> Mais filtros
+          </button>
+        </div>
+
+        <div class="filters-panel hidden" id="filters-panel">
           <div class="filter-group">
             <label for="filter-brand">Marca</label>
             <select id="filter-brand">
@@ -453,25 +470,29 @@
             <label for="filter-stock">Estoque</label>
             <select id="filter-stock">
               <option value="">Todos</option>
+              <option value="zero">Zerado</option>
               <option value="low">Baixo (1-5)</option>
               <option value="medium">Médio (6-20)</option>
               <option value="high">Alto (20+)</option>
             </select>
           </div>
-          <div class="filter-actions">
-            <button type="button" id="clear-filters" class="secondary">✕ Limpar filtros</button>
-          </div>
         </div>
+
+        <div class="filters-chips hidden" id="filters-chips"></div>
       </div>
+
+      <div class="status-chips" id="status-chips"></div>
+
       <div class="card table-card">
         <div class="table-toolbar">
           <span id="stock-count">0 produtos cadastrados</span>
           <span id="filter-result-count" class="filter-result-count"></span>
-          <button type="button" id="export-csv-btn" class="secondary">⬇️ Exportar CSV</button>
+          <button type="button" id="export-csv-btn" class="secondary"><i class="ti ti-download"></i> Exportar CSV</button>
         </div>
         <table id="estoque-table">
           <thead>
             <tr>
+              <th class="table-thumb-col"></th>
               <th>Tipo</th>
               <th>Marca / Modelo</th>
               <th>Cor</th>
@@ -496,24 +517,17 @@
     </section>
 
     <section id="vendas" class="tab-panel" role="tabpanel">
-      <h2>Vendas</h2>
       <div class="card filters-card">
-        <div class="filters-title">🔍 Filtros</div>
-        <div class="filters-grid-sales">
-          <div class="filter-group">
-            <label for="filter-sales-search">Buscar produto</label>
+        <div class="filters-bar">
+          <div class="search-input-wrap">
+            <i class="ti ti-search search-input-icon"></i>
             <input type="text" id="filter-sales-search" placeholder="Marca, modelo, cor..." />
           </div>
-          <div class="filter-group">
-            <label for="filter-sales-brand">Marca</label>
-            <select id="filter-sales-brand">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div class="filter-actions">
-            <button type="button" id="clear-sales-filters" class="secondary">✕ Limpar filtros</button>
-          </div>
+          <select id="filter-sales-brand" class="filters-bar-select">
+            <option value="">Todas as marcas</option>
+          </select>
         </div>
+        <div class="filters-chips hidden" id="filters-sales-chips"></div>
       </div>
       <div class="card table-card">
         <div class="table-toolbar">
@@ -523,6 +537,7 @@
         <table>
           <thead>
             <tr>
+              <th class="table-thumb-col"></th>
               <th>Produto</th>
               <th>Cor</th>
               <th>Estoque</th>
@@ -534,29 +549,113 @@
           <tbody id="sales-table-body"></tbody>
         </table>
       </div>
+
+      <div class="vendas-resumo-grid">
+        <div class="card vendas-resumo-card">
+          <div class="vendas-resumo-header">
+            <span class="vendas-resumo-label">Hoje</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-dollar"></i></span>
+          </div>
+          <span class="vendas-resumo-valor" id="resumo-vendas-hoje">R$ 0,00</span>
+        </div>
+        <div class="card vendas-resumo-card">
+          <div class="vendas-resumo-header">
+            <span class="vendas-resumo-label">Últimos 7 dias</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-stats"></i></span>
+          </div>
+          <span class="vendas-resumo-valor" id="resumo-vendas-7dias">R$ 0,00</span>
+        </div>
+        <div class="card vendas-resumo-card">
+          <div class="vendas-resumo-header">
+            <span class="vendas-resumo-label">Mês atual</span>
+            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-month"></i></span>
+          </div>
+          <span class="vendas-resumo-valor" id="resumo-vendas-mes">R$ 0,00</span>
+        </div>
+      </div>
+
+      <h3 class="vendas-historico-title">Histórico de vendas</h3>
+      <div class="card filters-card">
+        <div class="filters-bar">
+          <div class="search-input-wrap">
+            <i class="ti ti-search search-input-icon"></i>
+            <input type="text" id="filter-historico-search" placeholder="Marca, modelo ou cor..." />
+          </div>
+          <select id="filter-historico-periodo" class="filters-bar-select">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="0">Tudo</option>
+          </select>
+          <select id="filter-historico-brand" class="filters-bar-select">
+            <option value="">Todas as marcas</option>
+          </select>
+        </div>
+        <div class="filters-chips hidden" id="filters-historico-chips"></div>
+      </div>
+      <div class="card table-card">
+        <div class="table-toolbar">
+          <span id="historico-count">0 vendas no período</span>
+          <button type="button" id="export-historico-csv-btn" class="secondary"><i class="ti ti-download"></i> Exportar CSV</button>
+        </div>
+        <table id="historico-vendas-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produto</th>
+              <th>Cor</th>
+              <th>Qtd</th>
+              <th>Preço unit.</th>
+              <th>Total</th>
+              <th>Vendido por</th>
+            </tr>
+          </thead>
+          <tbody id="historico-vendas-body"></tbody>
+          <tfoot>
+            <tr class="historico-total-row hidden" id="historico-total-row">
+              <td colspan="5" class="historico-total-label">Total no período</td>
+              <td class="historico-total-valor" id="historico-total-valor"></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="empty-state" id="historico-vendas-empty">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 3v18h18"></path>
+            <path d="M7 14l4-4 3 3 5-7"></path>
+          </svg>
+          <p class="empty-state-text">Nenhuma venda registrada nesse período ainda.</p>
+        </div>
+      </div>
     </section>
 
     <section id="equipe" class="tab-panel" role="tabpanel">
-      <h2>Equipe</h2>
 
       <form id="invite-form" class="card form-card invite-form hidden">
         <h3 class="invite-form-title">Convidar membro</h3>
+        <label class="full-width">
+          Papel
+          <div class="type-selector papel-selector" id="papel-selector" role="group" aria-label="Papel do convidado">
+            <button type="button" class="type-option" data-papel="vendedor">
+              <i class="ti ti-tag"></i>
+              <span>Vendedor</span>
+            </button>
+            <button type="button" class="type-option" data-papel="dono">
+              <i class="ti ti-crown"></i>
+              <span>Dono</span>
+            </button>
+          </div>
+          <input type="hidden" id="invite-papel" value="vendedor" required />
+        </label>
+        <p class="papel-descricao" id="papel-descricao"></p>
         <div class="grid">
-          <label>
+          <label class="full-width">
             E-mail
             <input type="email" id="invite-email" placeholder="email@exemplo.com" required />
           </label>
-          <label>
-            Papel
-            <select id="invite-papel" required>
-              <option value="vendedor">Vendedor</option>
-              <option value="tecnico">Técnico</option>
-              <option value="financeiro">Financeiro</option>
-            </select>
-          </label>
         </div>
         <div class="actions">
-          <button type="submit" class="primary">✉️ Enviar convite</button>
+          <button type="submit" class="primary"><i class="ti ti-mail"></i> Enviar convite</button>
         </div>
       </form>
 
@@ -567,7 +666,7 @@
         <table>
           <thead>
             <tr>
-              <th>E-mail</th>
+              <th>Membro</th>
               <th>Papel</th>
               <th>Desde</th>
               <th>Ações</th>
@@ -599,6 +698,9 @@
 
   <template id="product-row-template">
     <tr>
+      <td class="product-image-cell">
+        <div class="table-thumb"><i class="ti ti-photo"></i></div>
+      </td>
       <td class="product-type" data-label="Tipo"></td>
       <td class="product-name" data-label="Marca / Modelo"></td>
       <td class="product-color" data-label="Cor"></td>
@@ -611,15 +713,22 @@
 
   <template id="sales-row-template">
     <tr>
+      <td class="sale-image-cell">
+        <div class="table-thumb"><i class="ti ti-photo"></i></div>
+      </td>
       <td class="sale-name"></td>
       <td class="sale-color"></td>
       <td class="sale-stock"></td>
       <td class="sale-price"></td>
       <td>
-        <input class="sale-qty" type="number" min="1" value="1" />
+        <div class="quantity-stepper quantity-stepper-sm">
+          <button type="button" class="quantity-btn sale-qty-decrement" aria-label="Diminuir quantidade"><i class="ti ti-minus"></i></button>
+          <input class="sale-qty" type="number" min="1" value="1" />
+          <button type="button" class="quantity-btn sale-qty-increment" aria-label="Aumentar quantidade"><i class="ti ti-plus"></i></button>
+        </div>
       </td>
       <td>
-        <button class="sell-button">Vender</button>
+        <button class="sell-button"><i class="ti ti-shopping-cart-check"></i> Vender</button>
       </td>
     </tr>
   </template>

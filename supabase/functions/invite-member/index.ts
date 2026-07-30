@@ -56,6 +56,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!['dono', 'vendedor'].includes(papel)) {
+      return new Response(JSON.stringify({ error: 'Papel inválido.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Confirma que quem chamou é dono da loja informada (RLS do próprio caller garante
     // que essa consulta só enxerga a linha dele mesmo).
     const { data: membro } = await callerClient
@@ -85,6 +92,15 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Registra (ou atualiza, se for reenvio) o convite pendente — é o que permite a tela
+    // de Equipe mostrar "convite pendente" antes da pessoa aceitar.
+    await adminClient
+      .from('convites_pendentes')
+      .upsert(
+        { loja_id, email, papel, convidado_por: user.id, created_at: new Date().toISOString() },
+        { onConflict: 'loja_id,email' }
+      );
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

@@ -2,12 +2,16 @@
 // CONSTANTS & DATA
 // ============================================
 
-const LIMITE_ESTOQUE_BAIXO = 3;
+// Mesmo critério "baixo" usado no dashboard (disco do cofre e lista de estoque baixo): 1-5 unidades.
+const LIMITE_ESTOQUE_BAIXO = 5;
 const PAPEL_LABELS = {
   dono: 'Dono',
   vendedor: 'Vendedor',
-  tecnico: 'Técnico',
-  financeiro: 'Financeiro',
+};
+
+const PAPEL_DESCRICOES = {
+  vendedor: 'Acessa só a aba Vendas, pode vender produtos e ajustar quantidade através da venda, não edita estoque nem cadastro.',
+  dono: 'Acesso total ao sistema, incluindo cadastro, estoque e gestão da equipe.',
 };
 const URL_CONSULTA_ANATEL = 'https://www.consultaserialaparelho.com.br/public-web/home';
 
@@ -27,6 +31,45 @@ const BRAND_MODELS = {
   'Sony': ['Sony Xperia 1 VI', 'Sony Xperia 1 V', 'Sony Xperia 5 V', 'Sony Xperia 10 V', 'Sony Xperia 1 IV', 'Sony Xperia Pro'],
   'Google Pixel': ['Pixel 9 Pro', 'Pixel 9 Pro XL', 'Pixel 9 Pro Fold', 'Pixel 9', 'Pixel 8 Pro', 'Pixel 8', 'Pixel 7 Pro', 'Pixel 7'],
   'Outro': ['Modelo personalizado']
+};
+
+const TIPO_LABELS = {
+  aparelhos: 'Aparelhos',
+  capinhas: 'Capinhas',
+  peliculas: 'Películas',
+  acessorios: 'Acessórios',
+};
+
+const TIPO_ICONES = {
+  aparelhos: 'ti-device-mobile',
+  capinhas: 'ti-shield',
+  peliculas: 'ti-square-rounded',
+  acessorios: 'ti-plug',
+};
+
+const STOCK_FILTER_LABELS = {
+  zero: 'Zerado',
+  low: 'Baixo (1-5)',
+  medium: 'Médio (6-20)',
+  high: 'Alto (20+)',
+};
+
+// Mesma lista de cores que já existia no <select> — só muda a forma de escolher.
+const CORES_MAPA = {
+  'Preto': '#111114',
+  'Branco': '#F5F5F5',
+  'Prata': '#C6C9CD',
+  'Cinza': '#8A8F98',
+  'Azul': '#2563EB',
+  'Vermelho': '#DC2626',
+  'Verde': '#16A34A',
+  'Amarelo': '#F5C518',
+  'Rosa': '#EC4899',
+  'Dourado': '#D4AF37',
+  'Roxo': '#7C3AED',
+  'Laranja': '#EA580C',
+  'Marrom': '#7C4A25',
+  'Outro': 'linear-gradient(135deg, #EC4899, #7C3AED, #2563EB)',
 };
 
 // ============================================
@@ -55,10 +98,17 @@ const DOM = {
   onboardingTipo: document.getElementById('onboarding-tipo'),
   lojaAtualNome: document.getElementById('loja-atual-nome'),
 
+  // Header (barra de identidade, reaproveitada em todas as telas)
+  headerPageTitle: document.getElementById('header-page-title'),
+  headerPageSubtitle: document.getElementById('header-page-subtitle'),
+  headerAvatar: document.getElementById('header-avatar'),
+
   // Equipe
   inviteForm: document.getElementById('invite-form'),
   inviteEmail: document.getElementById('invite-email'),
   invitePapel: document.getElementById('invite-papel'),
+  papelOptions: document.querySelectorAll('#papel-selector .type-option'),
+  papelDescricao: document.getElementById('papel-descricao'),
   equipeTableBody: document.getElementById('equipe-table-body'),
 
   // Sidebar
@@ -86,9 +136,21 @@ const DOM = {
   },
   cancelEditBtn: document.getElementById('cancel-edit'),
 
+  // Cadastro — seletor de tipo, paleta de cor, stepper, prévia, duplicidade
+  typeOptions: document.querySelectorAll('.type-option'),
+  colorPalette: document.getElementById('color-palette'),
+  quantityIncrement: document.getElementById('quantity-increment'),
+  quantityDecrement: document.getElementById('quantity-decrement'),
+  duplicateWarning: document.getElementById('duplicate-warning'),
+  previewImage: document.getElementById('preview-image'),
+  previewName: document.getElementById('preview-name'),
+  previewMeta: document.getElementById('preview-meta'),
+  previewPrice: document.getElementById('preview-price'),
+
   // Unidades (IMEI)
   unidadesSection: document.getElementById('unidades-section'),
   unidadesContainer: document.getElementById('unidades-container'),
+  unidadesStatus: document.getElementById('unidades-status'),
   addUnidadeBtn: document.getElementById('add-unidade-btn'),
   unidadeTemplate: document.getElementById('unidade-template'),
 
@@ -109,28 +171,60 @@ const DOM = {
   // Stock Filters
   filterSearch: document.getElementById('filter-search'),
   filterType: document.getElementById('filter-type'),
+  typeQuickfilterBtns: document.querySelectorAll('.type-quickfilter-btn'),
+  filtersToggleBtn: document.getElementById('filters-toggle-btn'),
+  filtersPanel: document.getElementById('filters-panel'),
+  filtersChips: document.getElementById('filters-chips'),
+  statusChips: document.getElementById('status-chips'),
   filterBrand: document.getElementById('filter-brand'),
   filterColor: document.getElementById('filter-color'),
   filterStock: document.getElementById('filter-stock'),
-  filterClearBtn: document.getElementById('clear-filters'),
   filterResultCount: document.getElementById('filter-result-count'),
-  
+
   // Sales Filters
   filterSalesSearch: document.getElementById('filter-sales-search'),
   filterSalesBrand: document.getElementById('filter-sales-brand'),
-  filterSalesClearBtn: document.getElementById('clear-sales-filters'),
+  filtersSalesChips: document.getElementById('filters-sales-chips'),
   salesFilterResultCount: document.getElementById('sales-filter-result-count'),
-  
+
+  // Resumo e histórico de vendas
+  resumoVendasHoje: document.getElementById('resumo-vendas-hoje'),
+  resumoVendas7dias: document.getElementById('resumo-vendas-7dias'),
+  resumoVendasMes: document.getElementById('resumo-vendas-mes'),
+  filterHistoricoSearch: document.getElementById('filter-historico-search'),
+  filterHistoricoPeriodo: document.getElementById('filter-historico-periodo'),
+  filterHistoricoBrand: document.getElementById('filter-historico-brand'),
+  filtersHistoricoChips: document.getElementById('filters-historico-chips'),
+  historicoCount: document.getElementById('historico-count'),
+  historicoVendasTable: document.getElementById('historico-vendas-table'),
+  historicoVendasBody: document.getElementById('historico-vendas-body'),
+  historicoVendasEmpty: document.getElementById('historico-vendas-empty'),
+  historicoTotalRow: document.getElementById('historico-total-row'),
+  historicoTotalValor: document.getElementById('historico-total-valor'),
+  exportHistoricoCsvBtn: document.getElementById('export-historico-csv-btn'),
+
   // Dashboard
   dashTotal: document.getElementById('dash-total'),
   dashValue: document.getElementById('dash-value'),
-  dashLow: document.getElementById('dash-low'),
-  dashZero: document.getElementById('dash-zero'),
+  dashVendasHoje: document.getElementById('dash-vendas-hoje'),
+  dashVendasHojeValor: document.getElementById('dash-vendas-hoje-valor'),
+  dashVendasHojeTrend: document.getElementById('dash-vendas-hoje-trend'),
+  dashTicketMedio: document.getElementById('dash-ticket-medio'),
   dashImeiImpedido: document.getElementById('dash-imei-impedido'),
-  brandChartCanvas: document.getElementById('dashboard-brand-chart'),
-  statusVendaChartCanvas: document.getElementById('dashboard-status-venda-chart'),
-  top5ChartCanvas: document.getElementById('dashboard-top5-chart'),
-  
+  dashboardAlertasCard: document.getElementById('dashboard-alertas-card'),
+  dashboardAlertasIconBox: document.getElementById('dashboard-alertas-icon-box'),
+  dashboardAlertasSubtitle: document.getElementById('dashboard-alertas-subtitle'),
+  vendas7dChartContainer: document.getElementById('dashboard-vendas7d-chart'),
+  vaultDialContainer: document.getElementById('vault-dial-container'),
+  vaultDialLegend: document.getElementById('vault-dial-legend'),
+  dashboardBrandlist: document.getElementById('dashboard-brandlist'),
+  dashboardBrandlistEmpty: document.getElementById('dashboard-brandlist-empty'),
+  dashboardBrandlistCta: document.getElementById('dashboard-brandlist-cta'),
+  lowStockList: document.getElementById('dashboard-lowstock-list'),
+  lowStockEmpty: document.getElementById('dashboard-lowstock-empty'),
+  lowStockCount: document.getElementById('dashboard-lowstock-count'),
+  lowStockVerTodos: document.getElementById('dashboard-lowstock-vertodos'),
+
   // Toast
   toastContainer: document.getElementById('toast-container'),
 
@@ -148,15 +242,24 @@ const DOM = {
 
 let products = [];
 let filteredProducts = [];
+let filteredSalesProducts = [];
 let editingId = null;
 let sortConfig = { field: null, direction: 'asc' };
-let brandChartInstance = null;
-let statusVendaChartInstance = null;
-let top5ChartInstance = null;
+let historicoVendas = [];
 
 // ============================================
 // PRODUTOS (Supabase)
 // ============================================
+
+// Cache de unidades por produto — carregado uma vez junto com os produtos (em vez de
+// refazer a consulta a cada filtro/render) pra permitir busca por IMEI no filtro sem
+// bater no banco a cada tecla, e pra manter a linha expansível em sincronia.
+let unidadesPorProdutoCache = {};
+
+async function refrescarUnidadesCache() {
+  const idsAparelhos = products.filter(p => p.type === 'aparelhos').map(p => p.id);
+  unidadesPorProdutoCache = await buscarUnidadesPorProdutos(idsAparelhos);
+}
 
 async function loadProducts() {
   const { data, error } = await supabaseClient
@@ -168,10 +271,12 @@ async function loadProducts() {
   if (error) {
     showToast('❌ Erro ao carregar produtos do Supabase.', 'error');
     products = [];
+    unidadesPorProdutoCache = {};
     return;
   }
 
   products = data;
+  await refrescarUnidadesCache();
 }
 
 async function insertProduct(productData) {
@@ -229,7 +334,7 @@ function saveTheme(theme) {
 
 function loadTheme() {
   const saved = localStorage.getItem('invenstore-theme');
-  const theme = saved || 'light';
+  const theme = saved || 'dark';
   document.documentElement.setAttribute('data-theme', theme);
 }
 
@@ -267,9 +372,9 @@ function pluralize(count, singular, plural = singular + 's') {
 // ============================================
 
 const ICONES_ACAO = {
-  editar: '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"></path></svg>',
-  excluir: '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>',
-  unidades: '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>',
+  editar: '<i class="ti ti-edit"></i>',
+  excluir: '<i class="ti ti-trash"></i>',
+  unidades: '<i class="ti ti-barcode"></i>',
 };
 
 function renderBadgeEstoque(quantity) {
@@ -293,22 +398,22 @@ function createProductRow(product, unidadesDoProduto = []) {
 
   const temImeiImpedido = unidadesDoProduto.some(u => u.status_anatel === 'impedido');
 
-  row.querySelector('.product-type').textContent = product.type;
+  row.querySelector('.product-type').innerHTML = `<i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i> ${TIPO_LABELS[product.type] || product.type}`;
   row.querySelector('.product-name').innerHTML = `${product.brand} ${product.model}${temImeiImpedido ? ' ' + renderBadgeImeiAlerta() : ''}`;
-  row.querySelector('.product-color').textContent = product.color;
+  row.querySelector('.product-color').innerHTML = `<span class="table-color-dot" style="background:${CORES_MAPA[product.color] || 'var(--bg-tertiary)'}"></span>${product.color}`;
   row.querySelector('.product-manufacture').textContent = product.manufacture;
   row.querySelector('.product-price').textContent = formatCurrency(product.price);
   row.querySelector('.product-quantity').innerHTML = renderBadgeEstoque(product.quantity);
 
   const actionsCell = row.querySelector('.product-actions');
   actionsCell.innerHTML = `
-    ${product.type === 'aparelhos' ? `<button class="unidades-toggle-btn" title="Ver unidades / IMEI">${ICONES_ACAO.unidades}</button>` : ''}
-    <button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>
-    <button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>
+    ${product.type === 'aparelhos' ? `<button class="unidades-toggle-btn" title="Ver unidades / IMEI">${ICONES_ACAO.unidades}</button>` : '<span class="action-spacer"></span>'}
+    ${souDono() ? `<button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>` : '<span class="action-spacer"></span>'}
+    ${souDono() ? `<button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>` : '<span class="action-spacer"></span>'}
   `;
 
-  actionsCell.querySelector('.edit-btn').addEventListener('click', () => startEditProduct(product.id));
-  actionsCell.querySelector('.delete-btn').addEventListener('click', () => deleteProduct(product.id));
+  actionsCell.querySelector('.edit-btn')?.addEventListener('click', () => startEditProduct(product.id));
+  actionsCell.querySelector('.delete-btn')?.addEventListener('click', () => deleteProduct(product.id));
 
   return row;
 }
@@ -317,7 +422,7 @@ function createUnidadesSubRow(unidadesDoProduto) {
   const tr = document.createElement('tr');
   tr.className = 'unidades-subrow';
   const td = document.createElement('td');
-  td.colSpan = 7;
+  td.colSpan = 8;
   td.className = 'unidades-subrow-content';
   td.innerHTML = renderUnidadesSubTable(unidadesDoProduto);
   tr.appendChild(td);
@@ -328,22 +433,27 @@ function createUnidadesSubRow(unidadesDoProduto) {
 function createSalesRow(product) {
   const template = DOM.salesRowTemplate.content.cloneNode(true);
   const row = template.querySelector('tr');
-  
+
   row.querySelector('.sale-name').textContent = `${product.brand} ${product.model}`;
-  row.querySelector('.sale-color').textContent = product.color;
-  row.querySelector('.sale-stock').textContent = product.quantity;
+  row.querySelector('.sale-color').innerHTML = `<span class="table-color-dot" style="background:${CORES_MAPA[product.color] || 'var(--bg-tertiary)'}"></span>${product.color}`;
+  row.querySelector('.sale-stock').innerHTML = renderBadgeEstoque(product.quantity);
   row.querySelector('.sale-price').textContent = formatCurrency(product.price);
-  
+
   const qtyInput = row.querySelector('.sale-qty');
   qtyInput.max = product.quantity;
-  
-  const sellButton = row.querySelector('.sell-button');
-  sellButton.textContent = '💳 Vender';
-  sellButton.addEventListener('click', () => {
+
+  row.querySelector('.sale-qty-increment').addEventListener('click', () => {
+    qtyInput.value = Math.min((Number(qtyInput.value) || 0) + 1, product.quantity);
+  });
+  row.querySelector('.sale-qty-decrement').addEventListener('click', () => {
+    qtyInput.value = Math.max((Number(qtyInput.value) || 0) - 1, 1);
+  });
+
+  row.querySelector('.sell-button').addEventListener('click', () => {
     const amount = Number(qtyInput.value) || 1;
     sellProduct(product.id, amount);
   });
-  
+
   return row;
 }
 
@@ -351,11 +461,8 @@ async function renderProductsTables() {
   DOM.productTableBody.innerHTML = '';
   DOM.salesTableBody.innerHTML = '';
 
-  const idsAparelhos = filteredProducts.filter(p => p.type === 'aparelhos').map(p => p.id);
-  const unidadesPorProduto = await buscarUnidadesPorProdutos(idsAparelhos);
-
   filteredProducts.forEach(product => {
-    const unidadesDoProduto = unidadesPorProduto[product.id] || [];
+    const unidadesDoProduto = unidadesPorProdutoCache[product.id] || [];
     const row = createProductRow(product, unidadesDoProduto);
     DOM.productTableBody.appendChild(row);
 
@@ -367,14 +474,20 @@ async function renderProductsTables() {
         toggleUnidadesSubRow(subRow, e.currentTarget);
       });
     }
+  });
 
+  filteredSalesProducts.forEach(product => {
     DOM.salesTableBody.appendChild(createSalesRow(product));
   });
 
   updateFilterBrands();
   updateFilterResultCount();
+  updateSalesFilterResultCount();
   updateStockCount();
   updateEstoqueEmptyState();
+  renderStatusChips();
+  renderFilterChips();
+  renderVenderFilterChips();
 }
 
 function renderSkeletonRows(quantidade = 3) {
@@ -414,13 +527,22 @@ function getFilterValues() {
 
 function matchesSearchTerm(product, searchTerm) {
   if (!searchTerm) return true;
-  return product.brand.toLowerCase().includes(searchTerm) ||
-         product.model.toLowerCase().includes(searchTerm) ||
-         product.color.toLowerCase().includes(searchTerm);
+
+  if (product.brand.toLowerCase().includes(searchTerm) ||
+      product.model.toLowerCase().includes(searchTerm) ||
+      product.color.toLowerCase().includes(searchTerm)) {
+    return true;
+  }
+
+  const unidades = unidadesPorProdutoCache[product.id] || [];
+  return unidades.some(u =>
+    (u.imei && u.imei.includes(searchTerm)) || (u.imei2 && u.imei2.includes(searchTerm))
+  );
 }
 
 function matchesStockFilter(quantity, filter) {
   if (!filter) return true;
+  if (filter === 'zero') return quantity === 0;
   if (filter === 'low') return quantity >= 1 && quantity <= 5;
   if (filter === 'medium') return quantity >= 6 && quantity <= 20;
   if (filter === 'high') return quantity > 20;
@@ -429,13 +551,25 @@ function matchesStockFilter(quantity, filter) {
 
 function filterProducts() {
   const { search, type, brand, color, stock } = getFilterValues();
-  
+
   return products.filter(product =>
     matchesSearchTerm(product, search) &&
     (!type || product.type === type) &&
     (!brand || product.brand === brand) &&
     (!color || product.color === color) &&
     matchesStockFilter(product.quantity, stock)
+  );
+}
+
+// Filtro da tabela "selecionar produto pra vender" — independente do filtro de Estoque
+// (tabs diferentes, cada um com sua própria busca/marca).
+function filterSalesProducts() {
+  const search = DOM.filterSalesSearch.value.toLowerCase();
+  const brand = DOM.filterSalesBrand.value;
+
+  return products.filter(product =>
+    matchesSearchTerm(product, search) &&
+    (!brand || product.brand === brand)
   );
 }
 
@@ -466,15 +600,101 @@ function ordenarPor(campo) {
 
 async function applyFilters() {
   filteredProducts = ordenarFiltrados(filterProducts());
+  filteredSalesProducts = filterSalesProducts();
   await renderProductsTables();
 }
 
 function clearAllFilters() {
   DOM.filterSearch.value = '';
   DOM.filterType.value = '';
+  sincronizarTypeQuickfilter();
   DOM.filterBrand.value = '';
   DOM.filterColor.value = '';
   DOM.filterStock.value = '';
+  applyFilters();
+}
+
+// ---- Tipo (filtro rápido em ícones) ------------------------------------------
+
+function sincronizarTypeQuickfilter() {
+  const tipoAtivo = DOM.filterType.value;
+  DOM.typeQuickfilterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.type === tipoAtivo));
+}
+
+function selecionarFiltroTipo(tipo) {
+  DOM.filterType.value = (DOM.filterType.value === tipo) ? '' : tipo;
+  sincronizarTypeQuickfilter();
+  applyFilters();
+}
+
+// ---- "Mais filtros" (painel de marca/cor/estoque) ------------------------------
+
+function toggleFiltersPanel(forcarAberto = null) {
+  const abrir = forcarAberto !== null ? forcarAberto : DOM.filtersPanel.classList.contains('hidden');
+  DOM.filtersPanel.classList.toggle('hidden', !abrir);
+  DOM.filtersToggleBtn.classList.toggle('active', abrir);
+}
+
+// ---- Chips de filtro ativo (marca/cor/estoque/tipo) ----------------------------
+
+function renderFilterChips() {
+  const chips = [];
+
+  if (DOM.filterType.value) {
+    chips.push({ label: `Tipo: ${TIPO_LABELS[DOM.filterType.value] || DOM.filterType.value}`, limpar: () => selecionarFiltroTipo(DOM.filterType.value) });
+  }
+  if (DOM.filterBrand.value) {
+    chips.push({ label: `Marca: ${DOM.filterBrand.value}`, limpar: () => { DOM.filterBrand.value = ''; applyFilters(); } });
+  }
+  if (DOM.filterColor.value) {
+    chips.push({ label: `Cor: ${DOM.filterColor.value}`, limpar: () => { DOM.filterColor.value = ''; applyFilters(); } });
+  }
+  if (DOM.filterStock.value) {
+    chips.push({ label: `Estoque: ${STOCK_FILTER_LABELS[DOM.filterStock.value] || DOM.filterStock.value}`, limpar: () => { DOM.filterStock.value = ''; applyFilters(); } });
+  }
+
+  if (!chips.length) {
+    DOM.filtersChips.classList.add('hidden');
+    DOM.filtersChips.innerHTML = '';
+    return;
+  }
+
+  DOM.filtersChips.classList.remove('hidden');
+  DOM.filtersChips.innerHTML = chips.map((chip, i) => `
+    <span class="filter-chip" data-chip-index="${i}">
+      ${chip.label}
+      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
+    </span>
+  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all">Limpar tudo</button>`;
+
+  DOM.filtersChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
+    btn.addEventListener('click', () => chips[i].limpar());
+  });
+  document.getElementById('filter-chip-clear-all').addEventListener('click', clearAllFilters);
+
+  // Se algum filtro do painel "Mais filtros" estiver ativo, deixa o painel já aberto.
+  if (DOM.filterBrand.value || DOM.filterColor.value || DOM.filterStock.value) {
+    toggleFiltersPanel(true);
+  }
+}
+
+// ---- Chips de atalho por status (acima da tabela) ------------------------------
+
+function renderStatusChips() {
+  const total = products.length;
+  const baixo = products.filter(p => p.quantity >= 1 && p.quantity <= 5).length;
+  const zerado = products.filter(p => p.quantity === 0).length;
+  const stockAtivo = DOM.filterStock.value;
+
+  DOM.statusChips.innerHTML = `
+    <button type="button" class="status-chip ${!stockAtivo ? 'active' : ''}" data-stock="">Todos <span class="status-chip-count">${total}</span></button>
+    <button type="button" class="status-chip ${stockAtivo === 'low' ? 'active' : ''}" data-stock="low">Estoque baixo <span class="status-chip-count">${baixo}</span></button>
+    <button type="button" class="status-chip ${stockAtivo === 'zero' ? 'active' : ''}" data-stock="zero">Sem estoque <span class="status-chip-count">${zerado}</span></button>
+  `;
+}
+
+function selecionarChipStatus(valor) {
+  DOM.filterStock.value = valor;
   applyFilters();
 }
 
@@ -482,6 +702,36 @@ function clearSalesFilters() {
   DOM.filterSalesSearch.value = '';
   DOM.filterSalesBrand.value = '';
   applyFilters();
+}
+
+function renderVenderFilterChips() {
+  const chips = [];
+
+  if (DOM.filterSalesSearch.value) {
+    chips.push({ label: `Busca: "${DOM.filterSalesSearch.value}"`, limpar: () => { DOM.filterSalesSearch.value = ''; applyFilters(); } });
+  }
+  if (DOM.filterSalesBrand.value) {
+    chips.push({ label: `Marca: ${DOM.filterSalesBrand.value}`, limpar: () => { DOM.filterSalesBrand.value = ''; applyFilters(); } });
+  }
+
+  if (!chips.length) {
+    DOM.filtersSalesChips.classList.add('hidden');
+    DOM.filtersSalesChips.innerHTML = '';
+    return;
+  }
+
+  DOM.filtersSalesChips.classList.remove('hidden');
+  DOM.filtersSalesChips.innerHTML = chips.map((chip, i) => `
+    <span class="filter-chip" data-chip-index="${i}">
+      ${chip.label}
+      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
+    </span>
+  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-vendas">Limpar tudo</button>`;
+
+  DOM.filtersSalesChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
+    btn.addEventListener('click', () => chips[i].limpar());
+  });
+  document.getElementById('filter-chip-clear-all-vendas').addEventListener('click', clearSalesFilters);
 }
 
 function updateFilterBrands() {
@@ -505,15 +755,27 @@ function updateFilterResultCount() {
   const total = products.length;
   const hasFilter = count < total && total > 0;
   const isEmpty = count === 0 && total > 0;
-  
+
   let text = '';
   if (hasFilter) text = `${count} de ${total} produtos`;
   if (isEmpty) text = 'Nenhum produto encontrado';
-  
-  [DOM.filterResultCount, DOM.salesFilterResultCount].forEach(el => {
-    el.textContent = text;
-    el.classList.toggle('active', text !== '');
-  });
+
+  DOM.filterResultCount.textContent = text;
+  DOM.filterResultCount.classList.toggle('active', text !== '');
+}
+
+function updateSalesFilterResultCount() {
+  const count = filteredSalesProducts.length;
+  const total = products.length;
+  const hasFilter = count < total && total > 0;
+  const isEmpty = count === 0 && total > 0;
+
+  let text = '';
+  if (hasFilter) text = `${count} de ${total} produtos`;
+  if (isEmpty) text = 'Nenhum produto encontrado';
+
+  DOM.salesFilterResultCount.textContent = text;
+  DOM.salesFilterResultCount.classList.toggle('active', text !== '');
 }
 
 // ============================================
@@ -561,21 +823,115 @@ function validarImei(imei) {
   return /^\d{15}$/.test(imei);
 }
 
+// IDs (uuid) das unidades que já existiam no banco quando o formulário foi aberto pra
+// edição — usado em salvarUnidades() pra saber quais linhas foram removidas no form e
+// precisam ser apagadas do banco também (em vez de só inserir tudo de novo).
+let unidadeIdsCarregadas = [];
+
+// Tipo selecionado antes da última troca — usado por handleTypeChange() pra saber se
+// está saindo de 'aparelhos' com IMEIs já digitados (e precisa confirmar o descarte).
+let tipoAnteriorDoForm = 'aparelhos';
+
 function toggleUnidadesSection() {
   const ehAparelho = DOM.formInputs.type.value === 'aparelhos';
   DOM.unidadesSection.classList.toggle('hidden', !ehAparelho);
 }
 
-function criarBlocoUnidade() {
+function handleTypeChange() {
+  const novoTipo = DOM.formInputs.type.value;
+  const totalImeisPreenchidos = contarImeisValidosNoForm();
+
+  if (tipoAnteriorDoForm === 'aparelhos' && novoTipo !== 'aparelhos' && totalImeisPreenchidos > 0) {
+    DOM.formInputs.type.value = 'aparelhos';
+    sincronizarTypeSelector();
+
+    abrirModalConfirmacao({
+      titulo: 'Descartar IMEIs cadastrados?',
+      mensagem: `Você já preencheu ${totalImeisPreenchidos} ${pluralize(totalImeisPreenchidos, 'IMEI', 'IMEIs')} nesse formulário. Trocar o tipo do produto vai descartá-los. Deseja continuar?`,
+      textoConfirmar: 'Descartar e trocar',
+      aoConfirmar: () => {
+        DOM.formInputs.type.value = novoTipo;
+        sincronizarTypeSelector();
+        tipoAnteriorDoForm = novoTipo;
+        limparUnidadesForm();
+        toggleUnidadesSection();
+        atualizarPreview();
+      },
+    });
+    return;
+  }
+
+  tipoAnteriorDoForm = novoTipo;
+  toggleUnidadesSection();
+  atualizarStatusUnidades();
+  atualizarPreview();
+}
+
+function contarImeisValidosNoForm() {
+  const blocos = DOM.unidadesContainer.querySelectorAll('.unidade-block');
+  let total = 0;
+  blocos.forEach(bloco => {
+    if (bloco.querySelector('.unidade-imei').value.trim()) total++;
+  });
+  return total;
+}
+
+function atualizarStatusUnidades() {
+  if (DOM.formInputs.type.value !== 'aparelhos') {
+    DOM.unidadesStatus.textContent = '';
+    DOM.unidadesStatus.className = 'unidades-status hidden';
+    return;
+  }
+
+  const quantidade = Number(DOM.formInputs.quantity.value) || 0;
+  const cadastrados = contarImeisValidosNoForm();
+  const faltam = quantidade - cadastrados;
+
+  DOM.unidadesStatus.classList.remove('hidden');
+
+  if (quantidade === 0) {
+    DOM.unidadesStatus.textContent = 'Informe a quantidade em estoque para saber quantos IMEIs cadastrar.';
+    DOM.unidadesStatus.className = 'unidades-status unidades-status--neutro';
+  } else if (faltam > 0) {
+    DOM.unidadesStatus.textContent = `Adicione mais ${faltam} ${pluralize(faltam, 'IMEI', 'IMEIs')} para completar a quantidade em estoque (${cadastrados} de ${quantidade} cadastrados).`;
+    DOM.unidadesStatus.className = 'unidades-status unidades-status--pendente';
+  } else if (faltam < 0) {
+    const excedente = Math.abs(faltam);
+    DOM.unidadesStatus.textContent = `Você cadastrou ${cadastrados} IMEIs, mas a quantidade em estoque é ${quantidade}. Remova ${excedente} ${pluralize(excedente, 'unidade', 'unidades')} ou ajuste a quantidade.`;
+    DOM.unidadesStatus.className = 'unidades-status unidades-status--pendente';
+  } else {
+    DOM.unidadesStatus.textContent = `✓ ${cadastrados} de ${quantidade} IMEIs cadastrados.`;
+    DOM.unidadesStatus.className = 'unidades-status unidades-status--ok';
+  }
+}
+
+function criarBlocoUnidade(unidadeExistente = null) {
   const bloco = DOM.unidadeTemplate.content.cloneNode(true);
+  const elBloco = bloco.querySelector('.unidade-block');
+
+  if (unidadeExistente) {
+    elBloco.dataset.unidadeId = unidadeExistente.id;
+    bloco.querySelector('.unidade-imei').value = unidadeExistente.imei || '';
+    bloco.querySelector('.unidade-imei2').value = unidadeExistente.imei2 || '';
+    bloco.querySelector('.unidade-grade').value = unidadeExistente.grade || 'novo';
+    bloco.querySelector('.unidade-saude-bateria').value = unidadeExistente.saude_bateria ?? '';
+    bloco.querySelector('.unidade-origem').value = unidadeExistente.origem || 'compra_fornecedor';
+    bloco.querySelector('.unidade-nota-fiscal').value = unidadeExistente.nota_fiscal_fornecedor || '';
+    bloco.querySelector('.unidade-garantia').value = unidadeExistente.garantia_fornecedor_ate || '';
+  }
+
   bloco.querySelector('.unidade-remove-btn').addEventListener('click', (e) => {
     e.target.closest('.unidade-block').remove();
+    atualizarStatusUnidades();
   });
+
   DOM.unidadesContainer.appendChild(bloco);
+  atualizarStatusUnidades();
 }
 
 function limparUnidadesForm() {
   DOM.unidadesContainer.innerHTML = '';
+  unidadeIdsCarregadas = [];
 }
 
 function coletarUnidadesDoForm() {
@@ -602,6 +958,7 @@ function coletarUnidadesDoForm() {
     const garantia = bloco.querySelector('.unidade-garantia').value;
 
     unidades.push({
+      id: bloco.dataset.unidadeId || null,
       imei,
       imei2: imei2 || null,
       grade: bloco.querySelector('.unidade-grade').value,
@@ -615,15 +972,54 @@ function coletarUnidadesDoForm() {
   return unidades;
 }
 
-async function inserirUnidades(produtoId, unidades) {
-  if (!unidades.length) return true;
+async function verificarImeisDuplicados(imeis, produtoIdExcluir) {
+  if (!imeis.length) return [];
 
-  const linhas = unidades.map(u => ({ ...u, produto_id: produtoId, loja_id: lojaAtual.id }));
-  const { error } = await supabaseClient.from('unidades_produto').insert(linhas);
+  const { data, error } = await supabaseClient
+    .from('unidades_produto')
+    .select('imei, produto_id')
+    .eq('loja_id', lojaAtual.id)
+    .in('imei', imeis);
 
-  if (error) {
-    showToast('❌ Produto salvo, mas houve erro ao salvar as unidades com IMEI.', 'error');
-    return false;
+  if (error) return [];
+
+  return [...new Set(
+    data.filter(u => u.produto_id !== produtoIdExcluir).map(u => u.imei)
+  )];
+}
+
+async function salvarUnidades(produtoId, unidades) {
+  const idsAtuais = unidades.filter(u => u.id).map(u => u.id);
+  const idsRemovidos = unidadeIdsCarregadas.filter(id => !idsAtuais.includes(id));
+
+  if (idsRemovidos.length) {
+    const { error } = await supabaseClient.from('unidades_produto').delete().in('id', idsRemovidos);
+    if (error) {
+      showToast('❌ Produto salvo, mas houve erro ao remover unidades excluídas.', 'error');
+      return false;
+    }
+  }
+
+  const novas = unidades
+    .filter(u => !u.id)
+    .map(({ id, ...resto }) => ({ ...resto, produto_id: produtoId, loja_id: lojaAtual.id }));
+
+  if (novas.length) {
+    const { error } = await supabaseClient.from('unidades_produto').insert(novas);
+    if (error) {
+      showToast('❌ Produto salvo, mas houve erro ao salvar as unidades com IMEI.', 'error');
+      return false;
+    }
+  }
+
+  const existentes = unidades.filter(u => u.id);
+  for (const unidade of existentes) {
+    const { id, ...campos } = unidade;
+    const { error } = await supabaseClient.from('unidades_produto').update(campos).eq('id', id);
+    if (error) {
+      showToast('❌ Produto salvo, mas houve erro ao atualizar uma unidade com IMEI.', 'error');
+      return false;
+    }
   }
 
   return true;
@@ -664,6 +1060,7 @@ async function atualizarStatusAnatel(unidadeId, novoStatus) {
   }
 
   showToast('✅ Status Anatel atualizado.', 'success');
+  await refrescarUnidadesCache();
   await applyFilters();
 }
 
@@ -677,13 +1074,6 @@ const GRADE_LABELS = {
   seminovo_b: 'Seminovo B',
   seminovo_c: 'Seminovo C',
   usado: 'Usado',
-};
-
-const STATUS_VENDA_LABELS = {
-  disponivel: 'Disponível',
-  vendido: 'Vendido',
-  em_reparo: 'Em reparo',
-  reservado: 'Reservado',
 };
 
 function renderUnidadesSubTable(unidades) {
@@ -706,7 +1096,7 @@ function renderUnidadesSubTable(unidades) {
           </select>
         </div>
       </td>
-      <td>${STATUS_VENDA_LABELS[u.status_venda] || u.status_venda}</td>
+      <td><span class="badge-estoque ok">Em estoque</span></td>
     </tr>
   `).join('');
 
@@ -758,6 +1148,99 @@ function toggleUnidadesSubRow(subRow, botao) {
 // FORM OPERATIONS
 // ============================================
 
+// ---- Tipo (seletor visual) --------------------------------------------------
+
+function sincronizarTypeSelector() {
+  const tipoAtual = DOM.formInputs.type.value;
+  DOM.typeOptions.forEach(btn => btn.classList.toggle('active', btn.dataset.type === tipoAtual));
+}
+
+function selecionarTipo(tipo) {
+  if (DOM.formInputs.type.value === tipo) return;
+  DOM.formInputs.type.value = tipo;
+  sincronizarTypeSelector();
+  DOM.formInputs.type.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// ---- Cor (paleta de bolinhas) -----------------------------------------------
+
+function renderColorPalette() {
+  DOM.colorPalette.innerHTML = Object.keys(CORES_MAPA).map(nome => `
+    <button type="button" class="color-swatch-btn" data-color="${nome}" title="${nome}">
+      <span class="color-swatch" style="background:${CORES_MAPA[nome]}"></span>
+      <span class="color-swatch-label">${nome}</span>
+    </button>
+  `).join('');
+}
+
+function sincronizarColorPalette() {
+  const corAtual = DOM.formInputs.color.value;
+  DOM.colorPalette.querySelectorAll('.color-swatch-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.color === corAtual);
+  });
+}
+
+function selecionarCor(cor) {
+  DOM.formInputs.color.value = cor;
+  sincronizarColorPalette();
+  DOM.formInputs.color.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// ---- Prévia ao vivo -----------------------------------------------------------
+
+function atualizarPreview() {
+  const brand = DOM.formInputs.brand.value.trim();
+  const model = DOM.formInputs.model.value.trim();
+  const color = DOM.formInputs.color.value;
+  const type = DOM.formInputs.type.value;
+  const price = parsePriceValue(DOM.formInputs.price.value);
+
+  const temNome = Boolean(brand && model);
+  DOM.previewName.textContent = temNome ? `${brand} ${model}` : 'Marca e modelo';
+  DOM.previewName.classList.toggle('preview-placeholder', !temNome);
+
+  const metaPartes = [color, TIPO_LABELS[type]].filter(Boolean);
+  DOM.previewMeta.textContent = metaPartes.length ? metaPartes.join(' · ') : 'Cor e tipo';
+  DOM.previewMeta.classList.toggle('preview-placeholder', metaPartes.length === 0);
+
+  DOM.previewPrice.textContent = formatCurrency(price || 0);
+}
+
+// ---- Aviso de produto duplicado -----------------------------------------------
+
+function verificarProdutoDuplicado() {
+  const brand = DOM.formInputs.brand.value.trim();
+  const model = DOM.formInputs.model.value.trim();
+  const color = DOM.formInputs.color.value;
+
+  if (!brand || !model || !color) {
+    DOM.duplicateWarning.classList.add('hidden');
+    return;
+  }
+
+  const existente = products.find(p =>
+    p.brand === brand && p.model === model && p.color === color && p.id !== editingId
+  );
+
+  if (!existente) {
+    DOM.duplicateWarning.classList.add('hidden');
+    return;
+  }
+
+  DOM.duplicateWarning.innerHTML = `
+    <i class="ti ti-alert-circle"></i>
+    <span>Já existe um produto com essa marca, modelo e cor no estoque — quantidade atual: <strong>${existente.quantity}</strong> ${pluralize(existente.quantity, 'unidade')}.</span>
+    <button type="button" class="duplicate-warning-link" id="duplicate-warning-link">Editar produto existente</button>
+  `;
+  DOM.duplicateWarning.classList.remove('hidden');
+  DOM.duplicateWarning.querySelector('#duplicate-warning-link').addEventListener('click', () => startEditProduct(existente.id));
+}
+
+function atualizarPreviewEDuplicidade() {
+  atualizarPreview();
+  verificarProdutoDuplicado();
+}
+
 function updateModelOptions() {
   const brand = DOM.formInputs.brand.value;
   const models = BRAND_MODELS[brand] || [];
@@ -795,28 +1278,46 @@ function resetForm() {
   document.getElementById('save-button').textContent = '✓ Salvar produto';
   limparUnidadesForm();
   toggleUnidadesSection();
+  tipoAnteriorDoForm = DOM.formInputs.type.value;
+  sincronizarTypeSelector();
+  sincronizarColorPalette();
+  atualizarStatusUnidades();
+  atualizarPreviewEDuplicidade();
 }
 
-function fillForm(product) {
+async function fillForm(product) {
   DOM.formInputs.type.value = product.type;
+  sincronizarTypeSelector();
   DOM.formInputs.brand.value = product.brand;
   updateModelOptions();
   DOM.formInputs.model.value = product.model;
   DOM.formInputs.color.value = product.color || '';
+  sincronizarColorPalette();
   DOM.formInputs.manufacture.value = product.manufacture;
   DOM.formInputs.price.value = formatPriceInput(product.price);
   DOM.formInputs.quantity.value = product.quantity;
   DOM.formInputs.notes.value = product.notes || '';
   limparUnidadesForm();
   toggleUnidadesSection();
+  tipoAnteriorDoForm = product.type;
+
+  if (product.type === 'aparelhos') {
+    const unidadesPorProduto = await buscarUnidadesPorProdutos([product.id]);
+    const unidadesExistentes = unidadesPorProduto[product.id] || [];
+    unidadeIdsCarregadas = unidadesExistentes.map(u => u.id);
+    unidadesExistentes.forEach(u => criarBlocoUnidade(u));
+  }
+
+  atualizarStatusUnidades();
+  atualizarPreviewEDuplicidade();
 }
 
-function startEditProduct(id) {
+async function startEditProduct(id) {
   const product = products.find(p => p.id === id);
   if (!product) return;
-  
+
   editingId = id;
-  fillForm(product);
+  await fillForm(product);
   document.getElementById('save-button').textContent = '↻ Atualizar produto';
   DOM.cancelEditBtn.classList.remove('hidden');
   changeTab('cadastro');
@@ -840,6 +1341,11 @@ async function handleFormSubmit(event) {
     return;
   }
 
+  if (!DOM.formInputs.color.value) {
+    showToast('❌ Selecione uma cor.', 'error');
+    return;
+  }
+
   const productData = {
     type,
     brand,
@@ -860,17 +1366,41 @@ async function handleFormSubmit(event) {
   if (type === 'aparelhos') {
     unidades = coletarUnidadesDoForm();
     if (unidades === null) return;
+
+    if (unidades.length !== productData.quantity) {
+      atualizarStatusUnidades();
+      const faltam = productData.quantity - unidades.length;
+      if (faltam > 0) {
+        showToast(`❌ Adicione mais ${faltam} ${pluralize(faltam, 'IMEI', 'IMEIs')} para completar a quantidade em estoque (${unidades.length} de ${productData.quantity} cadastrados).`, 'error');
+      } else {
+        const excedente = Math.abs(faltam);
+        showToast(`❌ Você cadastrou ${unidades.length} IMEIs, mas a quantidade em estoque é ${productData.quantity}. Remova ${excedente} ${pluralize(excedente, 'unidade', 'unidades')} ou ajuste a quantidade.`, 'error');
+      }
+      return;
+    }
+
+    const imeis = unidades.map(u => u.imei);
+    if (new Set(imeis).size !== imeis.length) {
+      showToast('❌ Há IMEIs duplicados nesse formulário. Cada unidade precisa de um IMEI único.', 'error');
+      return;
+    }
+
+    const duplicadosNoBanco = await verificarImeisDuplicados(imeis, editingId);
+    if (duplicadosNoBanco.length) {
+      showToast(`❌ IMEI já cadastrado em outro produto: ${duplicadosNoBanco[0]}.`, 'error');
+      return;
+    }
   }
 
   if (editingId) {
     const ok = await updateProductRow(editingId, productData);
     if (!ok) return;
-    if (unidades.length) await inserirUnidades(editingId, unidades);
+    if (type === 'aparelhos') await salvarUnidades(editingId, unidades);
     showToast(`✅ ${brand} ${model} atualizado!`, 'success');
   } else {
     const created = await insertProduct(productData);
     if (!created) return;
-    if (unidades.length) await inserirUnidades(created.id, unidades);
+    if (type === 'aparelhos') await salvarUnidades(created.id, unidades);
     showToast(`✅ ${brand} ${model} cadastrado!`, 'success');
   }
 
@@ -916,15 +1446,26 @@ async function sellProduct(id, amount) {
     showToast('❌ Quantidade maior que estoque.', 'error');
     return;
   }
-  
-  const novaQuantidade = product.quantity - amount;
-  const ok = await updateProductRow(id, { quantity: novaQuantidade });
-  if (!ok) return;
+
+  // registrar_venda (RPC, sql/008_movimentacoes_estoque.sql) faz o decremento de estoque e o
+  // lançamento no livro-caixa como uma operação atômica só (select ... for update + insert),
+  // evitando a corrida que existia aqui quando sellProduct fazia select e update em duas
+  // chamadas separadas.
+  const { data: movimentacao, error } = await supabaseClient.rpc('registrar_venda', {
+    p_produto_id: id,
+    p_quantidade: amount,
+  });
+
+  if (error) {
+    showToast('❌ Erro ao registrar a venda.', 'error');
+    return;
+  }
 
   await loadProducts();
   applyFilters();
   updateDashboard();
-  showToast(`✅ ${amount}x ${product.brand} ${product.model} vendido!`, 'success');
+  await atualizarAbaVendas();
+  abrirModalRecibo(movimentacao, product);
 }
 
 // ============================================
@@ -948,7 +1489,7 @@ function corVar(nomeVariavel, fallback) {
 }
 
 function renderDashboardSkeleton() {
-  [DOM.dashTotal, DOM.dashValue, DOM.dashLow, DOM.dashZero, DOM.dashImeiImpedido].forEach(el => {
+  [DOM.dashTotal, DOM.dashValue, DOM.dashVendasHoje, DOM.dashTicketMedio, DOM.dashImeiImpedido].forEach(el => {
     el.classList.add('loading');
   });
 }
@@ -969,95 +1510,687 @@ function animarContagem(elemento, valorFinal, formatar = (v) => Math.round(v).to
   requestAnimationFrame(passo);
 }
 
-function renderBrandChart(brandCounts) {
-  const marcas = Object.keys(brandCounts);
-  const valores = Object.values(brandCounts);
+// ============================================
+// DISCO DO COFRE (Vault Dial)
+// ============================================
+// Gauge circular em SVG puro (sem dependência nova): três arcos proporcionais a
+// saudável/baixo/zerado. É o elemento de assinatura do dashboard, não decorativo —
+// muda de verdade conforme o estoque muda.
 
-  if (brandChartInstance) brandChartInstance.destroy();
+function renderVaultDial(container, { saudavel, baixo, zerado }) {
+  const total = saudavel + baixo + zerado;
+  const pct = (n) => (total ? (n / total) * 100 : 0);
+  const pctSaudavel = pct(saudavel);
+  const pctBaixo = pct(baixo);
+  const pctZerado = pct(zerado);
 
-  brandChartInstance = new Chart(DOM.brandChartCanvas, {
-    type: 'doughnut',
-    data: {
-      labels: marcas,
-      datasets: [{
-        data: valores,
-        backgroundColor: [corVar('--color-primary', '#6366f1'), corVar('--color-secondary', '#8b5cf6'), corVar('--color-success', '#10b981'), corVar('--color-warning', '#f59e0b'), corVar('--color-info', '#3b82f6'), corVar('--color-danger', '#ef4444')],
-        borderWidth: 0,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: corVar('--text-secondary', '#6b7280') } } },
-    },
-  });
+  const size = 176;
+  const strokeWidth = 16;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+
+  const arc = (percent, offsetPercent, color) => {
+    if (percent <= 0) return '';
+    const length = (percent / 100) * circumference;
+    const gap = circumference - length;
+    const rotation = (offsetPercent / 100) * 360 - 90;
+    return `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${length} ${gap}" stroke-linecap="round" transform="rotate(${rotation} ${center} ${center})"></circle>`;
+  };
+
+  let cursor = 0;
+  const corSaudavel = corVar('--color-secondary', '#22D3C5');
+  const corBaixo = corVar('--color-warning', '#F5A623');
+  const corZerado = corVar('--color-danger', '#FF5C7A');
+
+  const arcoSaudavel = arc(pctSaudavel, cursor, corSaudavel);
+  cursor += pctSaudavel;
+  const arcoBaixo = arc(pctBaixo, cursor, corBaixo);
+  cursor += pctBaixo;
+  const arcoZerado = arc(pctZerado, cursor, corZerado);
+
+  // Texto central: mostra o status que domina a distribuição agora (não sempre
+  // "saudável"). Em empate, prioriza o pior dos empatados — mais importante chamar
+  // atenção pra um problema real do que esconder atrás de um "saudável" que empatou.
+  const statusPorPrioridade = [
+    { pct: pctZerado, label: 'sem estoque', cor: corZerado },
+    { pct: pctBaixo, label: 'baixo', cor: corBaixo },
+    { pct: pctSaudavel, label: 'saudável', cor: corSaudavel },
+  ];
+  const maiorPct = Math.max(pctZerado, pctBaixo, pctSaudavel);
+  const dominante = statusPorPrioridade.find(s => s.pct === maiorPct);
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="${Math.round(dominante.pct)}% do estoque está ${dominante.label}">
+      <circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="var(--border-color)" stroke-width="${strokeWidth}"></circle>
+      ${arcoSaudavel}${arcoBaixo}${arcoZerado}
+      <text x="${center}" y="${center - 2}" text-anchor="middle" class="vault-dial-value" fill="${dominante.cor}">${Math.round(dominante.pct)}%</text>
+      <text x="${center}" y="${center + 20}" text-anchor="middle" class="vault-dial-caption" fill="${dominante.cor}">${dominante.label}</text>
+    </svg>
+  `;
 }
 
-async function buscarDistribuicaoStatusVenda() {
+function renderVaultDialLegend(container, { saudavel, baixo, zerado }) {
+  const total = saudavel + baixo + zerado;
+  const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+
+  container.innerHTML = `
+    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-secondary', '#22D3C5')}"></span>Estoque saudável <strong>${pct(saudavel)}%</strong></div>
+    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-warning', '#F5A623')}"></span>Estoque baixo <strong>${pct(baixo)}%</strong></div>
+    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-danger', '#FF5C7A')}"></span>Sem estoque <strong>${pct(zerado)}%</strong></div>
+  `;
+}
+
+// ============================================
+// VENDAS (livro-caixa — movimentacoes_estoque)
+// ============================================
+
+function inicioDoDiaISO(diasAtras = 0) {
+  const data = new Date();
+  data.setHours(0, 0, 0, 0);
+  data.setDate(data.getDate() - diasAtras);
+  return data.toISOString();
+}
+
+async function buscarVendasHojeEOntem() {
+  const vazio = { hoje: { quantidade: 0, valor: 0 }, ontem: { valor: 0 } };
+
   const { data, error } = await supabaseClient
-    .from('unidades_produto')
-    .select('status_venda')
-    .eq('loja_id', lojaAtual.id);
-  if (error) return {};
+    .from('movimentacoes_estoque')
+    .select('quantidade, total, created_at')
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .gte('created_at', inicioDoDiaISO(1));
 
-  const contagem = {};
-  data.forEach(u => {
-    contagem[u.status_venda] = (contagem[u.status_venda] || 0) + 1;
-  });
-  return contagem;
+  if (error) return vazio;
+
+  const hojeChave = new Date().toDateString();
+  const ontemChave = new Date(Date.now() - 86400000).toDateString();
+
+  return data.reduce((acc, m) => {
+    const chave = new Date(m.created_at).toDateString();
+    const valor = Number(m.total) || 0;
+    if (chave === hojeChave) {
+      acc.hoje.quantidade += Math.abs(m.quantidade);
+      acc.hoje.valor += valor;
+    } else if (chave === ontemChave) {
+      acc.ontem.valor += valor;
+    }
+    return acc;
+  }, vazio);
 }
 
-function renderStatusVendaChart(contagem) {
-  const chaves = Object.keys(contagem);
-  const labels = chaves.map(k => STATUS_VENDA_LABELS[k] || k);
-  const valores = Object.values(contagem);
+function renderVendasHojeTrend(hoje, ontem) {
+  const el = DOM.dashVendasHojeTrend;
 
-  if (statusVendaChartInstance) statusVendaChartInstance.destroy();
+  if (!ontem || ontem <= 0) {
+    el.classList.add('hidden');
+    return;
+  }
 
-  statusVendaChartInstance = new Chart(DOM.statusVendaChartCanvas, {
-    type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{
-        data: valores,
-        backgroundColor: [corVar('--color-success', '#10b981'), corVar('--color-info', '#3b82f6'), corVar('--color-warning', '#f59e0b'), corVar('--color-neutral', '#475569')],
-        borderWidth: 0,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: corVar('--text-secondary', '#6b7280') } } },
-    },
+  const variacao = ((hoje - ontem) / ontem) * 100;
+  const alta = variacao >= 0;
+
+  el.classList.remove('hidden');
+  el.classList.toggle('dashboard-trend--alta', alta);
+  el.classList.toggle('dashboard-trend--queda', !alta);
+  el.innerHTML = `
+    <span class="dashboard-trend-arrow">${alta ? '▲' : '▼'}</span>
+    <span class="dashboard-trend-pct">${Math.abs(Math.round(variacao))}%</span>
+    <span class="dashboard-trend-label">vs. ontem</span>
+  `;
+}
+
+async function buscarTicketMedio() {
+  const { data, error } = await supabaseClient
+    .from('movimentacoes_estoque')
+    .select('total')
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .gte('created_at', inicioDoDiaISO(30));
+
+  if (error || !data.length) return 0;
+
+  const soma = data.reduce((acc, m) => acc + (Number(m.total) || 0), 0);
+  return soma / data.length;
+}
+
+async function buscarVendas7Dias() {
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const data = new Date();
+    data.setDate(data.getDate() - i);
+    dias.push({
+      chave: data.toDateString(),
+      label: data.toLocaleDateString('pt-BR', { weekday: 'short' }),
+      labelCompleto: data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      total: 0,
+    });
+  }
+
+  const { data, error } = await supabaseClient
+    .from('movimentacoes_estoque')
+    .select('total, created_at')
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .gte('created_at', inicioDoDiaISO(6));
+
+  if (!error) {
+    data.forEach(m => {
+      const chave = new Date(m.created_at).toDateString();
+      const dia = dias.find(d => d.chave === chave);
+      if (dia) dia.total += Number(m.total) || 0;
+    });
+  }
+
+  return dias;
+}
+
+function renderTop5MarcasValorList() {
+  if (!products.length) {
+    DOM.dashboardBrandlist.innerHTML = '';
+    DOM.dashboardBrandlistEmpty.classList.remove('hidden');
+    return;
+  }
+
+  DOM.dashboardBrandlistEmpty.classList.add('hidden');
+
+  const valorPorMarca = {};
+  products.forEach(p => {
+    valorPorMarca[p.brand] = (valorPorMarca[p.brand] || 0) + p.price * p.quantity;
+  });
+
+  const top5 = Object.entries(valorPorMarca).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maiorValor = top5.length ? top5[0][1] : 0;
+
+  DOM.dashboardBrandlist.innerHTML = top5.map(([marca, valor]) => {
+    const largura = maiorValor ? Math.max((valor / maiorValor) * 100, 4) : 0;
+    return `
+      <div class="dashboard-brandlist-row">
+        <div class="dashboard-brandlist-info">
+          <span class="dashboard-brandlist-name">${marca}</span>
+          <span class="dashboard-brandlist-value">${formatCurrency(valor)}</span>
+        </div>
+        <div class="dashboard-brandlist-bar-track">
+          <div class="dashboard-brandlist-bar" style="width:${largura}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Alinha os rótulos (dia da semana / valor em destaque) sem deixar a metade do texto
+// vazar pra fora do card nas duas pontas — centralizado no meio, ancorado nas bordas.
+function alinhamentoBordaSegura(indice, total) {
+  if (indice === 0) return { left: '0%', transform: 'translateX(0)' };
+  if (indice === total - 1) return { left: '100%', transform: 'translateX(-100%)' };
+  return { left: `${(indice / (total - 1)) * 100}%`, transform: 'translateX(-50%)' };
+}
+
+function renderVendas7DiasChart(dias) {
+  const valores = dias.map(d => Number(d.total) || 0);
+  const maiorValor = Math.max(...valores, 0);
+  const semVendas = maiorValor === 0;
+
+  const indicesPico = semVendas
+    ? []
+    : valores.reduce((acc, v, i) => (v === maiorValor ? [...acc, i] : acc), []);
+
+  // Espaço de coordenadas do SVG é fixo (o CSS `aspect-ratio` que escala o desenho pro
+  // tamanho real do card) — evita ter que reler clientWidth ou reagir a resize.
+  const VBW = 700;
+  const VBH = 128;
+  const padX = 26;
+  const padTopoSvg = 12;
+  const padBaseSvg = 10;
+  const baselineY = VBH - padBaseSvg;
+  const alturaPlot = baselineY - padTopoSvg;
+
+  const pontos = dias.map((d, i) => {
+    const valor = valores[i];
+    const xFrac = dias.length > 1 ? i / (dias.length - 1) : 0.5;
+    const x = padX + xFrac * (VBW - padX * 2);
+    const valorFrac = semVendas ? 0 : valor / maiorValor;
+    const y = baselineY - valorFrac * alturaPlot;
+    return { x, y, valor, dia: d };
+  });
+
+  const ptAt = (i) => pontos[Math.max(0, Math.min(pontos.length - 1, i))];
+
+  // Catmull-Rom -> Bézier cúbica (curva suave passando por todos os pontos). O `y` dos
+  // pontos de controle é limitado à baseline pra curva nunca "afundar" abaixo do zero
+  // entre dois dias vizinhos — o que pareceria venda negativa.
+  let curvaPath = `M ${pontos[0].x},${pontos[0].y}`;
+  for (let i = 0; i < pontos.length - 1; i++) {
+    const p0 = ptAt(i - 1), p1 = pontos[i], p2 = pontos[i + 1], p3 = ptAt(i + 2);
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = Math.min(p1.y + (p2.y - p0.y) / 6, baselineY);
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = Math.min(p2.y - (p3.y - p1.y) / 6, baselineY);
+    curvaPath += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+  }
+
+  const ultimo = pontos[pontos.length - 1];
+  const areaPath = `${curvaPath} L ${ultimo.x},${baselineY} L ${pontos[0].x},${baselineY} Z`;
+
+  const circulosSvg = pontos.map((p, i) => {
+    const ehPico = indicesPico.includes(i);
+    return `<circle class="vendas7d-dot${ehPico ? ' vendas7d-dot--peak' : ''}" cx="${p.x}" cy="${p.y}" r="${ehPico ? 6 : 3.5}"><title>${p.dia.labelCompleto}: ${formatCurrency(p.valor)}</title></circle>`;
+  }).join('');
+
+  const picosHtml = indicesPico.map(i => {
+    const { left, transform } = alinhamentoBordaSegura(i, pontos.length);
+    return `<span class="vendas7d-peak-value" style="left:${left};transform:${transform}">${formatCurrency(pontos[i].valor)}</span>`;
+  }).join('');
+
+  const eixoHtml = pontos.map((p, i) => {
+    const ehPico = indicesPico.includes(i);
+    const { left, transform } = alinhamentoBordaSegura(i, pontos.length);
+    return `<span class="vendas7d-axis-label${ehPico ? ' vendas7d-axis-label--peak' : ''}" style="left:${left};transform:${transform}">${p.dia.label}</span>`;
+  }).join('');
+
+  DOM.vendas7dChartContainer.innerHTML = `
+    <div class="vendas7d-topline">${picosHtml}</div>
+    <div class="vendas7d-plot">
+      <svg class="vendas7d-svg" viewBox="0 0 ${VBW} ${VBH}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="vendas7dLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--color-primary)"></stop>
+            <stop offset="100%" stop-color="var(--color-secondary)"></stop>
+          </linearGradient>
+          <linearGradient id="vendas7dAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--color-secondary)" stop-opacity="0.32"></stop>
+            <stop offset="100%" stop-color="var(--color-secondary)" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <line class="vendas7d-baseline" x1="${padX - 6}" y1="${baselineY}" x2="${VBW - padX + 6}" y2="${baselineY}"></line>
+        ${!semVendas ? `<path class="vendas7d-area" d="${areaPath}" fill="url(#vendas7dAreaGrad)"></path>` : ''}
+        <path class="vendas7d-line" d="${curvaPath}" stroke="${semVendas ? 'var(--border-color)' : 'url(#vendas7dLineGrad)'}"></path>
+        ${circulosSvg}
+      </svg>
+    </div>
+    <div class="vendas7d-axis">${eixoHtml}</div>
+    ${semVendas ? '<p class="vendas7d-empty-msg">Nenhuma venda nos últimos 7 dias</p>' : ''}
+  `;
+}
+
+const LOWSTOCK_LIMITE_EXIBICAO = 5;
+
+function renderLowStockList() {
+  const lowStockProducts = products
+    .filter(p => p.quantity >= 1 && p.quantity <= 5)
+    .sort((a, b) => a.quantity - b.quantity);
+
+  DOM.lowStockList.innerHTML = '';
+
+  if (!lowStockProducts.length) {
+    DOM.lowStockCount.classList.add('hidden');
+    DOM.lowStockVerTodos.classList.add('hidden');
+    DOM.lowStockEmpty.classList.remove('hidden');
+    DOM.lowStockEmpty.textContent = products.length === 0
+      ? 'Cadastre seu primeiro produto para ver alertas de estoque aqui.'
+      : 'Nenhum produto com estoque baixo agora. 🎉';
+    return;
+  }
+
+  DOM.lowStockEmpty.classList.add('hidden');
+  DOM.lowStockCount.textContent = `${lowStockProducts.length} ${pluralize(lowStockProducts.length, 'item', 'itens')}`;
+  DOM.lowStockCount.classList.remove('hidden');
+  DOM.lowStockVerTodos.classList.toggle('hidden', lowStockProducts.length <= LOWSTOCK_LIMITE_EXIBICAO);
+
+  lowStockProducts.slice(0, LOWSTOCK_LIMITE_EXIBICAO).forEach(p => {
+    const li = document.createElement('li');
+    li.className = 'dashboard-lowstock-item';
+    li.innerHTML = `
+      <span class="dashboard-lowstock-name">${p.brand} ${p.model}<span class="dashboard-lowstock-color">${p.color || ''}</span></span>
+      <span class="badge-estoque baixo">${p.quantity} un.</span>
+    `;
+    li.addEventListener('click', () => startEditProduct(p.id));
+    DOM.lowStockList.appendChild(li);
   });
 }
 
-function renderTop5Chart() {
-  const top5 = [...products]
-    .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 5);
+function irParaEstoqueBaixo() {
+  DOM.filterStock.value = 'low';
+  applyFilters();
+  changeTab('estoque');
+}
 
-  if (top5ChartInstance) top5ChartInstance.destroy();
+function renderAlertasCard(totalImeiImpedido) {
+  const ativo = totalImeiImpedido > 0;
 
-  top5ChartInstance = new Chart(DOM.top5ChartCanvas, {
-    type: 'bar',
-    data: {
-      labels: top5.map(p => `${p.brand} ${p.model}`),
-      datasets: [{
-        label: 'Quantidade em estoque',
-        data: top5.map(p => p.quantity),
-        backgroundColor: corVar('--color-primary', '#6366f1'),
-        borderRadius: 6,
-      }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
-    },
+  DOM.dashboardAlertasCard.classList.toggle('dashboard-card-alertas--ativo', ativo);
+  DOM.dashboardAlertasIconBox.classList.toggle('dashboard-card-icon-box--danger', ativo);
+  DOM.dashboardAlertasIconBox.classList.toggle('dashboard-card-icon-box--neutro', !ativo);
+  DOM.dashboardAlertasIconBox.innerHTML = ativo
+    ? '<i class="ti ti-alert-triangle"></i>'
+    : '<i class="ti ti-check"></i>';
+
+  if (ativo) {
+    DOM.dashImeiImpedido.classList.remove('hidden');
+    animarContagem(DOM.dashImeiImpedido, totalImeiImpedido);
+    DOM.dashboardAlertasSubtitle.textContent = `${pluralize(totalImeiImpedido, 'unidade')} com IMEI impedido — não negociar`;
+  } else {
+    DOM.dashImeiImpedido.classList.add('hidden');
+    DOM.dashboardAlertasSubtitle.textContent = 'Tudo certo por aqui';
+  }
+}
+
+// ============================================
+// RECIBO DE VENDA
+// ============================================
+
+function formatarDataHora(iso) {
+  return new Date(iso).toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+}
+
+function montarTextoRecibo(mov, produto) {
+  return [
+    '🧾 Recibo de venda — Vault',
+    '',
+    `Produto: ${produto.brand} ${produto.model}${produto.color ? ' - ' + produto.color : ''}`,
+    `Quantidade: ${Math.abs(mov.quantidade)}`,
+    `Preço unitário: ${formatCurrency(mov.preco_unitario)}`,
+    `Total: ${formatCurrency(mov.total)}`,
+    `Data: ${formatarDataHora(mov.created_at)}`,
+  ].join('\n');
+}
+
+function abrirModalRecibo(mov, produto) {
+  const texto = montarTextoRecibo(mov, produto);
+
+  DOM.modalBody.innerHTML = `
+    <h3 class="modal-title">✅ Venda registrada</h3>
+    <div class="recibo-card">
+      <div class="recibo-linha"><span>Produto</span><strong>${produto.brand} ${produto.model}</strong></div>
+      <div class="recibo-linha"><span>Cor</span><strong>${produto.color || '-'}</strong></div>
+      <div class="recibo-linha"><span>Quantidade</span><strong>${Math.abs(mov.quantidade)}</strong></div>
+      <div class="recibo-linha"><span>Preço unitário</span><strong>${formatCurrency(mov.preco_unitario)}</strong></div>
+      <div class="recibo-linha recibo-total"><span>Total</span><strong>${formatCurrency(mov.total)}</strong></div>
+      <div class="recibo-linha recibo-data"><span>${formatarDataHora(mov.created_at)}</span></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="secondary" id="modal-recibo-fechar">Fechar</button>
+      <button type="button" class="primary" id="modal-recibo-copiar">📋 Copiar recibo</button>
+    </div>
+  `;
+
+  DOM.modalBody.querySelector('#modal-recibo-fechar').addEventListener('click', fecharModal);
+  DOM.modalBody.querySelector('#modal-recibo-copiar').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('✅ Recibo copiado!', 'success');
+    } catch {
+      showToast('❌ Não foi possível copiar. Copie manualmente.', 'error');
+    }
+  });
+
+  DOM.modalBackdrop.classList.add('active');
+  DOM.modal.classList.add('active');
+}
+
+// ============================================
+// HISTÓRICO DE VENDAS
+// ============================================
+
+function inicioPeriodoISO(dias) {
+  if (!dias || dias === '0') return null;
+  return inicioDoDiaISO(Number(dias) - 1);
+}
+
+async function carregarHistoricoVendas() {
+  let query = supabaseClient
+    .from('movimentacoes_estoque')
+    .select('*')
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .order('created_at', { ascending: false })
+    .limit(300);
+
+  const desde = inicioPeriodoISO(DOM.filterHistoricoPeriodo.value);
+  if (desde) query = query.gte('created_at', desde);
+
+  const { data, error } = await query;
+  if (error) {
+    showToast('❌ Erro ao carregar histórico de vendas.', 'error');
+    historicoVendas = [];
+    return;
+  }
+
+  historicoVendas = data;
+}
+
+function updateHistoricoBrandFilter() {
+  const marcas = [...new Set(historicoVendas.map(m => m.produto_snapshot?.brand).filter(Boolean))].sort();
+  const select = DOM.filterHistoricoBrand;
+  const atual = select.value;
+
+  select.innerHTML = '<option value="">Todas</option>';
+  marcas.forEach(marca => {
+    const opt = document.createElement('option');
+    opt.value = marca;
+    opt.textContent = marca;
+    select.appendChild(opt);
+  });
+  select.value = atual;
+}
+
+const PERIODO_LABELS = {
+  '7': 'Últimos 7 dias',
+  '30': 'Últimos 30 dias',
+  '90': 'Últimos 90 dias',
+  '0': 'Tudo',
+};
+
+function filtrarHistoricoAtual() {
+  const marca = DOM.filterHistoricoBrand.value;
+  const busca = DOM.filterHistoricoSearch.value.toLowerCase();
+
+  return historicoVendas.filter(m => {
+    const snap = m.produto_snapshot || {};
+    const combinaMarca = !marca || snap.brand === marca;
+    const combinaBusca = !busca ||
+      (snap.brand || '').toLowerCase().includes(busca) ||
+      (snap.model || '').toLowerCase().includes(busca) ||
+      (snap.color || '').toLowerCase().includes(busca);
+    return combinaMarca && combinaBusca;
+  });
+}
+
+function limparFiltrosHistorico() {
+  DOM.filterHistoricoSearch.value = '';
+  DOM.filterHistoricoPeriodo.value = '30';
+  DOM.filterHistoricoBrand.value = '';
+  atualizarAbaVendas();
+}
+
+function renderHistoricoFilterChips() {
+  const chips = [];
+
+  if (DOM.filterHistoricoSearch.value) {
+    chips.push({ label: `Busca: "${DOM.filterHistoricoSearch.value}"`, limpar: () => { DOM.filterHistoricoSearch.value = ''; renderHistoricoVendas(); } });
+  }
+  if (DOM.filterHistoricoBrand.value) {
+    chips.push({ label: `Marca: ${DOM.filterHistoricoBrand.value}`, limpar: () => { DOM.filterHistoricoBrand.value = ''; renderHistoricoVendas(); } });
+  }
+  if (DOM.filterHistoricoPeriodo.value !== '30') {
+    chips.push({
+      label: `Período: ${PERIODO_LABELS[DOM.filterHistoricoPeriodo.value] || DOM.filterHistoricoPeriodo.value}`,
+      limpar: async () => {
+        DOM.filterHistoricoPeriodo.value = '30';
+        await carregarHistoricoVendas();
+        updateHistoricoBrandFilter();
+        renderHistoricoVendas();
+      },
+    });
+  }
+
+  if (!chips.length) {
+    DOM.filtersHistoricoChips.classList.add('hidden');
+    DOM.filtersHistoricoChips.innerHTML = '';
+    return;
+  }
+
+  DOM.filtersHistoricoChips.classList.remove('hidden');
+  DOM.filtersHistoricoChips.innerHTML = chips.map((chip, i) => `
+    <span class="filter-chip" data-chip-index="${i}">
+      ${chip.label}
+      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
+    </span>
+  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-historico">Limpar tudo</button>`;
+
+  DOM.filtersHistoricoChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
+    btn.addEventListener('click', () => chips[i].limpar());
+  });
+  document.getElementById('filter-chip-clear-all-historico').addEventListener('click', limparFiltrosHistorico);
+}
+
+function obterIniciaisPessoa(texto) {
+  if (!texto) return '?';
+  const partes = texto.replace(/[._-]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '?';
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[1][0]).toUpperCase();
+}
+
+// Não existe campo de nome cadastrado pra membros da loja hoje (só e-mail) — usa a
+// parte antes do @ como nome de exibição, conforme combinado. Reaproveitado tanto no
+// histórico de vendas ("Vendido por") quanto na lista de membros da Equipe.
+function renderPessoaChip(email) {
+  if (!email) return '<span class="vendedor-vazio">-</span>';
+
+  const usuario = email.split('@')[0];
+  const nomeExibicao = usuario.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const iniciais = obterIniciaisPessoa(usuario);
+
+  return `
+    <span class="vendedor-chip">
+      <span class="vendedor-avatar">${iniciais}</span>
+      ${nomeExibicao}
+    </span>
+  `;
+}
+
+function renderHistoricoVendas() {
+  const filtrado = filtrarHistoricoAtual();
+
+  DOM.historicoVendasBody.innerHTML = '';
+  DOM.historicoCount.textContent = `${filtrado.length} ${pluralize(filtrado.length, 'venda')} no período`;
+  DOM.historicoVendasTable.style.display = filtrado.length === 0 ? 'none' : '';
+  DOM.historicoVendasEmpty.classList.toggle('active', filtrado.length === 0);
+
+  filtrado.forEach(m => {
+    const snap = m.produto_snapshot || {};
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="historico-data">${formatarDataHora(m.created_at)}</td>
+      <td>${snap.brand || ''} ${snap.model || ''}</td>
+      <td>${snap.color ? `<span class="table-color-dot" style="background:${CORES_MAPA[snap.color] || 'var(--bg-tertiary)'}"></span>${snap.color}` : '-'}</td>
+      <td>${Math.abs(m.quantidade)}</td>
+      <td>${formatCurrency(m.preco_unitario)}</td>
+      <td class="historico-total">${formatCurrency(m.total)}</td>
+      <td>${renderPessoaChip(m.responsavel_email)}</td>
+    `;
+    DOM.historicoVendasBody.appendChild(tr);
+  });
+
+  const totalPeriodo = filtrado.reduce((soma, m) => soma + (Number(m.total) || 0), 0);
+  DOM.historicoTotalRow.classList.toggle('hidden', filtrado.length === 0);
+  DOM.historicoTotalValor.textContent = formatCurrency(totalPeriodo);
+
+  renderHistoricoFilterChips();
+}
+
+function gerarCSVHistoricoVendas(lista) {
+  const cabecalho = ['Data', 'Marca', 'Modelo', 'Cor', 'Quantidade', 'Preço unitário', 'Total', 'Vendido por'];
+  const escaparCampo = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
+
+  const linhas = lista.map(m => {
+    const snap = m.produto_snapshot || {};
+    return [
+      formatarDataHora(m.created_at),
+      snap.brand,
+      snap.model,
+      snap.color,
+      Math.abs(m.quantidade),
+      m.preco_unitario,
+      m.total,
+      m.responsavel_email,
+    ].map(escaparCampo).join(',');
+  });
+
+  return [cabecalho.map(escaparCampo).join(','), ...linhas].join('\r\n');
+}
+
+function exportarHistoricoCSV() {
+  const filtrado = filtrarHistoricoAtual();
+
+  if (!filtrado.length) {
+    showToast('⚠️ Não há vendas para exportar nesse período.', 'warning');
+    return;
+  }
+
+  const csv = gerarCSVHistoricoVendas(filtrado);
+  const BOM_UTF8 = '﻿';
+  const blob = new Blob([BOM_UTF8 + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `vault-vendas-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  showToast('✅ CSV exportado com sucesso!', 'success');
+}
+
+async function carregarResumoVendas() {
+  const { data, error } = await supabaseClient
+    .from('movimentacoes_estoque')
+    .select('total, created_at')
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .gte('created_at', inicioDoDiaISO(31));
+
+  if (error) {
+    [DOM.resumoVendasHoje, DOM.resumoVendas7dias, DOM.resumoVendasMes].forEach(el => {
+      el.textContent = formatCurrency(0);
+    });
+    return;
+  }
+
+  const hojeChave = new Date().toDateString();
+  const seteDiasAtras = new Date(inicioDoDiaISO(6));
+  const inicioMes = new Date();
+  inicioMes.setDate(1);
+  inicioMes.setHours(0, 0, 0, 0);
+
+  let hoje = 0;
+  let seteDias = 0;
+  let mes = 0;
+
+  data.forEach(m => {
+    const dataVenda = new Date(m.created_at);
+    const valor = Number(m.total) || 0;
+    if (dataVenda.toDateString() === hojeChave) hoje += valor;
+    if (dataVenda >= seteDiasAtras) seteDias += valor;
+    if (dataVenda >= inicioMes) mes += valor;
+  });
+
+  DOM.resumoVendasHoje.textContent = formatCurrency(hoje);
+  DOM.resumoVendas7dias.textContent = formatCurrency(seteDias);
+  DOM.resumoVendasMes.textContent = formatCurrency(mes);
+}
+
+async function atualizarAbaVendas() {
+  await carregarHistoricoVendas();
+  updateHistoricoBrandFilter();
+  renderHistoricoVendas();
+  await carregarResumoVendas();
 }
 
 function obterHistoricoMetrica() {
@@ -1093,54 +2226,62 @@ function renderSparklinesKPI() {
 }
 
 async function updateDashboard() {
-  const [totalImeiImpedido, statusVendaCounts] = await Promise.all([
+  const [totalImeiImpedido, vendasHojeEOntem, ticketMedio, vendas7dias] = await Promise.all([
     buscarTotalImeiImpedido(),
-    buscarDistribuicaoStatusVenda(),
+    buscarVendasHojeEOntem(),
+    buscarTicketMedio(),
+    buscarVendas7Dias(),
   ]);
 
-  animarContagem(DOM.dashImeiImpedido, totalImeiImpedido);
-  renderStatusVendaChart(statusVendaCounts);
+  renderAlertasCard(totalImeiImpedido);
+  animarContagem(DOM.dashVendasHoje, vendasHojeEOntem.hoje.quantidade);
+  DOM.dashVendasHojeValor.textContent = formatCurrency(vendasHojeEOntem.hoje.valor);
+  renderVendasHojeTrend(vendasHojeEOntem.hoje.valor, vendasHojeEOntem.ontem.valor);
+  animarContagem(DOM.dashTicketMedio, ticketMedio, formatCurrency);
+  renderVendas7DiasChart(vendas7dias);
   renderSparklinesKPI();
-
-  if (!products.length) {
-    animarContagem(DOM.dashTotal, 0);
-    animarContagem(DOM.dashValue, 0, formatCurrency);
-    animarContagem(DOM.dashLow, 0);
-    animarContagem(DOM.dashZero, 0);
-    renderBrandChart({});
-    renderTop5Chart();
-    return;
-  }
 
   const total = products.length;
   const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
   const lowStock = products.filter(p => p.quantity >= 1 && p.quantity <= 5).length;
   const zeroStock = products.filter(p => p.quantity === 0).length;
+  const saudavel = Math.max(total - lowStock - zeroStock, 0);
 
   animarContagem(DOM.dashTotal, total);
   animarContagem(DOM.dashValue, totalValue, formatCurrency);
-  animarContagem(DOM.dashLow, lowStock);
-  animarContagem(DOM.dashZero, zeroStock);
-
-  const brandCounts = {};
-  products.forEach(p => {
-    brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
-  });
-
-  renderBrandChart(brandCounts);
-  renderTop5Chart();
+  renderVaultDial(DOM.vaultDialContainer, { saudavel, baixo: lowStock, zerado: zeroStock });
+  renderVaultDialLegend(DOM.vaultDialLegend, { saudavel, baixo: lowStock, zerado: zeroStock });
+  renderTop5MarcasValorList();
+  renderLowStockList();
 }
 
 // ============================================
 // UI & NAVIGATION
 // ============================================
 
+const TITULOS_PAGINA = {
+  dashboard: { titulo: 'Dashboard', subtitulo: 'Visão geral da loja' },
+  cadastro: { titulo: 'Cadastro de produto', subtitulo: 'Adicione um novo item ao estoque' },
+  estoque: { titulo: 'Estoque', subtitulo: 'Controle e consulta de estoque' },
+  vendas: { titulo: 'Vendas', subtitulo: 'Registre vendas e acompanhe o histórico' },
+  equipe: { titulo: 'Equipe', subtitulo: 'Gerencie quem tem acesso à loja' },
+};
+
+function atualizarTituloPagina(tabId) {
+  const info = TITULOS_PAGINA[tabId];
+  if (!info) return;
+  DOM.headerPageTitle.textContent = info.titulo;
+  DOM.headerPageSubtitle.textContent = info.subtitulo;
+}
+
 function changeTab(tabId) {
   DOM.navItems.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
   DOM.panels.forEach(panel => panel.classList.toggle('active', panel.id === tabId));
   moverIndicadorAtivo(tabId);
+  atualizarTituloPagina(tabId);
 
   if (tabId === 'equipe') renderEquipe();
+  if (tabId === 'vendas') atualizarAbaVendas();
 
   const activePanel = document.getElementById(tabId);
   if (activePanel) {
@@ -1239,6 +2380,16 @@ function mostrarTela(nome) {
   DOM.loginScreen.classList.toggle('active', nome === 'login');
   DOM.onboardingScreen.classList.toggle('active', nome === 'onboarding');
   DOM.appContainer.classList.toggle('active', nome === 'app');
+
+  if (nome === 'app') {
+    // A sidebar só existe em layout (display:flex) a partir daqui — antes disso,
+    // qualquer offsetTop/offsetHeight medido dá 0, e é por isso que o indicador da aba
+    // ativa (a pílula atrás de "Dashboard") nascia com altura zero e ficava invisível
+    // até a pessoa clicar em outra aba pra recalcular. Recalcula agora que dá pra medir.
+    requestAnimationFrame(() => {
+      moverIndicadorAtivo(document.querySelector('.nav-item.active')?.dataset.tab || 'dashboard');
+    });
+  }
 }
 
 function aplicarModoLogin(cadastro) {
@@ -1332,6 +2483,11 @@ async function carregarContextoLoja(usuario) {
   atualizarCabecalhoLoja();
   aplicarGatingDeModulos();
   await carregarDadosDoApp();
+
+  // Vendedor não tem Dashboard no menu — a tela inicial já cai direto em Vendas.
+  if (membroAtual.papel === 'vendedor') {
+    changeTab('vendas');
+  }
 }
 
 async function carregarDadosDoApp() {
@@ -1352,23 +2508,42 @@ async function iniciarSessao() {
   await carregarContextoLoja(sessao.user);
 }
 
+function obterIniciaisLoja(nome) {
+  if (!nome) return '--';
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  if (palavras.length === 1) return palavras[0].slice(0, 2).toUpperCase();
+  return (palavras[0][0] + palavras[1][0]).toUpperCase();
+}
+
 function atualizarCabecalhoLoja() {
   DOM.lojaAtualNome.textContent = lojaAtual ? lojaAtual.nome : '';
   DOM.userDisplay.textContent = usuarioAtual ? usuarioAtual.email : '';
+  DOM.headerAvatar.textContent = obterIniciaisLoja(lojaAtual?.nome);
+}
+
+function souDono() {
+  return membroAtual?.papel === 'dono';
 }
 
 function aplicarGatingDeModulos() {
   const tipo = lojaAtual?.tipo_negocio || 'ambos';
-  const modulosRestritos = {
+  const modulosRestritosPorTipoNegocio = {
     cadastro: ['revenda', 'ambos'],
     estoque: ['revenda', 'ambos'],
     vendas: ['revenda', 'ambos'],
   };
 
+  // Vendedor só acessa Vendas, independente do tipo de negócio da loja — a real barreira
+  // de permissão é o RLS no Supabase, isso aqui só evita mostrar botão pra algo que a
+  // pessoa não pode usar.
+  const souVendedor = membroAtual?.papel === 'vendedor';
+  const modulosPermitidosVendedor = ['vendas'];
+
   DOM.navItems.forEach(btn => {
     const tab = btn.dataset.tab;
-    const permitido = !modulosRestritos[tab] || modulosRestritos[tab].includes(tipo);
-    btn.classList.toggle('hidden', !permitido);
+    const permitidoPorTipoNegocio = !modulosRestritosPorTipoNegocio[tab] || modulosRestritosPorTipoNegocio[tab].includes(tipo);
+    const permitidoPorPapel = !souVendedor || modulosPermitidosVendedor.includes(tab);
+    btn.classList.toggle('hidden', !(permitidoPorTipoNegocio && permitidoPorPapel));
   });
 }
 
@@ -1393,24 +2568,48 @@ function handleLogout() {
 // ============================================
 
 function podeGerenciarEquipe() {
-  return membroAtual?.papel === 'dono';
+  return souDono();
+}
+
+function sincronizarPapelSelector() {
+  const papel = DOM.invitePapel.value;
+  DOM.papelOptions.forEach(btn => btn.classList.toggle('active', btn.dataset.papel === papel));
+  DOM.papelDescricao.textContent = PAPEL_DESCRICOES[papel] || '';
+}
+
+function selecionarPapelConvite(papel) {
+  DOM.invitePapel.value = papel;
+  sincronizarPapelSelector();
+}
+
+function renderBadgePapel(papel) {
+  const classe = papel === 'dono' ? 'badge-papel--dono' : 'badge-papel--vendedor';
+  return `<span class="badge-papel ${classe}">${PAPEL_LABELS[papel] || papel}</span>`;
 }
 
 async function renderEquipe() {
   DOM.inviteForm.classList.toggle('hidden', !podeGerenciarEquipe());
 
-  const membros = await buscarMembrosDaLoja(lojaAtual.id);
+  const [membros, convites] = await Promise.all([
+    buscarMembrosDaLoja(lojaAtual.id),
+    podeGerenciarEquipe() ? buscarConvitesPendentes(lojaAtual.id) : Promise.resolve([]),
+  ]);
+
   DOM.equipeTableBody.innerHTML = '';
 
   membros.forEach(m => {
     const tr = document.createElement('tr');
     const desde = new Date(m.created_at).toLocaleDateString('pt-BR');
+
     tr.innerHTML = `
-      <td>${m.email}</td>
-      <td>${PAPEL_LABELS[m.papel] || m.papel}</td>
+      <td>${renderPessoaChip(m.email)}</td>
+      <td>${renderBadgePapel(m.papel)}</td>
       <td>${desde}</td>
-      <td></td>
+      <td class="product-actions"></td>
     `;
+
+    const acoesCellMembro = tr.querySelector('td:last-child');
+    acoesCellMembro.innerHTML = '<span class="action-spacer"></span>';
 
     if (podeGerenciarEquipe() && m.usuario_id !== usuarioAtual.id) {
       const btnRemover = document.createElement('button');
@@ -1418,8 +2617,47 @@ async function renderEquipe() {
       btnRemover.title = 'Remover membro';
       btnRemover.innerHTML = ICONES_ACAO.excluir;
       btnRemover.addEventListener('click', () => removerMembroDaEquipe(m));
-      tr.querySelector('td:last-child').appendChild(btnRemover);
+      acoesCellMembro.appendChild(btnRemover);
+    } else {
+      acoesCellMembro.insertAdjacentHTML('beforeend', '<span class="action-spacer"></span>');
     }
+
+    DOM.equipeTableBody.appendChild(tr);
+  });
+
+  convites.forEach(c => {
+    const tr = document.createElement('tr');
+    const enviado = new Date(c.created_at).toLocaleDateString('pt-BR');
+
+    tr.innerHTML = `
+      <td>
+        <span class="vendedor-chip">
+          <span class="vendedor-avatar vendedor-avatar--pendente"><i class="ti ti-clock"></i></span>
+          <span>
+            ${c.email}
+            <span class="convite-pendente-texto">Convite pendente</span>
+          </span>
+        </span>
+      </td>
+      <td>${renderBadgePapel(c.papel)}</td>
+      <td>${enviado}</td>
+      <td class="product-actions"></td>
+    `;
+
+    const acoesCell = tr.querySelector('td:last-child');
+
+    const btnReenviar = document.createElement('button');
+    btnReenviar.title = 'Reenviar convite';
+    btnReenviar.innerHTML = '<i class="ti ti-send"></i>';
+    btnReenviar.addEventListener('click', () => reenviarConvite(c));
+    acoesCell.appendChild(btnReenviar);
+
+    const btnCancelar = document.createElement('button');
+    btnCancelar.className = 'delete';
+    btnCancelar.title = 'Cancelar convite';
+    btnCancelar.innerHTML = ICONES_ACAO.excluir;
+    btnCancelar.addEventListener('click', () => cancelarConviteNaTela(c));
+    acoesCell.appendChild(btnCancelar);
 
     DOM.equipeTableBody.appendChild(tr);
   });
@@ -1442,6 +2680,33 @@ function removerMembroDaEquipe(membro) {
   });
 }
 
+async function reenviarConvite(convite) {
+  const resultado = await convidarMembro(convite.email, convite.papel, lojaAtual.id);
+  if (resultado.error) {
+    showToast(`❌ ${resultado.error}`, 'error');
+    return;
+  }
+  showToast(`✅ Convite reenviado para ${convite.email}!`, 'success');
+  renderEquipe();
+}
+
+function cancelarConviteNaTela(convite) {
+  abrirModalConfirmacao({
+    titulo: 'Cancelar convite',
+    mensagem: `Cancelar o convite pendente enviado para ${convite.email}?`,
+    textoConfirmar: 'Cancelar convite',
+    aoConfirmar: async () => {
+      const ok = await cancelarConvite(convite.id);
+      if (!ok) {
+        showToast('❌ Erro ao cancelar convite.', 'error');
+        return;
+      }
+      showToast('✅ Convite cancelado.', 'success');
+      renderEquipe();
+    },
+  });
+}
+
 async function handleInviteSubmit(event) {
   event.preventDefault();
 
@@ -1456,6 +2721,8 @@ async function handleInviteSubmit(event) {
 
   showToast(`✅ Convite enviado para ${email}!`, 'success');
   DOM.inviteForm.reset();
+  sincronizarPapelSelector();
+  renderEquipe();
 }
 
 // ============================================
@@ -1472,6 +2739,7 @@ function initEventListeners() {
 
   // Equipe
   DOM.inviteForm.addEventListener('submit', handleInviteSubmit);
+  DOM.papelOptions.forEach(btn => btn.addEventListener('click', () => selecionarPapelConvite(btn.dataset.papel)));
 
   // Sidebar
   DOM.menuToggle.addEventListener('click', toggleSidebar);
@@ -1481,26 +2749,58 @@ function initEventListeners() {
   // Form
   DOM.productForm.addEventListener('submit', handleFormSubmit);
   DOM.cancelEditBtn.addEventListener('click', resetForm);
-  DOM.formInputs.brand.addEventListener('change', updateModelOptions);
-  DOM.formInputs.type.addEventListener('change', toggleUnidadesSection);
-  DOM.addUnidadeBtn.addEventListener('click', criarBlocoUnidade);
+  DOM.formInputs.brand.addEventListener('change', () => {
+    updateModelOptions();
+    atualizarPreviewEDuplicidade();
+  });
+  DOM.formInputs.model.addEventListener('change', atualizarPreviewEDuplicidade);
+  DOM.formInputs.color.addEventListener('change', atualizarPreviewEDuplicidade);
+  DOM.formInputs.type.addEventListener('change', handleTypeChange);
+  DOM.formInputs.quantity.addEventListener('input', atualizarStatusUnidades);
+  DOM.unidadesContainer.addEventListener('input', atualizarStatusUnidades);
+  DOM.addUnidadeBtn.addEventListener('click', () => criarBlocoUnidade());
+
+  // Tipo (seletor visual) e Cor (paleta)
+  DOM.typeOptions.forEach(btn => btn.addEventListener('click', () => selecionarTipo(btn.dataset.type)));
+  DOM.colorPalette.addEventListener('click', (e) => {
+    const btn = e.target.closest('.color-swatch-btn');
+    if (btn) selecionarCor(btn.dataset.color);
+  });
+
+  // Quantidade (stepper +/-)
+  DOM.quantityIncrement.addEventListener('click', () => {
+    DOM.formInputs.quantity.value = (Number(DOM.formInputs.quantity.value) || 0) + 1;
+    DOM.formInputs.quantity.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  DOM.quantityDecrement.addEventListener('click', () => {
+    DOM.formInputs.quantity.value = Math.max((Number(DOM.formInputs.quantity.value) || 0) - 1, 0);
+    DOM.formInputs.quantity.dispatchEvent(new Event('input', { bubbles: true }));
+  });
 
   DOM.formInputs.price.addEventListener('focus', () => {
     const value = parsePriceValue(DOM.formInputs.price.value);
     DOM.formInputs.price.value = value ? value.toString().replace('.', ',') : '';
   });
-  
+
   DOM.formInputs.price.addEventListener('blur', () => {
     DOM.formInputs.price.value = formatPriceInput(DOM.formInputs.price.value);
   });
-  
+
+  DOM.formInputs.price.addEventListener('input', atualizarPreview);
+
   // Filters - Stock
-  [DOM.filterSearch, DOM.filterType, DOM.filterBrand, DOM.filterColor, DOM.filterStock].forEach(el => {
+  [DOM.filterSearch, DOM.filterBrand, DOM.filterColor, DOM.filterStock].forEach(el => {
     el.addEventListener('change', applyFilters);
     el.addEventListener('input', applyFilters);
   });
-  DOM.filterClearBtn.addEventListener('click', clearAllFilters);
+  DOM.typeQuickfilterBtns.forEach(btn => btn.addEventListener('click', () => selecionarFiltroTipo(btn.dataset.type)));
+  DOM.filtersToggleBtn.addEventListener('click', () => toggleFiltersPanel());
+  DOM.statusChips.addEventListener('click', (e) => {
+    const btn = e.target.closest('.status-chip');
+    if (btn) selecionarChipStatus(btn.dataset.stock);
+  });
   DOM.exportCsvBtn.addEventListener('click', exportarEstoqueCSV);
+  DOM.exportHistoricoCsvBtn.addEventListener('click', exportarHistoricoCSV);
 
   // Ordenação da tabela
   DOM.sortableHeaders.forEach(th => {
@@ -1510,8 +2810,17 @@ function initEventListeners() {
   // Filters - Sales
   DOM.filterSalesSearch.addEventListener('input', applyFilters);
   DOM.filterSalesBrand.addEventListener('change', applyFilters);
-  DOM.filterSalesClearBtn.addEventListener('click', clearSalesFilters);
-  
+
+  // Filters - Histórico de vendas
+  DOM.filterHistoricoSearch.addEventListener('input', renderHistoricoVendas);
+  DOM.filterHistoricoPeriodo.addEventListener('change', async () => {
+    await carregarHistoricoVendas();
+    updateHistoricoBrandFilter();
+    renderHistoricoVendas();
+  });
+  DOM.filterHistoricoBrand.addEventListener('change', renderHistoricoVendas);
+
+
   // Close sidebar on outside click (mobile)
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 760 && DOM.sidebar.classList.contains('active')) {
@@ -1534,6 +2843,10 @@ function initEventListeners() {
 
   // Empty state CTA
   DOM.emptyStateCta.addEventListener('click', () => changeTab('cadastro'));
+
+  // Dashboard - painéis de marcas e estoque baixo
+  DOM.dashboardBrandlistCta.addEventListener('click', () => changeTab('cadastro'));
+  DOM.lowStockVerTodos.addEventListener('click', irParaEstoqueBaixo);
 }
 
 // ============================================
@@ -1542,9 +2855,14 @@ function initEventListeners() {
 
 async function init() {
   loadTheme();
+  renderColorPalette();
   initEventListeners();
   updateModelOptions();
   toggleUnidadesSection();
+  sincronizarTypeSelector();
+  sincronizarPapelSelector();
+  atualizarStatusUnidades();
+  atualizarPreview();
   aplicarModoLogin(false);
   moverIndicadorAtivo(document.querySelector('.nav-item.active')?.dataset.tab || 'dashboard');
   await iniciarSessao();

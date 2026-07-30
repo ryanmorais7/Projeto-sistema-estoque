@@ -105,6 +105,22 @@ async function removerMembro(membroId) {
   return !error;
 }
 
+async function buscarConvitesPendentes(lojaId) {
+  const { data, error } = await supabaseClient
+    .from('convites_pendentes')
+    .select('*')
+    .eq('loja_id', lojaId)
+    .order('created_at', { ascending: true });
+
+  if (error) return [];
+  return data;
+}
+
+async function cancelarConvite(conviteId) {
+  const { data, error } = await supabaseClient.rpc('cancelar_convite', { p_convite_id: conviteId });
+  return !error && data === true;
+}
+
 async function convidarMembro(email, papel, lojaId) {
   const sessao = await obterSessaoAtual();
   if (!sessao) return { error: 'Sessão expirada, faça login novamente.' };
