@@ -97,6 +97,7 @@ const DOM = {
   onboardingNome: document.getElementById('onboarding-nome'),
   onboardingTipo: document.getElementById('onboarding-tipo'),
   lojaAtualNome: document.getElementById('loja-atual-nome'),
+  dashboardSaudacao: document.getElementById('dashboard-saudacao'),
 
   // Header (barra de identidade, reaproveitada em todas as telas)
   headerPageTitle: document.getElementById('header-page-title'),
@@ -2517,6 +2518,7 @@ function obterIniciaisLoja(nome) {
 
 function atualizarCabecalhoLoja() {
   DOM.lojaAtualNome.textContent = lojaAtual ? lojaAtual.nome : '';
+  DOM.dashboardSaudacao.textContent = lojaAtual ? `Olá, ${lojaAtual.nome}!` : '';
   DOM.userDisplay.textContent = usuarioAtual ? usuarioAtual.email : '';
   DOM.headerAvatar.textContent = obterIniciaisLoja(lojaAtual?.nome);
 }

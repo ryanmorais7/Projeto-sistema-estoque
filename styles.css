@@ -2505,6 +2505,18 @@ tr.unidades-subrow td {
    DASHBOARD - HERO (SALDO + DISCO DO COFRE)
    =================================== */
 
+.dashboard-saudacao {
+  font-family: var(--font-family-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.dashboard-saudacao:empty {
+  display: none;
+}
+
 .dashboard-hero {
   display: flex;
   align-items: center;
