@@ -2,7 +2,8 @@
 // CONSTANTS & DATA
 // ============================================
 
-// Mesmo critério "baixo" usado no dashboard (disco do cofre e lista de estoque baixo): 1-5 unidades.
+// Estoque mínimo padrão, usado quando o produto não tem um estoque_minimo próprio.
+// A regra de "baixo/zerado" fica toda em situacaoEstoque().
 const LIMITE_ESTOQUE_BAIXO = 5;
 const PAPEL_LABELS = {
   dono: 'Dono',
@@ -49,7 +50,8 @@ const TIPO_ICONES = {
 
 const STOCK_FILTER_LABELS = {
   zero: 'Zerado',
-  low: 'Baixo (1-5)',
+  low: 'Baixo',
+  arquivados: 'Arquivados',
   medium: 'Médio (6-20)',
   high: 'Alto (20+)',
 };
@@ -241,7 +243,11 @@ const DOM = {
 // STATE
 // ============================================
 
+// products = só os ativos (o que aparece em estoque, vendas e dashboard).
+// produtosArquivados = produtos com histórico que o dono "excluiu"; só aparecem no
+// filtro "Arquivados" do estoque, de onde podem ser restaurados.
 let products = [];
+let produtosArquivados = [];
 let filteredProducts = [];
 let filteredSalesProducts = [];
 let editingId = null;
@@ -272,12 +278,20 @@ async function loadProducts() {
   if (error) {
     showToast('❌ Erro ao carregar produtos do Supabase.', 'error');
     products = [];
+    produtosArquivados = [];
     unidadesPorProdutoCache = {};
     return;
   }
 
-  products = data;
+  products = data.filter(p => !p.arquivado_em);
+  produtosArquivados = data.filter(p => p.arquivado_em);
   await refrescarUnidadesCache();
+}
+
+// O cache guarda todas as unidades (inclusive vendidas, para histórico). Estoque,
+// busca por IMEI, alerta de impedido e formulário de edição usam só as disponíveis.
+function unidadesDisponiveis(produtoId) {
+  return (unidadesPorProdutoCache[produtoId] || []).filter(u => u.status_venda === 'disponivel');
 }
 
 async function insertProduct(productData) {
@@ -368,6 +382,27 @@ function pluralize(count, singular, plural = singular + 's') {
   return count === 1 ? singular : plural;
 }
 
+// Escapa texto vindo do banco antes de entrar num innerHTML (nome de produto, cor,
+// e-mail, observações...). Sem isso, um nome como "<img onerror=...>" viraria código.
+function esc(valor) {
+  return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+// Estoque mínimo do produto: o que o dono configurou nele ou, se não configurou, o padrão.
+function estoqueMinimo(product) {
+  const minimo = product.estoque_minimo;
+  return Number.isInteger(minimo) && minimo >= 0 ? minimo : LIMITE_ESTOQUE_BAIXO;
+}
+
+// Única regra de situação do estoque, usada no badge, nos filtros, nos chips e no dashboard.
+function situacaoEstoque(product) {
+  if (product.quantity <= 0) return 'zerado';
+  if (product.quantity <= estoqueMinimo(product)) return 'baixo';
+  return 'ok';
+}
+
 // ============================================
 // TABLE RENDERING
 // ============================================
@@ -376,41 +411,56 @@ const ICONES_ACAO = {
   editar: '<i class="ti ti-edit"></i>',
   excluir: '<i class="ti ti-trash"></i>',
   unidades: '<i class="ti ti-barcode"></i>',
+  restaurar: '<i class="ti ti-archive-off"></i>',
 };
 
-function renderBadgeEstoque(quantity) {
-  let classe = 'ok';
-  let texto = `${quantity} em estoque`;
+function renderBadgeEstoque(product) {
+  const quantity = product.quantity;
+  const situacao = situacaoEstoque(product);
 
-  if (quantity === 0) {
-    classe = 'esgotado';
-    texto = 'Esgotado';
-  } else if (quantity <= LIMITE_ESTOQUE_BAIXO) {
-    classe = 'baixo';
-    texto = `${quantity} (baixo)`;
-  }
+  if (situacao === 'zerado') return '<span class="badge-estoque esgotado">Esgotado</span>';
+  if (situacao === 'baixo') return `<span class="badge-estoque baixo">${quantity} (baixo)</span>`;
+  return `<span class="badge-estoque ok">${quantity} em estoque</span>`;
+}
 
-  return `<span class="badge-estoque ${classe}">${texto}</span>`;
+function renderCorCelula(cor) {
+  if (!cor) return '-';
+  return `<span class="table-color-dot" style="background:${CORES_MAPA[cor] || 'var(--bg-tertiary)'}"></span>${esc(cor)}`;
 }
 
 function createProductRow(product, unidadesDoProduto = []) {
   const template = DOM.productRowTemplate.content.cloneNode(true);
   const row = template.querySelector('tr');
+  const arquivado = Boolean(product.arquivado_em);
 
   const temImeiImpedido = unidadesDoProduto.some(u => u.status_anatel === 'impedido');
 
-  row.querySelector('.product-type').innerHTML = `<i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i> ${TIPO_LABELS[product.type] || product.type}`;
-  row.querySelector('.product-name').innerHTML = `${product.brand} ${product.model}${temImeiImpedido ? ' ' + renderBadgeImeiAlerta() : ''}`;
-  row.querySelector('.product-color').innerHTML = `<span class="table-color-dot" style="background:${CORES_MAPA[product.color] || 'var(--bg-tertiary)'}"></span>${product.color}`;
+  row.classList.toggle('product-row--arquivado', arquivado);
+  row.querySelector('.product-type').innerHTML = `<i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i> ${esc(TIPO_LABELS[product.type] || product.type)}`;
+  row.querySelector('.product-name').innerHTML = `${esc(product.brand)} ${esc(product.model)}${temImeiImpedido ? ' ' + renderBadgeImeiAlerta() : ''}`;
+  row.querySelector('.product-color').innerHTML = renderCorCelula(product.color);
   row.querySelector('.product-manufacture').textContent = product.manufacture;
   row.querySelector('.product-price').textContent = formatCurrency(product.price);
-  row.querySelector('.product-quantity').innerHTML = renderBadgeEstoque(product.quantity);
+  row.querySelector('.product-quantity').innerHTML = arquivado
+    ? '<span class="badge-estoque arquivado">Arquivado</span>'
+    : renderBadgeEstoque(product);
 
   const actionsCell = row.querySelector('.product-actions');
+  const espaco = '<span class="action-spacer"></span>';
+
+  if (arquivado) {
+    actionsCell.innerHTML = `
+      ${espaco}${espaco}
+      ${souDono() ? `<button class="restaurar-btn" title="Restaurar produto">${ICONES_ACAO.restaurar}</button>` : espaco}
+    `;
+    actionsCell.querySelector('.restaurar-btn')?.addEventListener('click', () => restaurarProduto(product.id));
+    return row;
+  }
+
   actionsCell.innerHTML = `
-    ${product.type === 'aparelhos' ? `<button class="unidades-toggle-btn" title="Ver unidades / IMEI">${ICONES_ACAO.unidades}</button>` : '<span class="action-spacer"></span>'}
-    ${souDono() ? `<button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>` : '<span class="action-spacer"></span>'}
-    ${souDono() ? `<button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>` : '<span class="action-spacer"></span>'}
+    ${product.type === 'aparelhos' ? `<button class="unidades-toggle-btn" title="Ver unidades / IMEI">${ICONES_ACAO.unidades}</button>` : espaco}
+    ${souDono() ? `<button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>` : espaco}
+    ${souDono() ? `<button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>` : espaco}
   `;
 
   actionsCell.querySelector('.edit-btn')?.addEventListener('click', () => startEditProduct(product.id));
@@ -419,13 +469,13 @@ function createProductRow(product, unidadesDoProduto = []) {
   return row;
 }
 
-function createUnidadesSubRow(unidadesDoProduto) {
+function createUnidadesSubRow(product, unidadesDoProduto) {
   const tr = document.createElement('tr');
   tr.className = 'unidades-subrow';
   const td = document.createElement('td');
   td.colSpan = 8;
   td.className = 'unidades-subrow-content';
-  td.innerHTML = renderUnidadesSubTable(unidadesDoProduto);
+  td.innerHTML = renderUnidadesSubTable(product, unidadesDoProduto);
   tr.appendChild(td);
   wireUnidadesSubTableEvents(td);
   return tr;
@@ -436,8 +486,8 @@ function createSalesRow(product) {
   const row = template.querySelector('tr');
 
   row.querySelector('.sale-name').textContent = `${product.brand} ${product.model}`;
-  row.querySelector('.sale-color').innerHTML = `<span class="table-color-dot" style="background:${CORES_MAPA[product.color] || 'var(--bg-tertiary)'}"></span>${product.color}`;
-  row.querySelector('.sale-stock').innerHTML = renderBadgeEstoque(product.quantity);
+  row.querySelector('.sale-color').innerHTML = renderCorCelula(product.color);
+  row.querySelector('.sale-stock').innerHTML = renderBadgeEstoque(product);
   row.querySelector('.sale-price').textContent = formatCurrency(product.price);
 
   const qtyInput = row.querySelector('.sale-qty');
@@ -463,12 +513,12 @@ async function renderProductsTables() {
   DOM.salesTableBody.innerHTML = '';
 
   filteredProducts.forEach(product => {
-    const unidadesDoProduto = unidadesPorProdutoCache[product.id] || [];
+    const unidadesDoProduto = unidadesDisponiveis(product.id);
     const row = createProductRow(product, unidadesDoProduto);
     DOM.productTableBody.appendChild(row);
 
-    if (product.type === 'aparelhos') {
-      const subRow = createUnidadesSubRow(unidadesDoProduto);
+    if (product.type === 'aparelhos' && !product.arquivado_em) {
+      const subRow = createUnidadesSubRow(product, unidadesDoProduto);
       DOM.productTableBody.appendChild(subRow);
 
       row.querySelector('.unidades-toggle-btn').addEventListener('click', (e) => {
@@ -535,16 +585,16 @@ function matchesSearchTerm(product, searchTerm) {
     return true;
   }
 
-  const unidades = unidadesPorProdutoCache[product.id] || [];
-  return unidades.some(u =>
+  return unidadesDisponiveis(product.id).some(u =>
     (u.imei && u.imei.includes(searchTerm)) || (u.imei2 && u.imei2.includes(searchTerm))
   );
 }
 
-function matchesStockFilter(quantity, filter) {
-  if (!filter) return true;
-  if (filter === 'zero') return quantity === 0;
-  if (filter === 'low') return quantity >= 1 && quantity <= 5;
+function matchesStockFilter(product, filter) {
+  const quantity = product.quantity;
+  if (!filter || filter === 'arquivados') return true;
+  if (filter === 'zero') return situacaoEstoque(product) === 'zerado';
+  if (filter === 'low') return situacaoEstoque(product) === 'baixo';
   if (filter === 'medium') return quantity >= 6 && quantity <= 20;
   if (filter === 'high') return quantity > 20;
   return true;
@@ -552,13 +602,14 @@ function matchesStockFilter(quantity, filter) {
 
 function filterProducts() {
   const { search, type, brand, color, stock } = getFilterValues();
+  const base = stock === 'arquivados' ? produtosArquivados : products;
 
-  return products.filter(product =>
+  return base.filter(product =>
     matchesSearchTerm(product, search) &&
     (!type || product.type === type) &&
     (!brand || product.brand === brand) &&
     (!color || product.color === color) &&
-    matchesStockFilter(product.quantity, stock)
+    matchesStockFilter(product, stock)
   );
 }
 
@@ -663,7 +714,7 @@ function renderFilterChips() {
   DOM.filtersChips.classList.remove('hidden');
   DOM.filtersChips.innerHTML = chips.map((chip, i) => `
     <span class="filter-chip" data-chip-index="${i}">
-      ${chip.label}
+      ${esc(chip.label)}
       <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
     </span>
   `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all">Limpar tudo</button>`;
@@ -683,14 +734,16 @@ function renderFilterChips() {
 
 function renderStatusChips() {
   const total = products.length;
-  const baixo = products.filter(p => p.quantity >= 1 && p.quantity <= 5).length;
-  const zerado = products.filter(p => p.quantity === 0).length;
+  const baixo = products.filter(p => situacaoEstoque(p) === 'baixo').length;
+  const zerado = products.filter(p => situacaoEstoque(p) === 'zerado').length;
+  const arquivados = produtosArquivados.length;
   const stockAtivo = DOM.filterStock.value;
 
   DOM.statusChips.innerHTML = `
     <button type="button" class="status-chip ${!stockAtivo ? 'active' : ''}" data-stock="">Todos <span class="status-chip-count">${total}</span></button>
     <button type="button" class="status-chip ${stockAtivo === 'low' ? 'active' : ''}" data-stock="low">Estoque baixo <span class="status-chip-count">${baixo}</span></button>
     <button type="button" class="status-chip ${stockAtivo === 'zero' ? 'active' : ''}" data-stock="zero">Sem estoque <span class="status-chip-count">${zerado}</span></button>
+    ${arquivados ? `<button type="button" class="status-chip ${stockAtivo === 'arquivados' ? 'active' : ''}" data-stock="arquivados">Arquivados <span class="status-chip-count">${arquivados}</span></button>` : ''}
   `;
 }
 
@@ -724,7 +777,7 @@ function renderVenderFilterChips() {
   DOM.filtersSalesChips.classList.remove('hidden');
   DOM.filtersSalesChips.innerHTML = chips.map((chip, i) => `
     <span class="filter-chip" data-chip-index="${i}">
-      ${chip.label}
+      ${esc(chip.label)}
       <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
     </span>
   `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-vendas">Limpar tudo</button>`;
@@ -1077,15 +1130,28 @@ const GRADE_LABELS = {
   usado: 'Usado',
 };
 
-function renderUnidadesSubTable(unidades) {
+function renderUnidadesSubTable(product, unidades) {
   if (!unidades.length) {
     return '<p class="unidades-empty-msg">Nenhuma unidade com IMEI cadastrada para este produto.</p>';
   }
 
+  // Vendas de aparelho feitas antes da correção baixaram a quantidade, mas deixaram o
+  // IMEI como disponível. Quando sobra IMEI, o dono marca aqui qual foi vendido.
+  const sobrando = unidades.length - product.quantity;
+  const precisaAcerto = sobrando > 0 && souDono();
+
+  const avisoAcerto = precisaAcerto ? `
+    <div class="unidades-acerto-aviso">
+      <i class="ti ti-alert-circle"></i>
+      <span>${unidades.length} IMEIs disponíveis, mas só ${product.quantity} ${pluralize(product.quantity, 'aparelho')} em estoque.
+      Marque ${sobrando === 1 ? 'qual IMEI já foi vendido' : `quais ${sobrando} IMEIs já foram vendidos`} para acertar.</span>
+    </div>
+  ` : '';
+
   const linhas = unidades.map(u => `
-    <tr data-unidade-id="${u.id}">
-      <td>${u.imei}${u.imei2 ? ` / ${u.imei2}` : ''}</td>
-      <td>${GRADE_LABELS[u.grade] || u.grade || '-'}</td>
+    <tr data-unidade-id="${esc(u.id)}">
+      <td>${esc(u.imei)}${u.imei2 ? ` / ${esc(u.imei2)}` : ''}</td>
+      <td>${esc(GRADE_LABELS[u.grade] || u.grade || '-')}</td>
       <td>
         ${u.status_anatel === 'impedido' ? renderBadgeImeiAlerta() : renderBadgeStatusAnatel(u.status_anatel)}
         <div class="unidade-status-actions">
@@ -1097,11 +1163,15 @@ function renderUnidadesSubTable(unidades) {
           </select>
         </div>
       </td>
-      <td><span class="badge-estoque ok">Em estoque</span></td>
+      <td>
+        <span class="badge-estoque ok">Em estoque</span>
+        ${precisaAcerto ? '<button type="button" class="unidade-marcar-vendido-btn">Já foi vendido</button>' : ''}
+      </td>
     </tr>
   `).join('');
 
   return `
+    ${avisoAcerto}
     <table class="unidades-subtable">
       <thead>
         <tr>
@@ -1136,7 +1206,30 @@ function wireUnidadesSubTableEvents(container) {
     tr.querySelector('.unidade-status-select').addEventListener('change', (e) => {
       atualizarStatusAnatel(unidadeId, e.target.value);
     });
+
+    tr.querySelector('.unidade-marcar-vendido-btn')?.addEventListener('click', () => {
+      const imei = tr.querySelector('td').textContent.trim();
+      abrirModalConfirmacao({
+        titulo: 'Marcar IMEI como vendido',
+        mensagem: `Confirmar que o aparelho ${imei} já foi vendido? O estoque não muda, porque essa venda já foi descontada antes.`,
+        textoConfirmar: 'Marcar como vendido',
+        aoConfirmar: () => marcarUnidadeVendida(unidadeId),
+      });
+    });
   });
+}
+
+async function marcarUnidadeVendida(unidadeId) {
+  const { error } = await supabaseClient.rpc('marcar_unidade_vendida', { p_unidade_id: unidadeId });
+
+  if (error) {
+    showToast(`❌ ${error.message || 'Erro ao acertar o IMEI.'}`, 'error');
+    return;
+  }
+
+  showToast('✅ IMEI marcado como vendido.', 'success');
+  await refrescarUnidadesCache();
+  await applyFilters();
 }
 
 function toggleUnidadesSubRow(subRow, botao) {
@@ -1304,7 +1397,9 @@ async function fillForm(product) {
 
   if (product.type === 'aparelhos') {
     const unidadesPorProduto = await buscarUnidadesPorProdutos([product.id]);
-    const unidadesExistentes = unidadesPorProduto[product.id] || [];
+    // Só as disponíveis: unidade vendida é histórico e não pode ser editada nem apagada
+    // pelo formulário (salvarUnidades apaga do banco o que não estiver no form).
+    const unidadesExistentes = (unidadesPorProduto[product.id] || []).filter(u => u.status_venda === 'disponivel');
     unidadeIdsCarregadas = unidadesExistentes.map(u => u.id);
     unidadesExistentes.forEach(u => criarBlocoUnidade(u));
   }
@@ -1415,9 +1510,65 @@ async function handleFormSubmit(event) {
 // PRODUCT OPERATIONS
 // ============================================
 
-function deleteProduct(id) {
+async function produtoTemHistorico(id) {
+  const { count, error } = await supabaseClient
+    .from('movimentacoes_estoque')
+    .select('id', { count: 'exact', head: true })
+    .eq('loja_id', lojaAtual.id)
+    .eq('produto_id', id);
+
+  // Na dúvida (erro de rede), trata como "tem histórico": arquivar é reversível,
+  // excluir não.
+  if (error) return true;
+  return count > 0;
+}
+
+async function definirArquivado(id, arquivar) {
+  const { error } = await supabaseClient
+    .from('products')
+    .update({ arquivado_em: arquivar ? new Date().toISOString() : null })
+    .eq('id', id)
+    .eq('loja_id', lojaAtual.id);
+
+  if (error) {
+    showToast(arquivar ? '❌ Erro ao arquivar o produto.' : '❌ Erro ao restaurar o produto.', 'error');
+    return false;
+  }
+
+  await loadProducts();
+  applyFilters();
+  updateDashboard();
+  return true;
+}
+
+async function restaurarProduto(id) {
+  const product = produtosArquivados.find(p => p.id === id);
+  if (!product) return;
+
+  if (await definirArquivado(id, false)) {
+    showToast(`✅ ${product.brand} ${product.model} voltou para o estoque.`, 'success');
+  }
+}
+
+async function deleteProduct(id) {
   const product = products.find(p => p.id === id);
   if (!product) return;
+
+  // O livro-caixa aponta para o produto, então quem já teve venda/movimentação não
+  // pode ser apagado sem perder histórico. Nesse caso o produto é arquivado.
+  if (await produtoTemHistorico(id)) {
+    abrirModalConfirmacao({
+      titulo: 'Arquivar produto',
+      mensagem: `${product.brand} ${product.model} já tem vendas registradas, então não pode ser excluído sem apagar esse histórico. Ele será arquivado: sai do estoque e das vendas, mas o histórico continua nos relatórios. Dá pra restaurar depois em Estoque → Arquivados.`,
+      textoConfirmar: 'Arquivar',
+      aoConfirmar: async () => {
+        if (await definirArquivado(id, true)) {
+          showToast('✅ Produto arquivado.', 'success');
+        }
+      },
+    });
+    return;
+  }
 
   abrirModalConfirmacao({
     titulo: 'Excluir produto',
@@ -1448,25 +1599,95 @@ async function sellProduct(id, amount) {
     return;
   }
 
-  // registrar_venda (RPC, sql/008_movimentacoes_estoque.sql) faz o decremento de estoque e o
-  // lançamento no livro-caixa como uma operação atômica só (select ... for update + insert),
-  // evitando a corrida que existia aqui quando sellProduct fazia select e update em duas
-  // chamadas separadas.
-  const { data: movimentacao, error } = await supabaseClient.rpc('registrar_venda', {
-    p_produto_id: id,
-    p_quantidade: amount,
-  });
-
-  if (error) {
-    showToast('❌ Erro ao registrar a venda.', 'error');
+  // Aparelho com IMEI: precisa escolher quais unidades saíram (o banco exige).
+  const unidades = product.type === 'aparelhos' ? unidadesDisponiveis(id) : [];
+  if (unidades.length) {
+    abrirModalEscolhaImei(product, amount, unidades, (unidadeIds) => confirmarVenda(product, amount, unidadeIds));
     return;
   }
 
-  await loadProducts();
-  applyFilters();
-  updateDashboard();
-  await atualizarAbaVendas();
-  abrirModalRecibo(movimentacao, product);
+  await confirmarVenda(product, amount, null);
+}
+
+let vendaEmAndamento = false;
+
+async function confirmarVenda(product, amount, unidadeIds) {
+  // Trava contra clique duplo: só uma venda por vez sai desta tela.
+  if (vendaEmAndamento) return;
+  vendaEmAndamento = true;
+
+  try {
+    // registrar_venda_v2 (sql/011) baixa o estoque, marca os IMEIs como vendidos e lança
+    // no livro-caixa numa única transação, com a linha do produto travada.
+    const { data: movimentacao, error } = await supabaseClient.rpc('registrar_venda_v2', {
+      p_produto_id: product.id,
+      p_quantidade: amount,
+      p_unidade_ids: unidadeIds,
+    });
+
+    if (error) {
+      showToast(`❌ ${error.message || 'Erro ao registrar a venda.'}`, 'error');
+      return;
+    }
+
+    await loadProducts();
+    applyFilters();
+    updateDashboard();
+    await atualizarAbaVendas();
+    abrirModalRecibo(movimentacao, product);
+  } finally {
+    vendaEmAndamento = false;
+  }
+}
+
+function abrirModalEscolhaImei(product, quantidade, unidades, aoConfirmar) {
+  const linhas = unidades.map(u => {
+    const impedido = u.status_anatel === 'impedido';
+    return `
+      <label class="imei-opcao${impedido ? ' imei-opcao--impedido' : ''}">
+        <input type="checkbox" value="${esc(u.id)}" ${impedido ? 'disabled' : ''} />
+        <span class="imei-opcao-numero">${esc(u.imei)}</span>
+        <span class="imei-opcao-meta">${esc(GRADE_LABELS[u.grade] || u.grade || '')}${u.saude_bateria ? ` · bateria ${esc(u.saude_bateria)}%` : ''}</span>
+        ${impedido ? renderBadgeImeiAlerta() : ''}
+      </label>
+    `;
+  }).join('');
+
+  DOM.modalBody.innerHTML = `
+    <h3 class="modal-title">Qual aparelho está saindo?</h3>
+    <p class="modal-message">${esc(product.brand)} ${esc(product.model)} — escolha ${quantidade} ${pluralize(quantidade, 'IMEI', 'IMEIs')}.</p>
+    <div class="imei-opcoes">${linhas}</div>
+    <p class="imei-contador" id="imei-contador">0 de ${quantidade} ${pluralize(quantidade, 'selecionado', 'selecionados')}</p>
+    <div class="modal-actions">
+      <button type="button" class="secondary" id="modal-imei-cancelar">Cancelar</button>
+      <button type="button" class="primary" id="modal-imei-confirmar" disabled>Confirmar venda</button>
+    </div>
+  `;
+
+  const checkboxes = [...DOM.modalBody.querySelectorAll('.imei-opcoes input[type="checkbox"]')];
+  const contador = DOM.modalBody.querySelector('#imei-contador');
+  const btnConfirmar = DOM.modalBody.querySelector('#modal-imei-confirmar');
+
+  const atualizar = () => {
+    const marcados = checkboxes.filter(c => c.checked).length;
+    contador.textContent = `${marcados} de ${quantidade} ${pluralize(quantidade, 'selecionado', 'selecionados')}`;
+    btnConfirmar.disabled = marcados !== quantidade;
+    // Atingiu a quantidade: trava os demais pra não passar do número da venda.
+    checkboxes.forEach(c => {
+      if (!c.checked && !c.closest('.imei-opcao--impedido')) c.disabled = marcados >= quantidade;
+    });
+  };
+
+  checkboxes.forEach(c => c.addEventListener('change', atualizar));
+  DOM.modalBody.querySelector('#modal-imei-cancelar').addEventListener('click', fecharModal);
+  btnConfirmar.addEventListener('click', () => {
+    const ids = checkboxes.filter(c => c.checked).map(c => c.value);
+    btnConfirmar.disabled = true;
+    fecharModal();
+    aoConfirmar(ids);
+  });
+
+  abrirModal();
 }
 
 // ============================================
@@ -1709,7 +1930,7 @@ function renderTop5MarcasValorList() {
     return `
       <div class="dashboard-brandlist-row">
         <div class="dashboard-brandlist-info">
-          <span class="dashboard-brandlist-name">${marca}</span>
+          <span class="dashboard-brandlist-name">${esc(marca)}</span>
           <span class="dashboard-brandlist-value">${formatCurrency(valor)}</span>
         </div>
         <div class="dashboard-brandlist-bar-track">
@@ -1819,7 +2040,7 @@ const LOWSTOCK_LIMITE_EXIBICAO = 5;
 
 function renderLowStockList() {
   const lowStockProducts = products
-    .filter(p => p.quantity >= 1 && p.quantity <= 5)
+    .filter(p => situacaoEstoque(p) === 'baixo')
     .sort((a, b) => a.quantity - b.quantity);
 
   DOM.lowStockList.innerHTML = '';
@@ -1843,7 +2064,7 @@ function renderLowStockList() {
     const li = document.createElement('li');
     li.className = 'dashboard-lowstock-item';
     li.innerHTML = `
-      <span class="dashboard-lowstock-name">${p.brand} ${p.model}<span class="dashboard-lowstock-color">${p.color || ''}</span></span>
+      <span class="dashboard-lowstock-name">${esc(p.brand)} ${esc(p.model)}<span class="dashboard-lowstock-color">${esc(p.color)}</span></span>
       <span class="badge-estoque baixo">${p.quantity} un.</span>
     `;
     li.addEventListener('click', () => startEditProduct(p.id));
@@ -1892,10 +2113,13 @@ function montarTextoRecibo(mov, produto) {
     '🧾 Recibo de venda — Vault',
     '',
     `Produto: ${produto.brand} ${produto.model}${produto.color ? ' - ' + produto.color : ''}`,
+    ...(mov.produto_snapshot?.imeis?.length ? [`IMEI: ${mov.produto_snapshot.imeis.join(', ')}`] : []),
     `Quantidade: ${Math.abs(mov.quantidade)}`,
     `Preço unitário: ${formatCurrency(mov.preco_unitario)}`,
     `Total: ${formatCurrency(mov.total)}`,
     `Data: ${formatarDataHora(mov.created_at)}`,
+    '',
+    'Comprovante simples, não é nota fiscal.',
   ].join('\n');
 }
 
@@ -1905,8 +2129,9 @@ function abrirModalRecibo(mov, produto) {
   DOM.modalBody.innerHTML = `
     <h3 class="modal-title">✅ Venda registrada</h3>
     <div class="recibo-card">
-      <div class="recibo-linha"><span>Produto</span><strong>${produto.brand} ${produto.model}</strong></div>
-      <div class="recibo-linha"><span>Cor</span><strong>${produto.color || '-'}</strong></div>
+      <div class="recibo-linha"><span>Produto</span><strong>${esc(produto.brand)} ${esc(produto.model)}</strong></div>
+      <div class="recibo-linha"><span>Cor</span><strong>${esc(produto.color || '-')}</strong></div>
+      ${mov.produto_snapshot?.imeis?.length ? `<div class="recibo-linha"><span>IMEI</span><strong>${mov.produto_snapshot.imeis.map(esc).join('<br>')}</strong></div>` : ''}
       <div class="recibo-linha"><span>Quantidade</span><strong>${Math.abs(mov.quantidade)}</strong></div>
       <div class="recibo-linha"><span>Preço unitário</span><strong>${formatCurrency(mov.preco_unitario)}</strong></div>
       <div class="recibo-linha recibo-total"><span>Total</span><strong>${formatCurrency(mov.total)}</strong></div>
@@ -1928,8 +2153,7 @@ function abrirModalRecibo(mov, produto) {
     }
   });
 
-  DOM.modalBackdrop.classList.add('active');
-  DOM.modal.classList.add('active');
+  abrirModal();
 }
 
 // ============================================
@@ -2037,7 +2261,7 @@ function renderHistoricoFilterChips() {
   DOM.filtersHistoricoChips.classList.remove('hidden');
   DOM.filtersHistoricoChips.innerHTML = chips.map((chip, i) => `
     <span class="filter-chip" data-chip-index="${i}">
-      ${chip.label}
+      ${esc(chip.label)}
       <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
     </span>
   `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-historico">Limpar tudo</button>`;
@@ -2068,8 +2292,8 @@ function renderPessoaChip(email) {
 
   return `
     <span class="vendedor-chip">
-      <span class="vendedor-avatar">${iniciais}</span>
-      ${nomeExibicao}
+      <span class="vendedor-avatar">${esc(iniciais)}</span>
+      ${esc(nomeExibicao)}
     </span>
   `;
 }
@@ -2087,8 +2311,8 @@ function renderHistoricoVendas() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="historico-data">${formatarDataHora(m.created_at)}</td>
-      <td>${snap.brand || ''} ${snap.model || ''}</td>
-      <td>${snap.color ? `<span class="table-color-dot" style="background:${CORES_MAPA[snap.color] || 'var(--bg-tertiary)'}"></span>${snap.color}` : '-'}</td>
+      <td>${esc(snap.brand)} ${esc(snap.model)}${snap.imeis?.length ? `<span class="historico-imeis">IMEI ${snap.imeis.map(esc).join(', ')}</span>` : ''}</td>
+      <td>${renderCorCelula(snap.color)}</td>
       <td>${Math.abs(m.quantidade)}</td>
       <td>${formatCurrency(m.preco_unitario)}</td>
       <td class="historico-total">${formatCurrency(m.total)}</td>
@@ -2244,8 +2468,8 @@ async function updateDashboard() {
 
   const total = products.length;
   const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-  const lowStock = products.filter(p => p.quantity >= 1 && p.quantity <= 5).length;
-  const zeroStock = products.filter(p => p.quantity === 0).length;
+  const lowStock = products.filter(p => situacaoEstoque(p) === 'baixo').length;
+  const zeroStock = products.filter(p => situacaoEstoque(p) === 'zerado').length;
   const saudavel = Math.max(total - lowStock - zeroStock, 0);
 
   animarContagem(DOM.dashTotal, total);
@@ -2327,8 +2551,8 @@ function toggleTheme() {
 
 function abrirModalConfirmacao({ titulo, mensagem, textoConfirmar = 'Confirmar', aoConfirmar }) {
   DOM.modalBody.innerHTML = `
-    <h3 class="modal-title">${titulo}</h3>
-    <p class="modal-message">${mensagem}</p>
+    <h3 class="modal-title">${esc(titulo)}</h3>
+    <p class="modal-message">${esc(mensagem)}</p>
     <div class="modal-actions">
       <button type="button" class="secondary" id="modal-cancel-btn">Cancelar</button>
       <button type="button" class="danger" id="modal-confirm-btn">${textoConfirmar}</button>
@@ -2341,6 +2565,16 @@ function abrirModalConfirmacao({ titulo, mensagem, textoConfirmar = 'Confirmar',
     aoConfirmar();
   });
 
+  abrirModal();
+}
+
+let timerFechamentoModal = null;
+
+function abrirModal() {
+  // Se um modal acabou de fechar, cancela o fim da animação dele — senão o timer
+  // fecharia este que está abrindo agora (ex.: escolha de IMEI → recibo).
+  clearTimeout(timerFechamentoModal);
+  DOM.modalContent.classList.remove('closing');
   DOM.modalBackdrop.classList.add('active');
   DOM.modal.classList.add('active');
 }
@@ -2349,7 +2583,8 @@ function fecharModal() {
   DOM.modalContent.classList.add('closing');
   DOM.modalBackdrop.classList.remove('active');
 
-  setTimeout(() => {
+  clearTimeout(timerFechamentoModal);
+  timerFechamentoModal = setTimeout(() => {
     DOM.modal.classList.remove('active');
     DOM.modalContent.classList.remove('closing');
   }, 150);
@@ -2360,7 +2595,7 @@ function showToast(message, type = 'info', duration = 3000) {
   toast.className = `toast ${type}`;
   toast.innerHTML = `
     <div class="toast-icon"></div>
-    <div class="toast-message">${message}</div>
+    <div class="toast-message">${esc(message)}</div>
   `;
   
   DOM.toastContainer.appendChild(toast);
@@ -2586,7 +2821,7 @@ function selecionarPapelConvite(papel) {
 
 function renderBadgePapel(papel) {
   const classe = papel === 'dono' ? 'badge-papel--dono' : 'badge-papel--vendedor';
-  return `<span class="badge-papel ${classe}">${PAPEL_LABELS[papel] || papel}</span>`;
+  return `<span class="badge-papel ${classe}">${esc(PAPEL_LABELS[papel] || papel)}</span>`;
 }
 
 async function renderEquipe() {
@@ -2636,7 +2871,7 @@ async function renderEquipe() {
         <span class="vendedor-chip">
           <span class="vendedor-avatar vendedor-avatar--pendente"><i class="ti ti-clock"></i></span>
           <span>
-            ${c.email}
+            ${esc(c.email)}
             <span class="convite-pendente-texto">Convite pendente</span>
           </span>
         </span>

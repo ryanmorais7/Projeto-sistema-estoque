@@ -1942,6 +1942,133 @@ html[data-theme="dark"] .theme-toggle:hover {
   color: var(--color-danger-badge-text);
 }
 
+/* Cinza = histórico / desativado (paleta semântica) */
+.badge-estoque.arquivado {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.product-row--arquivado td {
+  color: var(--text-secondary);
+}
+
+/* ===================================
+   IMEI: ESCOLHA NA VENDA E ACERTO
+   =================================== */
+
+.imei-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 16px 0 8px;
+}
+
+.imei-opcao {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.imei-opcao:hover {
+  border-color: var(--color-primary);
+}
+
+.imei-opcao:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.imei-opcao .imei-opcao-meta,
+.imei-opcao .badge-imei-alerta {
+  grid-column: 2;
+}
+
+.imei-opcao input {
+  grid-row: span 2;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.imei-opcao-numero {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.imei-opcao-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.imei-opcao--impedido {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.imei-opcao--impedido:hover {
+  border-color: var(--border-color);
+}
+
+.imei-contador {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.unidades-acerto-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  color: var(--color-warning-badge-text);
+  font-size: 0.85rem;
+}
+
+.unidades-acerto-aviso .ti {
+  font-size: 1.1rem;
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+
+.unidade-marcar-vendido-btn {
+  margin-left: 8px;
+  background: transparent;
+  color: var(--color-warning-badge-text);
+  border: 1px solid rgba(245, 166, 35, 0.4);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 150ms ease;
+}
+
+.unidade-marcar-vendido-btn:hover {
+  background: rgba(245, 166, 35, 0.12);
+}
+
+.historico-imeis {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 /* ===================================
    MODAL DE CONFIRMAÇÃO
    =================================== */
