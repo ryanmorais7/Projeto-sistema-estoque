@@ -51,6 +51,7 @@ const TIPO_ICONES = {
 const STOCK_FILTER_LABELS = {
   zero: 'Zerado',
   low: 'Baixo',
+  sem_custo: 'Custo não informado',
   arquivados: 'Arquivados',
   medium: 'Médio (6-20)',
   high: 'Alto (20+)',
@@ -133,6 +134,7 @@ const DOM = {
     model: document.getElementById('model'),
     color: document.getElementById('color'),
     manufacture: document.getElementById('manufacture'),
+    cost: document.getElementById('cost'),
     price: document.getElementById('price'),
     quantity: document.getElementById('quantity'),
     notes: document.getElementById('notes'),
@@ -149,6 +151,13 @@ const DOM = {
   previewName: document.getElementById('preview-name'),
   previewMeta: document.getElementById('preview-meta'),
   previewPrice: document.getElementById('preview-price'),
+
+  // Cadastro — lucro, margem e markup ao vivo
+  precificacao: document.getElementById('precificacao'),
+  precificacaoLucro: document.getElementById('precificacao-lucro'),
+  precificacaoMargem: document.getElementById('precificacao-margem'),
+  precificacaoMarkup: document.getElementById('precificacao-markup'),
+  precificacaoAviso: document.getElementById('precificacao-aviso'),
 
   // Unidades (IMEI)
   unidadesSection: document.getElementById('unidades-section'),
@@ -208,7 +217,11 @@ const DOM = {
 
   // Dashboard
   dashTotal: document.getElementById('dash-total'),
-  dashValue: document.getElementById('dash-value'),
+  dashValorCompra: document.getElementById('dash-valor-compra'),
+  dashValorVenda: document.getElementById('dash-valor-venda'),
+  dashCustoPendente: document.getElementById('dash-custo-pendente'),
+  dashCustoPendenteTexto: document.getElementById('dash-custo-pendente-texto'),
+  dashCustoPendenteLink: document.getElementById('dash-custo-pendente-link'),
   dashVendasHoje: document.getElementById('dash-vendas-hoje'),
   dashVendasHojeValor: document.getElementById('dash-vendas-hoje-valor'),
   dashVendasHojeTrend: document.getElementById('dash-vendas-hoje-trend'),
@@ -285,7 +298,86 @@ async function loadProducts() {
 
   products = data.filter(p => !p.arquivado_em);
   produtosArquivados = data.filter(p => p.arquivado_em);
-  await refrescarUnidadesCache();
+  await Promise.all([refrescarUnidadesCache(), carregarCustos()]);
+}
+
+// ============================================
+// CUSTOS (produtos_custos — só o dono lê, sql/011)
+// ============================================
+
+// produto_id → custo unitário (número). Produto ausente do mapa = custo não informado,
+// que NUNCA é tratado como zero nas contas.
+let custoPorProduto = {};
+
+async function carregarCustos() {
+  custoPorProduto = {};
+  if (!souDono()) return;
+
+  const { data, error } = await supabaseClient
+    .from('produtos_custos')
+    .select('produto_id, custo_unitario')
+    .eq('loja_id', lojaAtual.id);
+
+  if (error) return;
+
+  data.forEach(c => {
+    if (c.custo_unitario !== null) custoPorProduto[c.produto_id] = Number(c.custo_unitario);
+  });
+}
+
+function custoDoProduto(produtoId) {
+  return Object.prototype.hasOwnProperty.call(custoPorProduto, produtoId) ? custoPorProduto[produtoId] : null;
+}
+
+// Grava (ou limpa) o custo do produto. custo = null significa "não informado".
+async function salvarCusto(produtoId, custo) {
+  const jaTinha = custoDoProduto(produtoId) !== null;
+  if (custo === null && !jaTinha) return true;
+
+  const { error } = await supabaseClient
+    .from('produtos_custos')
+    .upsert({
+      produto_id: produtoId,
+      loja_id: lojaAtual.id,
+      custo_unitario: custo,
+      updated_at: new Date().toISOString(),
+      updated_by: usuarioAtual.id,
+    }, { onConflict: 'produto_id' });
+
+  if (error) {
+    showToast('❌ Produto salvo, mas não foi possível salvar o preço de custo.', 'error');
+    return false;
+  }
+  return true;
+}
+
+// Lucro bruto, margem e markup de uma unidade. Qualquer valor ausente ou que
+// dividiria por zero volta como null (a tela mostra "—").
+function calcularPrecificacao(custo, venda) {
+  if (custo === null || custo === undefined || !Number.isFinite(custo)) {
+    return { lucro: null, margem: null, markup: null };
+  }
+  const lucro = venda - custo;
+  return {
+    lucro,
+    margem: venda > 0 ? (lucro / venda) * 100 : null,
+    markup: custo > 0 ? (lucro / custo) * 100 : null,
+  };
+}
+
+// Valores do estoque atual para o dashboard. Produto com quantidade e sem custo
+// entra em "pendentes" e não soma nada no total de compra.
+function calcularValoresEstoque(lista) {
+  return lista.reduce((acc, p) => {
+    const qtd = Math.max(Number(p.quantity) || 0, 0);
+    acc.venda += (Number(p.price) || 0) * qtd;
+    if (qtd === 0) return acc;
+
+    const custo = custoDoProduto(p.id);
+    if (custo === null) acc.pendentes += 1;
+    else { acc.compra += custo * qtd; acc.comCusto += 1; }
+    return acc;
+  }, { compra: 0, venda: 0, pendentes: 0, comCusto: 0 });
 }
 
 // O cache guarda todas as unidades (inclusive vendidas, para histórico). Estoque,
@@ -595,6 +687,7 @@ function matchesStockFilter(product, filter) {
   if (!filter || filter === 'arquivados') return true;
   if (filter === 'zero') return situacaoEstoque(product) === 'zerado';
   if (filter === 'low') return situacaoEstoque(product) === 'baixo';
+  if (filter === 'sem_custo') return custoDoProduto(product.id) === null;
   if (filter === 'medium') return quantity >= 6 && quantity <= 20;
   if (filter === 'high') return quantity > 20;
   return true;
@@ -737,12 +830,14 @@ function renderStatusChips() {
   const baixo = products.filter(p => situacaoEstoque(p) === 'baixo').length;
   const zerado = products.filter(p => situacaoEstoque(p) === 'zerado').length;
   const arquivados = produtosArquivados.length;
+  const semCusto = souDono() ? products.filter(p => custoDoProduto(p.id) === null).length : 0;
   const stockAtivo = DOM.filterStock.value;
 
   DOM.statusChips.innerHTML = `
     <button type="button" class="status-chip ${!stockAtivo ? 'active' : ''}" data-stock="">Todos <span class="status-chip-count">${total}</span></button>
     <button type="button" class="status-chip ${stockAtivo === 'low' ? 'active' : ''}" data-stock="low">Estoque baixo <span class="status-chip-count">${baixo}</span></button>
     <button type="button" class="status-chip ${stockAtivo === 'zero' ? 'active' : ''}" data-stock="zero">Sem estoque <span class="status-chip-count">${zerado}</span></button>
+    ${semCusto ? `<button type="button" class="status-chip ${stockAtivo === 'sem_custo' ? 'active' : ''}" data-stock="sem_custo">Custo não informado <span class="status-chip-count">${semCusto}</span></button>` : ''}
     ${arquivados ? `<button type="button" class="status-chip ${stockAtivo === 'arquivados' ? 'active' : ''}" data-stock="arquivados">Arquivados <span class="status-chip-count">${arquivados}</span></button>` : ''}
   `;
 }
@@ -1298,6 +1393,51 @@ function atualizarPreview() {
   DOM.previewMeta.classList.toggle('preview-placeholder', metaPartes.length === 0);
 
   DOM.previewPrice.textContent = formatCurrency(price || 0);
+  atualizarPrecificacao();
+}
+
+// ---- Lucro, margem e markup ao vivo ---------------------------------------------
+
+// Abaixo desta margem aparece um aviso informativo (não impede o cadastro).
+const MARGEM_MINIMA_ALERTA = 20;
+
+// Campo de custo vazio = custo não informado (null), nunca zero.
+function lerCusto() {
+  const bruto = DOM.formInputs.cost.value.trim();
+  return bruto ? parsePriceValue(bruto) : null;
+}
+
+function formatarPercentual(valor) {
+  return `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+}
+
+function atualizarPrecificacao() {
+  const custo = lerCusto();
+  const venda = parsePriceValue(DOM.formInputs.price.value);
+  const { lucro, margem, markup } = calcularPrecificacao(custo, venda);
+
+  DOM.precificacaoLucro.textContent = lucro === null ? '—' : formatCurrency(lucro);
+  DOM.precificacaoMargem.textContent = margem === null ? '—' : formatarPercentual(margem);
+  DOM.precificacaoMarkup.textContent = markup === null ? '—' : formatarPercentual(markup);
+
+  let estado = 'neutro';
+  let aviso = 'Preencha o custo para ver o lucro. Se não souber agora, pode deixar em branco e completar depois.';
+
+  if (custo !== null && !venda) {
+    aviso = 'Agora preencha o preço de venda.';
+  } else if (custo !== null && venda < custo) {
+    estado = 'perigo';
+    aviso = 'Atenção: este preço está abaixo do custo cadastrado.';
+  } else if (margem !== null && margem < MARGEM_MINIMA_ALERTA) {
+    estado = 'atencao';
+    aviso = `Margem abaixo de ${MARGEM_MINIMA_ALERTA}%. Pode ser uma promoção; só confira se é isso mesmo.`;
+  } else if (lucro !== null) {
+    estado = 'ok';
+    aviso = 'Lucro bruto: ainda não desconta impostos, taxas de cartão e despesas da loja.';
+  }
+
+  DOM.precificacao.dataset.estado = estado;
+  DOM.precificacaoAviso.textContent = aviso;
 }
 
 // ---- Aviso de produto duplicado -----------------------------------------------
@@ -1389,6 +1529,8 @@ async function fillForm(product) {
   sincronizarColorPalette();
   DOM.formInputs.manufacture.value = product.manufacture;
   DOM.formInputs.price.value = formatPriceInput(product.price);
+  const custo = custoDoProduto(product.id);
+  DOM.formInputs.cost.value = custo === null ? '' : formatPriceInput(custo);
   DOM.formInputs.quantity.value = product.quantity;
   DOM.formInputs.notes.value = product.notes || '';
   limparUnidadesForm();
@@ -1453,8 +1595,19 @@ async function handleFormSubmit(event) {
     notes: DOM.formInputs.notes.value.trim(),
   };
 
-  if (productData.price < 0 || productData.quantity < 0) {
-    showToast('❌ Valores inválidos.', 'error');
+  if (productData.price < 0) {
+    showToast('❌ O preço de venda não pode ser negativo.', 'error');
+    return;
+  }
+
+  if (!Number.isInteger(productData.quantity) || productData.quantity < 0) {
+    showToast('❌ A quantidade em estoque precisa ser um número inteiro, 0 ou mais.', 'error');
+    return;
+  }
+
+  const custo = lerCusto();
+  if (custo !== null && custo < 0) {
+    showToast('❌ O preço de custo não pode ser negativo.', 'error');
     return;
   }
 
@@ -1492,11 +1645,13 @@ async function handleFormSubmit(event) {
     const ok = await updateProductRow(editingId, productData);
     if (!ok) return;
     if (type === 'aparelhos') await salvarUnidades(editingId, unidades);
+    await salvarCusto(editingId, custo);
     showToast(`✅ ${brand} ${model} atualizado!`, 'success');
   } else {
     const created = await insertProduct(productData);
     if (!created) return;
     if (type === 'aparelhos') await salvarUnidades(created.id, unidades);
+    await salvarCusto(created.id, custo);
     showToast(`✅ ${brand} ${model} cadastrado!`, 'success');
   }
 
@@ -1711,25 +1866,42 @@ function corVar(nomeVariavel, fallback) {
 }
 
 function renderDashboardSkeleton() {
-  [DOM.dashTotal, DOM.dashValue, DOM.dashVendasHoje, DOM.dashTicketMedio, DOM.dashImeiImpedido].forEach(el => {
+  [DOM.dashTotal, DOM.dashValorCompra, DOM.dashValorVenda, DOM.dashVendasHoje, DOM.dashTicketMedio, DOM.dashImeiImpedido].forEach(el => {
     el.classList.add('loading');
   });
 }
 
-function animarContagem(elemento, valorFinal, formatar = (v) => Math.round(v).toString()) {
-  elemento.classList.remove('loading');
+const DURACAO_ANIMACAO_MS = 900;
 
-  const duracaoMs = 650;
-  const inicio = performance.now();
+function prefereMenosMovimento() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
 
-  function passo(agora) {
-    const progresso = Math.min((agora - inicio) / duracaoMs, 1);
-    const facilitado = 1 - Math.pow(1 - progresso, 3);
-    elemento.textContent = formatar(valorFinal * facilitado);
-    if (progresso < 1) requestAnimationFrame(passo);
+// Anima de 0 até 1 com desaceleração suave e chama aoAvancar(progresso) a cada quadro.
+// Com "reduzir movimento" ligado no sistema, pula direto para o valor final.
+// Uma nova animação no mesmo alvo cancela a anterior (evita números brigando).
+const animacoesAtivas = new WeakMap();
+
+function animar(alvo, aoAvancar, duracaoMs = DURACAO_ANIMACAO_MS) {
+  cancelAnimationFrame(animacoesAtivas.get(alvo));
+
+  if (prefereMenosMovimento()) {
+    aoAvancar(1);
+    return;
   }
 
-  requestAnimationFrame(passo);
+  const inicio = performance.now();
+  function passo(agora) {
+    const progresso = Math.min((agora - inicio) / duracaoMs, 1);
+    aoAvancar(1 - Math.pow(1 - progresso, 3));
+    if (progresso < 1) animacoesAtivas.set(alvo, requestAnimationFrame(passo));
+  }
+  animacoesAtivas.set(alvo, requestAnimationFrame(passo));
+}
+
+function animarContagem(elemento, valorFinal, formatar = (v) => Math.round(v).toString()) {
+  elemento.classList.remove('loading');
+  animar(elemento, (p) => { elemento.textContent = formatar(valorFinal * p); });
 }
 
 // ============================================
@@ -1752,12 +1924,12 @@ function renderVaultDial(container, { saudavel, baixo, zerado }) {
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
+  // Cada arco nasce com comprimento 0 e cresce até o tamanho real (ver animação abaixo);
+  // o início de cada um também acompanha o crescimento dos anteriores, então o anel
+  // "se fecha" de forma contínua em vez de três arcos pulando de uma vez.
   const arc = (percent, offsetPercent, color) => {
     if (percent <= 0) return '';
-    const length = (percent / 100) * circumference;
-    const gap = circumference - length;
-    const rotation = (offsetPercent / 100) * 360 - 90;
-    return `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${length} ${gap}" stroke-linecap="round" transform="rotate(${rotation} ${center} ${center})"></circle>`;
+    return `<circle class="vault-dial-arc" data-pct="${percent}" data-offset="${offsetPercent}" cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="0 ${circumference}" stroke-linecap="round" transform="rotate(-90 ${center} ${center})"></circle>`;
   };
 
   let cursor = 0;
@@ -1786,21 +1958,45 @@ function renderVaultDial(container, { saudavel, baixo, zerado }) {
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="${Math.round(dominante.pct)}% do estoque está ${dominante.label}">
       <circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="var(--border-color)" stroke-width="${strokeWidth}"></circle>
       ${arcoSaudavel}${arcoBaixo}${arcoZerado}
-      <text x="${center}" y="${center - 2}" text-anchor="middle" class="vault-dial-value" fill="${dominante.cor}">${Math.round(dominante.pct)}%</text>
+      <text x="${center}" y="${center - 2}" text-anchor="middle" class="vault-dial-value" fill="${dominante.cor}">0%</text>
       <text x="${center}" y="${center + 20}" text-anchor="middle" class="vault-dial-caption" fill="${dominante.cor}">${dominante.label}</text>
     </svg>
   `;
+
+  const arcos = [...container.querySelectorAll('.vault-dial-arc')];
+  const textoValor = container.querySelector('.vault-dial-value');
+  const pctFinal = Math.round(dominante.pct);
+
+  animar(container, (p) => {
+    arcos.forEach(el => {
+      const length = (Number(el.dataset.pct) / 100) * circumference * p;
+      const rotation = (Number(el.dataset.offset) * p / 100) * 360 - 90;
+      el.setAttribute('stroke-dasharray', `${length} ${circumference - length}`);
+      el.setAttribute('transform', `rotate(${rotation} ${center} ${center})`);
+      // A ponta arredondada desenharia um "pontinho" com comprimento zero.
+      el.style.opacity = length > 0.5 ? 1 : 0;
+    });
+    textoValor.textContent = `${Math.round(pctFinal * p)}%`;
+  });
 }
 
 function renderVaultDialLegend(container, { saudavel, baixo, zerado }) {
   const total = saudavel + baixo + zerado;
   const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+  const itens = [
+    { cor: corVar('--color-secondary', '#22D3C5'), label: 'Estoque saudável', valor: pct(saudavel) },
+    { cor: corVar('--color-warning', '#F5A623'), label: 'Estoque baixo', valor: pct(baixo) },
+    { cor: corVar('--color-danger', '#FF5C7A'), label: 'Sem estoque', valor: pct(zerado) },
+  ];
 
-  container.innerHTML = `
-    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-secondary', '#22D3C5')}"></span>Estoque saudável <strong>${pct(saudavel)}%</strong></div>
-    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-warning', '#F5A623')}"></span>Estoque baixo <strong>${pct(baixo)}%</strong></div>
-    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${corVar('--color-danger', '#FF5C7A')}"></span>Sem estoque <strong>${pct(zerado)}%</strong></div>
-  `;
+  container.innerHTML = itens.map(i => `
+    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${i.cor}"></span>${i.label} <strong>0%</strong></div>
+  `).join('');
+
+  const numeros = [...container.querySelectorAll('strong')];
+  animar(container, (p) => {
+    numeros.forEach((el, idx) => { el.textContent = `${Math.round(itens[idx].valor * p)}%`; });
+  });
 }
 
 // ============================================
@@ -2450,6 +2646,32 @@ function renderSparklinesKPI() {
   });
 }
 
+// Valor total de compra (custo × quantidade) e de venda (preço × quantidade) do estoque
+// atual. Custo desconhecido não vira zero: o total de compra fica marcado como
+// incompleto e o aviso leva para a lista de produtos sem custo.
+function renderValoresEstoque() {
+  const { compra, venda, pendentes, comCusto } = calcularValoresEstoque(products);
+
+  animarContagem(DOM.dashValorVenda, venda, formatCurrency);
+
+  if (comCusto === 0 && pendentes > 0) {
+    DOM.dashValorCompra.classList.remove('loading');
+    cancelAnimationFrame(animacoesAtivas.get(DOM.dashValorCompra));
+    DOM.dashValorCompra.textContent = 'Custo pendente';
+    DOM.dashValorCompra.classList.add('dashboard-hero-amount--pendente');
+  } else {
+    DOM.dashValorCompra.classList.remove('dashboard-hero-amount--pendente');
+    animarContagem(DOM.dashValorCompra, compra, formatCurrency);
+  }
+
+  DOM.dashCustoPendente.classList.toggle('hidden', pendentes === 0);
+  if (pendentes > 0) {
+    DOM.dashCustoPendenteTexto.textContent = comCusto === 0
+      ? `Nenhum produto em estoque tem preço de custo ainda (${pendentes} ${pluralize(pendentes, 'produto')}).`
+      : `${pendentes} ${pluralize(pendentes, 'produto')} sem preço de custo: o total de compra está incompleto.`;
+  }
+}
+
 async function updateDashboard() {
   const [totalImeiImpedido, vendasHojeEOntem, ticketMedio, vendas7dias] = await Promise.all([
     buscarTotalImeiImpedido(),
@@ -2467,13 +2689,12 @@ async function updateDashboard() {
   renderSparklinesKPI();
 
   const total = products.length;
-  const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
   const lowStock = products.filter(p => situacaoEstoque(p) === 'baixo').length;
   const zeroStock = products.filter(p => situacaoEstoque(p) === 'zerado').length;
   const saudavel = Math.max(total - lowStock - zeroStock, 0);
 
   animarContagem(DOM.dashTotal, total);
-  animarContagem(DOM.dashValue, totalValue, formatCurrency);
+  renderValoresEstoque();
   renderVaultDial(DOM.vaultDialContainer, { saudavel, baixo: lowStock, zerado: zeroStock });
   renderVaultDialLegend(DOM.vaultDialLegend, { saudavel, baixo: lowStock, zerado: zeroStock });
   renderTop5MarcasValorList();
@@ -3024,6 +3245,24 @@ function initEventListeners() {
   });
 
   DOM.formInputs.price.addEventListener('input', atualizarPreview);
+
+  // Custo: mesma máscara do preço, mas vazio continua vazio (= não informado).
+  DOM.formInputs.cost.addEventListener('focus', () => {
+    const custo = lerCusto();
+    DOM.formInputs.cost.value = custo === null ? '' : custo.toString().replace('.', ',');
+  });
+  DOM.formInputs.cost.addEventListener('blur', () => {
+    const custo = lerCusto();
+    DOM.formInputs.cost.value = custo === null ? '' : formatPriceInput(custo) || 'R$ 0,00';
+  });
+  DOM.formInputs.cost.addEventListener('input', atualizarPrecificacao);
+
+  // Dashboard: aviso de custo pendente leva direto à lista de produtos sem custo.
+  DOM.dashCustoPendenteLink.addEventListener('click', () => {
+    DOM.filterStock.value = 'sem_custo';
+    applyFilters();
+    changeTab('estoque');
+  });
 
   // Filters - Stock
   [DOM.filterSearch, DOM.filterBrand, DOM.filterColor, DOM.filterStock].forEach(el => {

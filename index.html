@@ -181,9 +181,30 @@
       <h2 class="dashboard-saudacao" id="dashboard-saudacao"></h2>
 
       <div class="dashboard-hero card">
-        <div class="dashboard-hero-value">
-          <span class="dashboard-hero-label">Saldo total em estoque</span>
-          <span class="dashboard-hero-amount" id="dash-value">R$ 0,00</span>
+        <div class="dashboard-hero-values">
+          <div class="dashboard-hero-value dashboard-hero-value--compra">
+            <span class="dashboard-hero-label">
+              <span class="dashboard-hero-marcador"></span>
+              Valor total de compra
+              <i class="ti ti-info-circle dashboard-hero-info" title="Quanto custaram as mercadorias que estão no estoque agora: custo unitário × quantidade, somado para todos os produtos."></i>
+            </span>
+            <span class="dashboard-hero-amount" id="dash-valor-compra">R$ 0,00</span>
+            <span class="dashboard-hero-sub">investido no estoque atual</span>
+          </div>
+          <div class="dashboard-hero-value dashboard-hero-value--venda">
+            <span class="dashboard-hero-label">
+              <span class="dashboard-hero-marcador"></span>
+              Valor total de venda
+              <i class="ti ti-info-circle dashboard-hero-info" title="Quanto a loja pode faturar se vender todas as unidades do estoque pelo preço cadastrado. É uma estimativa, não venda realizada."></i>
+            </span>
+            <span class="dashboard-hero-amount" id="dash-valor-venda">R$ 0,00</span>
+            <span class="dashboard-hero-sub">estimativa se vender todo o estoque</span>
+          </div>
+          <p class="dashboard-hero-aviso hidden" id="dash-custo-pendente">
+            <i class="ti ti-alert-circle"></i>
+            <span id="dash-custo-pendente-texto"></span>
+            <button type="button" class="dashboard-hero-aviso-link" id="dash-custo-pendente-link">Preencher custos</button>
+          </p>
         </div>
         <div class="vault-dial" id="vault-dial-container"></div>
         <div class="vault-dial-legend" id="vault-dial-legend"></div>
@@ -318,12 +339,16 @@
                 <input type="hidden" id="color" required />
               </label>
               <label>
-                Ano de Fabricação
-                <input id="manufacture" type="text" placeholder="Ex: 2026 / (opcional)" />
+                Preço de custo unitário
+                <input id="cost" type="text" inputmode="decimal" placeholder="Quanto você pagou · ex: R$ 12,00" />
               </label>
               <label>
-                Preço unitário
-                <input id="price" type="text" inputmode="decimal" placeholder="R$ 0,00" required />
+                Preço de venda unitário
+                <input id="price" type="text" inputmode="decimal" placeholder="Por quanto vai vender · ex: R$ 35,00" required />
+              </label>
+              <label>
+                Ano de Fabricação
+                <input id="manufacture" type="text" placeholder="Ex: 2026 / (opcional)" />
               </label>
               <label>
                 Quantidade em estoque
@@ -333,6 +358,22 @@
                   <button type="button" class="quantity-btn" id="quantity-increment" aria-label="Aumentar quantidade"><i class="ti ti-plus"></i></button>
                 </div>
               </label>
+            </div>
+
+            <div class="precificacao" id="precificacao" aria-live="polite">
+              <div class="precificacao-item">
+                <span class="precificacao-label">Lucro bruto por unidade</span>
+                <strong class="precificacao-valor" id="precificacao-lucro">—</strong>
+              </div>
+              <div class="precificacao-item">
+                <span class="precificacao-label">Margem</span>
+                <strong class="precificacao-valor" id="precificacao-margem">—</strong>
+              </div>
+              <div class="precificacao-item">
+                <span class="precificacao-label">Markup</span>
+                <strong class="precificacao-valor" id="precificacao-markup">—</strong>
+              </div>
+              <p class="precificacao-aviso" id="precificacao-aviso">Preencha o custo para ver o lucro. Se não souber agora, pode deixar em branco e completar depois.</p>
             </div>
 
             <p class="duplicate-warning hidden" id="duplicate-warning"></p>
@@ -476,6 +517,7 @@
               <option value="low">Baixo (no mínimo ou abaixo)</option>
               <option value="medium">Médio (6-20)</option>
               <option value="high">Alto (20+)</option>
+              <option value="sem_custo">Custo não informado</option>
               <option value="arquivados">Arquivados</option>
             </select>
           </div>

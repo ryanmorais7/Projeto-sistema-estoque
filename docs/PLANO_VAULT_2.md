@@ -67,6 +67,14 @@ Cada etapa vai num branch próprio, vira preview na Vercel e só entra na `main`
 
 **SQL:** `011_fundacao_comercial.sql` → `products.created_at`, `estoque_minimo`, `arquivado_em`; tabela `produtos_custos`; `movimentacoes_estoque.venda_id`, `custo_unitario`, novos tipos; RPCs `registrar_venda_v2` e `marcar_unidade_vendida`.
 
+### Ajuste do dashboard ✅ (branch `vault-2/etapa-2`, adiantado da Etapa 2/3)
+- ✅ "Saldo total em estoque" virou **Valor total de compra** (custo × qtd, azul) e **Valor total de venda** (preço × qtd, turquesa), no mesmo card do disco.
+- ✅ Custo desconhecido não conta como zero: aviso "N produtos sem preço de custo: o total de compra está incompleto" + atalho para o filtro "Custo não informado" no estoque. Se nenhum produto tiver custo, mostra "Custo pendente".
+- ✅ Disco anima de 0% ao valor real (arco, número central e legenda). Valores contam de R$ 0,00. Tudo respeita "reduzir movimento".
+- ✅ Cadastro: preço de custo (opcional) ao lado do preço de venda, com lucro bruto, margem e markup ao vivo; alerta vermelho abaixo do custo e amarelo com margem < 20%.
+- Layout: 3 colunas no computador, valores em cima no tablet, tudo empilhado no celular.
+- Testes no Edge headless: 20/20.
+
 ### Etapa 2 — Base comercial
 - Cadastro: custo, lucro, margem e markup ao vivo; alerta de preço abaixo do custo; estoque mínimo; campos por categoria (acessório com nome livre, película com tipo, capinha com material).
 - Produtos antigos com selo "Custo não informado".
