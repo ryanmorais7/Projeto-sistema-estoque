@@ -238,15 +238,6 @@
           <div class="dashboard-card-value" id="dash-ticket-medio">R$ 0,00</div>
           <div class="dashboard-card-subtitle">últimos 30 dias</div>
         </div>
-
-        <div class="dashboard-card card dashboard-card-alertas" id="dashboard-alertas-card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Alertas</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--neutro" id="dashboard-alertas-icon-box"><i class="ti ti-check"></i></span>
-          </div>
-          <div class="dashboard-card-value hidden" id="dash-imei-impedido">0</div>
-          <div class="dashboard-card-subtitle" id="dashboard-alertas-subtitle">Tudo certo por aqui</div>
-        </div>
       </div>
 
       <div class="dashboard-split-grid">
@@ -278,85 +269,69 @@
 
     <section id="cadastro" class="tab-panel" role="tabpanel">
       <div class="cadastro-layout">
-        <form id="product-form" class="cadastro-form">
-          <div class="card cadastro-card">
-            <h3 class="cadastro-card-title">Identificação do produto</h3>
+        <form id="product-form" class="cadastro-form" novalidate>
 
-            <label class="full-width">
-              Tipo
-              <div class="type-selector" id="type-selector" role="group" aria-label="Tipo de produto">
-                <button type="button" class="type-option" data-type="aparelhos">
-                  <i class="ti ti-device-mobile"></i>
-                  <span>Aparelhos</span>
-                </button>
-                <button type="button" class="type-option" data-type="capinhas">
-                  <i class="ti ti-shield"></i>
-                  <span>Capinhas</span>
-                </button>
-                <button type="button" class="type-option" data-type="peliculas">
-                  <i class="ti ti-square-rounded"></i>
-                  <span>Películas</span>
-                </button>
-                <button type="button" class="type-option" data-type="acessorios">
-                  <i class="ti ti-plug"></i>
-                  <span>Acessórios</span>
-                </button>
-              </div>
-              <input type="hidden" id="type" value="aparelhos" required />
+          <!-- Passo 1: tipo -->
+          <div class="card cadastro-card">
+            <h3 class="cadastro-card-title"><span class="cadastro-passo">1</span> O que você vai cadastrar?</h3>
+            <div class="type-selector" id="type-selector" role="group" aria-label="Tipo de produto">
+              <button type="button" class="type-option active" data-type="capinhas">
+                <i class="ti ti-shield"></i>
+                <span>Capinha</span>
+              </button>
+              <button type="button" class="type-option" data-type="peliculas">
+                <i class="ti ti-square-rounded"></i>
+                <span>Película</span>
+              </button>
+              <button type="button" class="type-option" data-type="acessorios">
+                <i class="ti ti-plug"></i>
+                <span>Acessório</span>
+              </button>
+              <!-- Só aparece ao editar um celular cadastrado antes (não dá pra cadastrar novos). -->
+              <button type="button" class="type-option hidden" data-type="aparelhos" id="type-option-aparelhos">
+                <i class="ti ti-device-mobile"></i>
+                <span>Aparelho</span>
+              </button>
+            </div>
+            <input type="hidden" id="type" value="capinhas" />
+          </div>
+
+          <!-- Passo 2: marca e modelos -->
+          <div class="card cadastro-card">
+            <h3 class="cadastro-card-title"><span class="cadastro-passo">2</span> <span id="cadastro-titulo-modelos">Para quais celulares?</span></h3>
+
+            <label class="cadastro-marca">
+              <span id="cadastro-label-marca">Marca do celular</span>
+              <input id="brand" type="text" list="brand-sugestoes" autocomplete="off" placeholder="Ex: Samsung" />
+              <datalist id="brand-sugestoes"></datalist>
             </label>
 
+            <div class="modelos-sugeridos hidden" id="modelos-sugeridos">
+              <p class="cadastro-dica" id="modelos-sugeridos-dica">Toque nos modelos que você recebeu:</p>
+              <div class="modelos-chips" id="modelos-chips"></div>
+            </div>
+
+            <div class="modelo-livre">
+              <input id="modelo-livre-input" type="text" autocomplete="off" placeholder="Digite um modelo e aperte Enter · ex: Galaxy A15" />
+              <button type="button" class="secondary" id="modelo-livre-add"><i class="ti ti-plus"></i> Adicionar</button>
+            </div>
+
+            <div class="lote-lista" id="lote-lista" aria-live="polite"></div>
+            <p class="lote-vazio" id="lote-vazio">Nenhum modelo adicionado ainda.</p>
+          </div>
+
+          <!-- Passo 3: preço -->
+          <div class="card cadastro-card">
+            <h3 class="cadastro-card-title"><span class="cadastro-passo">3</span> Quanto custa?</h3>
+            <p class="cadastro-dica" id="cadastro-dica-preco">O mesmo preço vale para todos os modelos da lista.</p>
             <div class="grid">
               <label>
-                Marca
-                <select id="brand" required>
-                  <option value="">-- Selecione a marca --</option>
-                  <option value="Samsung">Samsung</option>
-                  <option value="Apple">Apple</option>
-                  <option value="Xiaomi">Xiaomi</option>
-                  <option value="Motorola">Motorola</option>
-                  <option value="LG">LG</option>
-                  <option value="Huawei">Huawei</option>
-                  <option value="OnePlus">OnePlus</option>
-                  <option value="TCL">TCL</option>
-                  <option value="Nokia">Nokia</option>
-                  <option value="Realme">Realme</option>
-                  <option value="Vivo">Vivo</option>
-                  <option value="Oppo">Oppo</option>
-                  <option value="Sony">Sony</option>
-                  <option value="Google Pixel">Google Pixel</option>
-                  <option value="Outro">Outro</option>
-                </select>
+                Preço de venda
+                <input id="price" type="text" inputmode="decimal" placeholder="Ex: R$ 35,00" />
               </label>
               <label>
-                Modelo
-                <select id="model" required>
-                  <option value="">-- Selecione a marca primeiro --</option>
-                </select>
-              </label>
-              <label class="full-width">
-                Cor
-                <div class="color-palette" id="color-palette" role="group" aria-label="Cor do produto"></div>
-                <input type="hidden" id="color" required />
-              </label>
-              <label>
-                Preço de custo unitário
+                Preço de custo <span class="cadastro-opcional">(opcional)</span>
                 <input id="cost" type="text" inputmode="decimal" placeholder="Quanto você pagou · ex: R$ 12,00" />
-              </label>
-              <label>
-                Preço de venda unitário
-                <input id="price" type="text" inputmode="decimal" placeholder="Por quanto vai vender · ex: R$ 35,00" required />
-              </label>
-              <label>
-                Ano de Fabricação
-                <input id="manufacture" type="text" placeholder="Ex: 2026 / (opcional)" />
-              </label>
-              <label>
-                Quantidade em estoque
-                <div class="quantity-stepper">
-                  <button type="button" class="quantity-btn" id="quantity-decrement" aria-label="Diminuir quantidade"><i class="ti ti-minus"></i></button>
-                  <input id="quantity" type="number" min="0" step="1" placeholder="0" required />
-                  <button type="button" class="quantity-btn" id="quantity-increment" aria-label="Aumentar quantidade"><i class="ti ti-plus"></i></button>
-                </div>
               </label>
             </div>
 
@@ -375,104 +350,57 @@
               </div>
               <p class="precificacao-aviso" id="precificacao-aviso">Preencha o custo para ver o lucro. Se não souber agora, pode deixar em branco e completar depois.</p>
             </div>
-
-            <p class="duplicate-warning hidden" id="duplicate-warning"></p>
           </div>
 
-          <div class="card cadastro-card unidades-section hidden" id="unidades-section">
-            <h3 class="cadastro-card-title">Unidades com IMEI</h3>
-            <div class="unidades-header">
-              <button type="button" id="add-unidade-btn" class="secondary">+ Adicionar unidade com IMEI</button>
+          <!-- Opcional -->
+          <details class="card cadastro-card cadastro-detalhes" id="cadastro-detalhes">
+            <summary class="cadastro-card-title">Mais detalhes <span class="cadastro-opcional">(opcional)</span></summary>
+            <div class="grid">
+              <label>
+                Avisar quando o estoque chegar em
+                <input id="estoque-minimo" type="number" min="0" step="1" inputmode="numeric" placeholder="Padrão: 5 unidades" />
+              </label>
+              <label class="full-width">
+                Observações
+                <textarea id="notes" rows="2" placeholder="Ex: material, fornecedor, tipo de película (3D, privacidade)..."></textarea>
+              </label>
             </div>
-            <p class="unidades-status" id="unidades-status"></p>
-            <div id="unidades-container"></div>
-          </div>
-
-          <div class="card cadastro-card">
-            <h3 class="cadastro-card-title">Observações</h3>
-            <textarea id="notes" rows="3" placeholder="Ex: Com pop socket, personalizada, detalhes especiais..."></textarea>
-          </div>
+          </details>
 
           <div class="actions">
-            <button type="submit" id="save-button" class="primary">✓ Salvar produto</button>
-            <button type="button" id="cancel-edit" class="secondary hidden">✕ Cancelar</button>
+            <button type="submit" id="save-button" class="primary">✓ Salvar</button>
+            <button type="button" id="cancel-edit" class="secondary hidden">✕ Cancelar edição</button>
           </div>
         </form>
 
         <aside class="cadastro-preview">
           <div class="card cadastro-preview-card">
             <div class="preview-image" id="preview-image">
-              <i class="ti ti-photo"></i>
+              <i class="ti ti-shield"></i>
             </div>
-            <div class="preview-name preview-placeholder" id="preview-name">Marca e modelo</div>
-            <div class="preview-meta preview-placeholder" id="preview-meta">Cor e tipo</div>
+            <div class="preview-name preview-placeholder" id="preview-name">Nenhum modelo ainda</div>
+            <div class="preview-meta preview-placeholder" id="preview-meta">Capinha</div>
             <hr class="preview-divider" />
+            <div class="preview-resumo" id="preview-resumo">
+              <div><span>Produtos</span><strong id="preview-qtd-produtos">0</strong></div>
+              <div><span>Unidades</span><strong id="preview-qtd-unidades">0</strong></div>
+              <div><span>Valor de venda</span><strong id="preview-valor-venda">R$ 0,00</strong></div>
+            </div>
             <div class="preview-price" id="preview-price">R$ 0,00</div>
+            <span class="preview-price-label">preço por unidade</span>
           </div>
         </aside>
       </div>
     </section>
-
-    <template id="unidade-template">
-      <div class="unidade-block card">
-        <div class="unidade-block-header">
-          <span class="unidade-block-title">Unidade</span>
-          <button type="button" class="unidade-remove-btn" title="Remover unidade">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <div class="grid">
-          <label>
-            IMEI
-            <input type="text" class="unidade-imei" inputmode="numeric" maxlength="15" placeholder="15 dígitos" />
-          </label>
-          <label>
-            IMEI 2 (dual chip, opcional)
-            <input type="text" class="unidade-imei2" inputmode="numeric" maxlength="15" placeholder="15 dígitos" />
-          </label>
-          <label>
-            Grade de conservação
-            <select class="unidade-grade">
-              <option value="novo">Novo</option>
-              <option value="seminovo_a">Seminovo A</option>
-              <option value="seminovo_b">Seminovo B</option>
-              <option value="seminovo_c">Seminovo C</option>
-              <option value="usado">Usado</option>
-            </select>
-          </label>
-          <label>
-            Saúde da bateria % (opcional)
-            <input type="number" class="unidade-saude-bateria" min="0" max="100" placeholder="Ex: 92" />
-          </label>
-          <label>
-            Origem
-            <select class="unidade-origem">
-              <option value="compra_fornecedor">Compra de fornecedor</option>
-              <option value="troca_cliente">Troca de cliente</option>
-              <option value="conserto_terceiro">Conserto de terceiro</option>
-            </select>
-          </label>
-          <label>
-            Nota fiscal do fornecedor (opcional)
-            <input type="text" class="unidade-nota-fiscal" placeholder="Nº da nota" />
-          </label>
-          <label>
-            Garantia do fornecedor até (opcional)
-            <input type="date" class="unidade-garantia" />
-          </label>
-        </div>
-      </div>
-    </template>
 
     <section id="estoque" class="tab-panel" role="tabpanel">
       <div class="card filters-card">
         <div class="filters-bar">
           <div class="search-input-wrap">
             <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-search" placeholder="Marca, modelo, cor ou IMEI..." />
+            <input type="text" id="filter-search" placeholder="Buscar marca ou modelo..." />
           </div>
           <div class="type-quickfilter" id="type-quickfilter" role="group" aria-label="Filtrar por tipo">
-            <button type="button" class="type-quickfilter-btn" data-type="aparelhos" title="Aparelhos"><i class="ti ti-device-mobile"></i></button>
             <button type="button" class="type-quickfilter-btn" data-type="capinhas" title="Capinhas"><i class="ti ti-shield"></i></button>
             <button type="button" class="type-quickfilter-btn" data-type="peliculas" title="Películas"><i class="ti ti-square-rounded"></i></button>
             <button type="button" class="type-quickfilter-btn" data-type="acessorios" title="Acessórios"><i class="ti ti-plug"></i></button>
@@ -488,25 +416,6 @@
             <label for="filter-brand">Marca</label>
             <select id="filter-brand">
               <option value="">Todas</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-color">Cor</label>
-            <select id="filter-color">
-              <option value="">Todas</option>
-              <option value="Preto">Preto</option>
-              <option value="Branco">Branco</option>
-              <option value="Prata">Prata</option>
-              <option value="Cinza">Cinza</option>
-              <option value="Azul">Azul</option>
-              <option value="Vermelho">Vermelho</option>
-              <option value="Verde">Verde</option>
-              <option value="Amarelo">Amarelo</option>
-              <option value="Rosa">Rosa</option>
-              <option value="Dourado">Dourado</option>
-              <option value="Roxo">Roxo</option>
-              <option value="Laranja">Laranja</option>
-              <option value="Marrom">Marrom</option>
             </select>
           </div>
           <div class="filter-group">
@@ -540,8 +449,6 @@
               <th class="table-thumb-col"></th>
               <th>Tipo</th>
               <th>Marca / Modelo</th>
-              <th>Cor</th>
-              <th>Fabricação</th>
               <th class="sortable" data-sort="price">Preço<span class="sort-icon">⇅</span></th>
               <th class="sortable" data-sort="quantity">Qtd<span class="sort-icon">⇅</span></th>
               <th>Ações</th>
@@ -566,7 +473,7 @@
         <div class="filters-bar">
           <div class="search-input-wrap">
             <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-sales-search" placeholder="Marca, modelo, cor..." />
+            <input type="text" id="filter-sales-search" placeholder="Buscar marca ou modelo..." />
           </div>
           <select id="filter-sales-brand" class="filters-bar-select">
             <option value="">Todas as marcas</option>
@@ -584,7 +491,6 @@
             <tr>
               <th class="table-thumb-col"></th>
               <th>Produto</th>
-              <th>Cor</th>
               <th>Estoque</th>
               <th>Preço</th>
               <th>Quantidade</th>
@@ -624,7 +530,7 @@
         <div class="filters-bar">
           <div class="search-input-wrap">
             <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-historico-search" placeholder="Marca, modelo ou cor..." />
+            <input type="text" id="filter-historico-search" placeholder="Buscar marca ou modelo..." />
           </div>
           <select id="filter-historico-periodo" class="filters-bar-select">
             <option value="7">Últimos 7 dias</option>
@@ -648,7 +554,6 @@
             <tr>
               <th>Data</th>
               <th>Produto</th>
-              <th>Cor</th>
               <th>Qtd</th>
               <th>Preço unit.</th>
               <th>Total</th>
@@ -658,7 +563,7 @@
           <tbody id="historico-vendas-body"></tbody>
           <tfoot>
             <tr class="historico-total-row hidden" id="historico-total-row">
-              <td colspan="5" class="historico-total-label">Total no período</td>
+              <td colspan="4" class="historico-total-label">Total no período</td>
               <td class="historico-total-valor" id="historico-total-valor"></td>
               <td></td>
             </tr>
@@ -748,8 +653,6 @@
       </td>
       <td class="product-type" data-label="Tipo"></td>
       <td class="product-name" data-label="Marca / Modelo"></td>
-      <td class="product-color" data-label="Cor"></td>
-      <td class="product-manufacture" data-label="Fabricação"></td>
       <td class="product-price" data-label="Preço"></td>
       <td class="product-quantity" data-label="Qtd"></td>
       <td class="product-actions" data-label="Ações"></td>
@@ -762,7 +665,6 @@
         <div class="table-thumb"><i class="ti ti-photo"></i></div>
       </td>
       <td class="sale-name"></td>
-      <td class="sale-color"></td>
       <td class="sale-stock"></td>
       <td class="sale-price"></td>
       <td>
@@ -782,7 +684,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
   <script src="supabase-client.js"></script>
   <script src="auth.js"></script>
-  <script src="anatel-service.js"></script>
   <script src="app_refactored.js"></script>
+  <script src="cadastro.js"></script>
 </body>
 </html>

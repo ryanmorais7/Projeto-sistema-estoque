@@ -75,6 +75,17 @@ Cada etapa vai num branch próprio, vira preview na Vercel e só entra na `main`
 - Layout: 3 colunas no computador, valores em cima no tablet, tudo empilhado no celular.
 - Testes no Edge headless: 20/20.
 
+### Cadastro simples em lote ✅ (branch `vault-2/cadastro-simples`, pedido do Rudson)
+- Decisão: **celular, cor e IMEI saem do sistema** (todas as lojas). Nada é apagado do banco: produtos antigos do tipo aparelho, cores e IMEIs continuam guardados e os aparelhos antigos seguem vendáveis.
+- Cadastro em 3 passos: tipo (Capinha/Película/Acessório) → marca + vários modelos de uma vez (toque nas sugestões ou digite) com quantidade de cada → preço (o mesmo para todos).
+- Modelo que já existe no estoque não duplica: soma a quantidade ("Já tem 14 → vai ficar com 15") e atualiza o preço.
+- Obrigatório só: pelo menos um modelo e o preço de venda. Marca, custo, estoque mínimo e observações são opcionais.
+- Acessórios com sugestões próprias (Cabo USB-C, Carregador 20W...) e nome livre.
+- Edição usa a mesma tela, mostrando só o produto (a quantidade vira o total em estoque).
+- Removidos: escolha de IMEI na venda, sublista de IMEI no estoque, card de alertas de IMEI, filtro e colunas de cor, `anatel-service.js`.
+- `sql/012_imei_opcional.sql`: venda não exige mais IMEI.
+- Testes no Edge headless (com Supabase falso na página): 16/16.
+
 ### Etapa 2 — Base comercial
 - Cadastro: custo, lucro, margem e markup ao vivo; alerta de preço abaixo do custo; estoque mínimo; campos por categoria (acessório com nome livre, película com tipo, capinha com material).
 - Produtos antigos com selo "Custo não informado".

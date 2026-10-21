@@ -1953,123 +1953,6 @@ html[data-theme="dark"] .theme-toggle:hover {
 }
 
 /* ===================================
-   IMEI: ESCOLHA NA VENDA E ACERTO
-   =================================== */
-
-.imei-opcoes {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 320px;
-  overflow-y: auto;
-  margin: 16px 0 8px;
-}
-
-.imei-opcao {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  justify-items: start;
-  gap: 4px 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-tertiary);
-  cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease;
-}
-
-.imei-opcao:hover {
-  border-color: var(--color-primary);
-}
-
-.imei-opcao:has(input:checked) {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
-}
-
-.imei-opcao .imei-opcao-meta,
-.imei-opcao .badge-imei-alerta {
-  grid-column: 2;
-}
-
-.imei-opcao input {
-  grid-row: span 2;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.imei-opcao-numero {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.imei-opcao-meta {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.imei-opcao--impedido {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.imei-opcao--impedido:hover {
-  border-color: var(--border-color);
-}
-
-.imei-contador {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
-}
-
-.unidades-acerto-aviso {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  background: rgba(245, 166, 35, 0.1);
-  border: 1px solid rgba(245, 166, 35, 0.3);
-  color: var(--color-warning-badge-text);
-  font-size: 0.85rem;
-}
-
-.unidades-acerto-aviso .ti {
-  font-size: 1.1rem;
-  color: var(--color-warning);
-  flex-shrink: 0;
-}
-
-.unidade-marcar-vendido-btn {
-  margin-left: 8px;
-  background: transparent;
-  color: var(--color-warning-badge-text);
-  border: 1px solid rgba(245, 166, 35, 0.4);
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  transition: background 150ms ease;
-}
-
-.unidade-marcar-vendido-btn:hover {
-  background: rgba(245, 166, 35, 0.12);
-}
-
-.historico-imeis {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-/* ===================================
    MODAL DE CONFIRMAÇÃO
    =================================== */
 
@@ -2212,7 +2095,7 @@ button.danger:hover {
 
 .type-selector {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 12px;
   margin-bottom: 4px;
 }
@@ -2250,6 +2133,12 @@ button.danger:hover {
 @media (max-width: 560px) {
   .type-selector {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Cadastro: os 3 tipos cabem lado a lado mesmo no celular */
+  #type-selector {
+    grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+    gap: 8px;
   }
 }
 
@@ -2457,175 +2346,312 @@ button.danger:hover {
   text-align: right;
 }
 
-/* ===================================
-   UNIDADES COM IMEI (Cadastro)
-   =================================== */
+.preview-price-label {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
 
-.unidades-header {
+/* Prévia mais baixa: o ícone só identifica o tipo, não é foto do produto. */
+.cadastro-preview .preview-image {
+  aspect-ratio: auto;
+  height: 96px;
+}
+
+.preview-resumo {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 16px;
-}
-
-.unidades-status {
-  margin: -8px 0 16px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
   font-size: 0.85rem;
-  font-weight: 500;
 }
 
-.unidades-status--neutro {
-  background: var(--bg-tertiary);
+.preview-resumo div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   color: var(--text-secondary);
 }
 
-.unidades-status--pendente {
-  background: rgba(245, 166, 35, 0.12);
-  color: var(--color-warning-badge-text);
+.preview-resumo strong {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-.unidades-status--ok {
+/* ===================================
+   CADASTRO EM LOTE (vários modelos)
+   =================================== */
+
+.cadastro-passo {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+.cadastro-dica {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.cadastro-opcional {
+  font-weight: 400;
+  font-size: 0.8em;
+  color: var(--text-tertiary);
+}
+
+.cadastro-marca {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.modelos-sugeridos {
+  margin-bottom: 18px;
+}
+
+.modelos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modelo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.modelo-chip .ti {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+}
+
+.modelo-chip:hover {
+  border-color: var(--color-primary);
+}
+
+.modelo-chip.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--text-primary);
+}
+
+.modelo-chip.active .ti {
+  color: var(--color-primary);
+}
+
+.modelo-livre {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modelo-livre input {
+  flex: 1;
+  min-width: 0;
+}
+
+.modelo-livre button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  min-height: 44px;
+  border: 1px solid var(--color-primary);
+  border-radius: 12px;
+  background: var(--color-primary-light);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.modelo-livre button:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.lote-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lote-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  animation: lote-entrar 180ms ease;
+}
+
+@keyframes lote-entrar {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lote-item { animation: none; }
+}
+
+.lote-item-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lote-item-modelo {
+  padding: 6px 8px;
+  background: transparent;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.lote-item-modelo:hover,
+.lote-item-modelo:focus {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.lote-item-qtd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.lote-item-qtd-label {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+.lote-tag {
+  align-self: flex-start;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.lote-tag--novo {
   background: rgba(34, 211, 197, 0.12);
   color: var(--color-success-badge-text);
 }
 
-.unidade-block {
-  margin-bottom: 16px;
-  padding: 20px;
-  background: var(--bg-tertiary);
+.lote-tag--soma {
+  background: rgba(96, 165, 250, 0.14);
+  color: var(--color-info);
 }
 
-.unidade-imei,
-.unidade-imei2 {
-  font-family: var(--font-mono);
-  letter-spacing: 0.02em;
-}
-
-.unidade-block-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.unidade-block-title {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.unidade-remove-btn {
-  background: none;
-  color: var(--text-secondary);
-  width: 28px;
-  height: 28px;
+.lote-remover {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 150ms ease;
+  background: transparent;
+  color: var(--text-tertiary);
 }
 
-.unidade-remove-btn:hover {
+.lote-remover:hover {
   background: rgba(255, 92, 122, 0.12);
   color: var(--color-danger);
 }
 
-/* ===================================
-   SUB-TABELA DE UNIDADES (Estoque)
-   =================================== */
-
-.unidades-toggle-btn.expanded {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+.lote-vazio {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
 }
 
-tr.unidades-subrow {
+.cadastro-detalhes summary {
+  cursor: pointer;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+.cadastro-detalhes summary::-webkit-details-marker {
   display: none;
 }
 
-tr.unidades-subrow.active {
-  display: table-row;
-}
-
-tr.unidades-subrow td {
-  background: var(--bg-tertiary);
-  padding: 20px;
-}
-
-.unidades-subtable {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.unidades-subtable th,
-.unidades-subtable td {
-  padding: 10px 12px;
-  font-size: 0.85rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.unidades-subtable td:first-child {
-  font-family: var(--font-mono);
-  letter-spacing: 0.02em;
-}
-
-.unidades-subtable th {
-  background: transparent;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-size: 0.7rem;
-}
-
-.unidades-empty-msg {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  padding: 8px 4px;
-}
-
-.badge-imei-alerta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
+.cadastro-detalhes summary::before {
+  content: '+';
+  display: inline-block;
+  width: 1.2em;
+  color: var(--color-primary);
   font-weight: 700;
-  background: var(--color-danger-strong);
-  color: white;
-  white-space: nowrap;
 }
 
-.unidade-status-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+.cadastro-detalhes[open] summary::before {
+  content: '−';
 }
 
-.unidade-consultar-btn {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  transition: all 150ms ease;
+.cadastro-detalhes[open] summary {
+  margin-bottom: 16px;
 }
 
-.unidade-consultar-btn:hover {
-  background: var(--bg-tertiary);
+/* Cor de produto antigo, em letra pequena ao lado do nome */
+.produto-nome-meta {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-tertiary);
 }
 
-.unidade-status-select {
-  width: auto;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.78rem;
+@media (max-width: 560px) {
+  .lote-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lote-item-qtd {
+    grid-column: 1;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .lote-remover {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .modelo-livre {
+    flex-direction: column;
+  }
+
+  /* No celular o resumo lateral só empurraria o formulário pra baixo; o botão
+     "Salvar N produtos" já mostra quantos vão ser cadastrados. */
+  #cadastro .cadastro-preview {
+    display: none;
+  }
 }
 
 /* ===================================

@@ -14,7 +14,6 @@ const PAPEL_DESCRICOES = {
   vendedor: 'Acessa só a aba Vendas, pode vender produtos e ajustar quantidade através da venda, não edita estoque nem cadastro.',
   dono: 'Acesso total ao sistema, incluindo cadastro, estoque e gestão da equipe.',
 };
-const URL_CONSULTA_ANATEL = 'https://www.consultaserialaparelho.com.br/public-web/home';
 
 const BRAND_MODELS = {
   'Apple': ['iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max', 'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max'],
@@ -55,24 +54,6 @@ const STOCK_FILTER_LABELS = {
   arquivados: 'Arquivados',
   medium: 'Médio (6-20)',
   high: 'Alto (20+)',
-};
-
-// Mesma lista de cores que já existia no <select> — só muda a forma de escolher.
-const CORES_MAPA = {
-  'Preto': '#111114',
-  'Branco': '#F5F5F5',
-  'Prata': '#C6C9CD',
-  'Cinza': '#8A8F98',
-  'Azul': '#2563EB',
-  'Vermelho': '#DC2626',
-  'Verde': '#16A34A',
-  'Amarelo': '#F5C518',
-  'Rosa': '#EC4899',
-  'Dourado': '#D4AF37',
-  'Roxo': '#7C3AED',
-  'Laranja': '#EA580C',
-  'Marrom': '#7C4A25',
-  'Outro': 'linear-gradient(135deg, #EC4899, #7C3AED, #2563EB)',
 };
 
 // ============================================
@@ -126,45 +107,7 @@ const DOM = {
   // Content
   panels: document.querySelectorAll('.tab-panel'),
   
-  // Forms & Inputs
-  productForm: document.getElementById('product-form'),
-  formInputs: {
-    type: document.getElementById('type'),
-    brand: document.getElementById('brand'),
-    model: document.getElementById('model'),
-    color: document.getElementById('color'),
-    manufacture: document.getElementById('manufacture'),
-    cost: document.getElementById('cost'),
-    price: document.getElementById('price'),
-    quantity: document.getElementById('quantity'),
-    notes: document.getElementById('notes'),
-  },
-  cancelEditBtn: document.getElementById('cancel-edit'),
-
-  // Cadastro — seletor de tipo, paleta de cor, stepper, prévia, duplicidade
-  typeOptions: document.querySelectorAll('.type-option'),
-  colorPalette: document.getElementById('color-palette'),
-  quantityIncrement: document.getElementById('quantity-increment'),
-  quantityDecrement: document.getElementById('quantity-decrement'),
-  duplicateWarning: document.getElementById('duplicate-warning'),
-  previewImage: document.getElementById('preview-image'),
-  previewName: document.getElementById('preview-name'),
-  previewMeta: document.getElementById('preview-meta'),
-  previewPrice: document.getElementById('preview-price'),
-
-  // Cadastro — lucro, margem e markup ao vivo
-  precificacao: document.getElementById('precificacao'),
-  precificacaoLucro: document.getElementById('precificacao-lucro'),
-  precificacaoMargem: document.getElementById('precificacao-margem'),
-  precificacaoMarkup: document.getElementById('precificacao-markup'),
-  precificacaoAviso: document.getElementById('precificacao-aviso'),
-
-  // Unidades (IMEI)
-  unidadesSection: document.getElementById('unidades-section'),
-  unidadesContainer: document.getElementById('unidades-container'),
-  unidadesStatus: document.getElementById('unidades-status'),
-  addUnidadeBtn: document.getElementById('add-unidade-btn'),
-  unidadeTemplate: document.getElementById('unidade-template'),
+  // O formulário de cadastro tem as próprias referências em cadastro.js.
 
   // Tables
   productTableBody: document.getElementById('product-table-body'),
@@ -189,7 +132,6 @@ const DOM = {
   filtersChips: document.getElementById('filters-chips'),
   statusChips: document.getElementById('status-chips'),
   filterBrand: document.getElementById('filter-brand'),
-  filterColor: document.getElementById('filter-color'),
   filterStock: document.getElementById('filter-stock'),
   filterResultCount: document.getElementById('filter-result-count'),
 
@@ -226,10 +168,6 @@ const DOM = {
   dashVendasHojeValor: document.getElementById('dash-vendas-hoje-valor'),
   dashVendasHojeTrend: document.getElementById('dash-vendas-hoje-trend'),
   dashTicketMedio: document.getElementById('dash-ticket-medio'),
-  dashImeiImpedido: document.getElementById('dash-imei-impedido'),
-  dashboardAlertasCard: document.getElementById('dashboard-alertas-card'),
-  dashboardAlertasIconBox: document.getElementById('dashboard-alertas-icon-box'),
-  dashboardAlertasSubtitle: document.getElementById('dashboard-alertas-subtitle'),
   vendas7dChartContainer: document.getElementById('dashboard-vendas7d-chart'),
   vaultDialContainer: document.getElementById('vault-dial-container'),
   vaultDialLegend: document.getElementById('vault-dial-legend'),
@@ -263,23 +201,12 @@ let products = [];
 let produtosArquivados = [];
 let filteredProducts = [];
 let filteredSalesProducts = [];
-let editingId = null;
 let sortConfig = { field: null, direction: 'asc' };
 let historicoVendas = [];
 
 // ============================================
 // PRODUTOS (Supabase)
 // ============================================
-
-// Cache de unidades por produto — carregado uma vez junto com os produtos (em vez de
-// refazer a consulta a cada filtro/render) pra permitir busca por IMEI no filtro sem
-// bater no banco a cada tecla, e pra manter a linha expansível em sincronia.
-let unidadesPorProdutoCache = {};
-
-async function refrescarUnidadesCache() {
-  const idsAparelhos = products.filter(p => p.type === 'aparelhos').map(p => p.id);
-  unidadesPorProdutoCache = await buscarUnidadesPorProdutos(idsAparelhos);
-}
 
 async function loadProducts() {
   const { data, error } = await supabaseClient
@@ -292,13 +219,12 @@ async function loadProducts() {
     showToast('❌ Erro ao carregar produtos do Supabase.', 'error');
     products = [];
     produtosArquivados = [];
-    unidadesPorProdutoCache = {};
     return;
   }
 
   products = data.filter(p => !p.arquivado_em);
   produtosArquivados = data.filter(p => p.arquivado_em);
-  await Promise.all([refrescarUnidadesCache(), carregarCustos()]);
+  await carregarCustos();
 }
 
 // ============================================
@@ -380,27 +306,6 @@ function calcularValoresEstoque(lista) {
   }, { compra: 0, venda: 0, pendentes: 0, comCusto: 0 });
 }
 
-// O cache guarda todas as unidades (inclusive vendidas, para histórico). Estoque,
-// busca por IMEI, alerta de impedido e formulário de edição usam só as disponíveis.
-function unidadesDisponiveis(produtoId) {
-  return (unidadesPorProdutoCache[produtoId] || []).filter(u => u.status_venda === 'disponivel');
-}
-
-async function insertProduct(productData) {
-  const { data, error } = await supabaseClient
-    .from('products')
-    .insert([{ ...productData, loja_id: lojaAtual.id }])
-    .select()
-    .single();
-
-  if (error) {
-    showToast('❌ Erro ao salvar produto no Supabase.', 'error');
-    return null;
-  }
-
-  return data;
-}
-
 async function updateProductRow(id, productData) {
   const { error } = await supabaseClient
     .from('products')
@@ -467,7 +372,7 @@ function formatPriceInput(value) {
 }
 
 function getUniqueBrands() {
-  return [...new Set(products.map(p => p.brand))].sort();
+  return [...new Set(products.map(p => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
 function pluralize(count, singular, plural = singular + 's') {
@@ -502,7 +407,6 @@ function situacaoEstoque(product) {
 const ICONES_ACAO = {
   editar: '<i class="ti ti-edit"></i>',
   excluir: '<i class="ti ti-trash"></i>',
-  unidades: '<i class="ti ti-barcode"></i>',
   restaurar: '<i class="ti ti-archive-off"></i>',
 };
 
@@ -515,23 +419,26 @@ function renderBadgeEstoque(product) {
   return `<span class="badge-estoque ok">${quantity} em estoque</span>`;
 }
 
-function renderCorCelula(cor) {
-  if (!cor) return '-';
-  return `<span class="table-color-dot" style="background:${CORES_MAPA[cor] || 'var(--bg-tertiary)'}"></span>${esc(cor)}`;
+// "Samsung Galaxy S24" — marca é opcional, então pode ser só o modelo/nome.
+function nomeProduto(product) {
+  return [product.brand, product.model].filter(Boolean).join(' ').trim() || 'Sem nome';
 }
 
-function createProductRow(product, unidadesDoProduto = []) {
+// Nome para tabelas. Cor não é mais cadastrada, mas produtos antigos que têm cor
+// continuam mostrando ela em letra pequena, pra não perder a informação.
+function renderNomeProduto(product) {
+  const cor = product.color ? `<span class="produto-nome-meta">${esc(product.color)}</span>` : '';
+  return `${esc(nomeProduto(product))}${cor}`;
+}
+
+function createProductRow(product) {
   const template = DOM.productRowTemplate.content.cloneNode(true);
   const row = template.querySelector('tr');
   const arquivado = Boolean(product.arquivado_em);
 
-  const temImeiImpedido = unidadesDoProduto.some(u => u.status_anatel === 'impedido');
-
   row.classList.toggle('product-row--arquivado', arquivado);
   row.querySelector('.product-type').innerHTML = `<i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i> ${esc(TIPO_LABELS[product.type] || product.type)}`;
-  row.querySelector('.product-name').innerHTML = `${esc(product.brand)} ${esc(product.model)}${temImeiImpedido ? ' ' + renderBadgeImeiAlerta() : ''}`;
-  row.querySelector('.product-color').innerHTML = renderCorCelula(product.color);
-  row.querySelector('.product-manufacture').textContent = product.manufacture;
+  row.querySelector('.product-name').innerHTML = renderNomeProduto(product);
   row.querySelector('.product-price').textContent = formatCurrency(product.price);
   row.querySelector('.product-quantity').innerHTML = arquivado
     ? '<span class="badge-estoque arquivado">Arquivado</span>'
@@ -542,7 +449,7 @@ function createProductRow(product, unidadesDoProduto = []) {
 
   if (arquivado) {
     actionsCell.innerHTML = `
-      ${espaco}${espaco}
+      ${espaco}
       ${souDono() ? `<button class="restaurar-btn" title="Restaurar produto">${ICONES_ACAO.restaurar}</button>` : espaco}
     `;
     actionsCell.querySelector('.restaurar-btn')?.addEventListener('click', () => restaurarProduto(product.id));
@@ -550,7 +457,6 @@ function createProductRow(product, unidadesDoProduto = []) {
   }
 
   actionsCell.innerHTML = `
-    ${product.type === 'aparelhos' ? `<button class="unidades-toggle-btn" title="Ver unidades / IMEI">${ICONES_ACAO.unidades}</button>` : espaco}
     ${souDono() ? `<button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>` : espaco}
     ${souDono() ? `<button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>` : espaco}
   `;
@@ -561,24 +467,11 @@ function createProductRow(product, unidadesDoProduto = []) {
   return row;
 }
 
-function createUnidadesSubRow(product, unidadesDoProduto) {
-  const tr = document.createElement('tr');
-  tr.className = 'unidades-subrow';
-  const td = document.createElement('td');
-  td.colSpan = 8;
-  td.className = 'unidades-subrow-content';
-  td.innerHTML = renderUnidadesSubTable(product, unidadesDoProduto);
-  tr.appendChild(td);
-  wireUnidadesSubTableEvents(td);
-  return tr;
-}
-
 function createSalesRow(product) {
   const template = DOM.salesRowTemplate.content.cloneNode(true);
   const row = template.querySelector('tr');
 
-  row.querySelector('.sale-name').textContent = `${product.brand} ${product.model}`;
-  row.querySelector('.sale-color').innerHTML = renderCorCelula(product.color);
+  row.querySelector('.sale-name').innerHTML = renderNomeProduto(product);
   row.querySelector('.sale-stock').innerHTML = renderBadgeEstoque(product);
   row.querySelector('.sale-price').textContent = formatCurrency(product.price);
 
@@ -605,18 +498,7 @@ async function renderProductsTables() {
   DOM.salesTableBody.innerHTML = '';
 
   filteredProducts.forEach(product => {
-    const unidadesDoProduto = unidadesDisponiveis(product.id);
-    const row = createProductRow(product, unidadesDoProduto);
-    DOM.productTableBody.appendChild(row);
-
-    if (product.type === 'aparelhos' && !product.arquivado_em) {
-      const subRow = createUnidadesSubRow(product, unidadesDoProduto);
-      DOM.productTableBody.appendChild(subRow);
-
-      row.querySelector('.unidades-toggle-btn').addEventListener('click', (e) => {
-        toggleUnidadesSubRow(subRow, e.currentTarget);
-      });
-    }
+    DOM.productTableBody.appendChild(createProductRow(product));
   });
 
   filteredSalesProducts.forEach(product => {
@@ -638,7 +520,7 @@ function renderSkeletonRows(quantidade = 3) {
   DOM.estoqueEmptyState.classList.remove('active');
   DOM.productTableBody.innerHTML = Array.from({ length: quantidade }).map(() => `
     <tr class="skeleton-row">
-      ${Array.from({ length: 7 }).map(() => '<td><div class="skeleton-cell"></div></td>').join('')}
+      ${Array.from({ length: 6 }).map(() => '<td><div class="skeleton-cell"></div></td>').join('')}
     </tr>
   `).join('');
 }
@@ -663,23 +545,16 @@ function getFilterValues() {
     search: DOM.filterSearch.value.toLowerCase(),
     type: DOM.filterType.value,
     brand: DOM.filterBrand.value,
-    color: DOM.filterColor.value,
     stock: DOM.filterStock.value,
   };
 }
 
+// Busca por marca, modelo/nome, cor (produtos antigos) ou observação. Aceita
+// "s24 samsung" na ordem que for: todas as palavras precisam aparecer.
 function matchesSearchTerm(product, searchTerm) {
   if (!searchTerm) return true;
-
-  if (product.brand.toLowerCase().includes(searchTerm) ||
-      product.model.toLowerCase().includes(searchTerm) ||
-      product.color.toLowerCase().includes(searchTerm)) {
-    return true;
-  }
-
-  return unidadesDisponiveis(product.id).some(u =>
-    (u.imei && u.imei.includes(searchTerm)) || (u.imei2 && u.imei2.includes(searchTerm))
-  );
+  const texto = [product.brand, product.model, product.color, product.notes].filter(Boolean).join(' ').toLowerCase();
+  return searchTerm.trim().split(/\s+/).every(palavra => texto.includes(palavra));
 }
 
 function matchesStockFilter(product, filter) {
@@ -694,14 +569,13 @@ function matchesStockFilter(product, filter) {
 }
 
 function filterProducts() {
-  const { search, type, brand, color, stock } = getFilterValues();
+  const { search, type, brand, stock } = getFilterValues();
   const base = stock === 'arquivados' ? produtosArquivados : products;
 
   return base.filter(product =>
     matchesSearchTerm(product, search) &&
     (!type || product.type === type) &&
     (!brand || product.brand === brand) &&
-    (!color || product.color === color) &&
     matchesStockFilter(product, stock)
   );
 }
@@ -754,7 +628,6 @@ function clearAllFilters() {
   DOM.filterType.value = '';
   sincronizarTypeQuickfilter();
   DOM.filterBrand.value = '';
-  DOM.filterColor.value = '';
   DOM.filterStock.value = '';
   applyFilters();
 }
@@ -791,9 +664,6 @@ function renderFilterChips() {
   if (DOM.filterBrand.value) {
     chips.push({ label: `Marca: ${DOM.filterBrand.value}`, limpar: () => { DOM.filterBrand.value = ''; applyFilters(); } });
   }
-  if (DOM.filterColor.value) {
-    chips.push({ label: `Cor: ${DOM.filterColor.value}`, limpar: () => { DOM.filterColor.value = ''; applyFilters(); } });
-  }
   if (DOM.filterStock.value) {
     chips.push({ label: `Estoque: ${STOCK_FILTER_LABELS[DOM.filterStock.value] || DOM.filterStock.value}`, limpar: () => { DOM.filterStock.value = ''; applyFilters(); } });
   }
@@ -818,7 +688,7 @@ function renderFilterChips() {
   document.getElementById('filter-chip-clear-all').addEventListener('click', clearAllFilters);
 
   // Se algum filtro do painel "Mais filtros" estiver ativo, deixa o painel já aberto.
-  if (DOM.filterBrand.value || DOM.filterColor.value || DOM.filterStock.value) {
+  if (DOM.filterBrand.value || DOM.filterStock.value) {
     toggleFiltersPanel(true);
   }
 }
@@ -965,703 +835,6 @@ function exportarEstoqueCSV() {
 }
 
 // ============================================
-// UNIDADES COM IMEI (Supabase)
-// ============================================
-
-function validarImei(imei) {
-  return /^\d{15}$/.test(imei);
-}
-
-// IDs (uuid) das unidades que já existiam no banco quando o formulário foi aberto pra
-// edição — usado em salvarUnidades() pra saber quais linhas foram removidas no form e
-// precisam ser apagadas do banco também (em vez de só inserir tudo de novo).
-let unidadeIdsCarregadas = [];
-
-// Tipo selecionado antes da última troca — usado por handleTypeChange() pra saber se
-// está saindo de 'aparelhos' com IMEIs já digitados (e precisa confirmar o descarte).
-let tipoAnteriorDoForm = 'aparelhos';
-
-function toggleUnidadesSection() {
-  const ehAparelho = DOM.formInputs.type.value === 'aparelhos';
-  DOM.unidadesSection.classList.toggle('hidden', !ehAparelho);
-}
-
-function handleTypeChange() {
-  const novoTipo = DOM.formInputs.type.value;
-  const totalImeisPreenchidos = contarImeisValidosNoForm();
-
-  if (tipoAnteriorDoForm === 'aparelhos' && novoTipo !== 'aparelhos' && totalImeisPreenchidos > 0) {
-    DOM.formInputs.type.value = 'aparelhos';
-    sincronizarTypeSelector();
-
-    abrirModalConfirmacao({
-      titulo: 'Descartar IMEIs cadastrados?',
-      mensagem: `Você já preencheu ${totalImeisPreenchidos} ${pluralize(totalImeisPreenchidos, 'IMEI', 'IMEIs')} nesse formulário. Trocar o tipo do produto vai descartá-los. Deseja continuar?`,
-      textoConfirmar: 'Descartar e trocar',
-      aoConfirmar: () => {
-        DOM.formInputs.type.value = novoTipo;
-        sincronizarTypeSelector();
-        tipoAnteriorDoForm = novoTipo;
-        limparUnidadesForm();
-        toggleUnidadesSection();
-        atualizarPreview();
-      },
-    });
-    return;
-  }
-
-  tipoAnteriorDoForm = novoTipo;
-  toggleUnidadesSection();
-  atualizarStatusUnidades();
-  atualizarPreview();
-}
-
-function contarImeisValidosNoForm() {
-  const blocos = DOM.unidadesContainer.querySelectorAll('.unidade-block');
-  let total = 0;
-  blocos.forEach(bloco => {
-    if (bloco.querySelector('.unidade-imei').value.trim()) total++;
-  });
-  return total;
-}
-
-function atualizarStatusUnidades() {
-  if (DOM.formInputs.type.value !== 'aparelhos') {
-    DOM.unidadesStatus.textContent = '';
-    DOM.unidadesStatus.className = 'unidades-status hidden';
-    return;
-  }
-
-  const quantidade = Number(DOM.formInputs.quantity.value) || 0;
-  const cadastrados = contarImeisValidosNoForm();
-  const faltam = quantidade - cadastrados;
-
-  DOM.unidadesStatus.classList.remove('hidden');
-
-  if (quantidade === 0) {
-    DOM.unidadesStatus.textContent = 'Informe a quantidade em estoque para saber quantos IMEIs cadastrar.';
-    DOM.unidadesStatus.className = 'unidades-status unidades-status--neutro';
-  } else if (faltam > 0) {
-    DOM.unidadesStatus.textContent = `Adicione mais ${faltam} ${pluralize(faltam, 'IMEI', 'IMEIs')} para completar a quantidade em estoque (${cadastrados} de ${quantidade} cadastrados).`;
-    DOM.unidadesStatus.className = 'unidades-status unidades-status--pendente';
-  } else if (faltam < 0) {
-    const excedente = Math.abs(faltam);
-    DOM.unidadesStatus.textContent = `Você cadastrou ${cadastrados} IMEIs, mas a quantidade em estoque é ${quantidade}. Remova ${excedente} ${pluralize(excedente, 'unidade', 'unidades')} ou ajuste a quantidade.`;
-    DOM.unidadesStatus.className = 'unidades-status unidades-status--pendente';
-  } else {
-    DOM.unidadesStatus.textContent = `✓ ${cadastrados} de ${quantidade} IMEIs cadastrados.`;
-    DOM.unidadesStatus.className = 'unidades-status unidades-status--ok';
-  }
-}
-
-function criarBlocoUnidade(unidadeExistente = null) {
-  const bloco = DOM.unidadeTemplate.content.cloneNode(true);
-  const elBloco = bloco.querySelector('.unidade-block');
-
-  if (unidadeExistente) {
-    elBloco.dataset.unidadeId = unidadeExistente.id;
-    bloco.querySelector('.unidade-imei').value = unidadeExistente.imei || '';
-    bloco.querySelector('.unidade-imei2').value = unidadeExistente.imei2 || '';
-    bloco.querySelector('.unidade-grade').value = unidadeExistente.grade || 'novo';
-    bloco.querySelector('.unidade-saude-bateria').value = unidadeExistente.saude_bateria ?? '';
-    bloco.querySelector('.unidade-origem').value = unidadeExistente.origem || 'compra_fornecedor';
-    bloco.querySelector('.unidade-nota-fiscal').value = unidadeExistente.nota_fiscal_fornecedor || '';
-    bloco.querySelector('.unidade-garantia').value = unidadeExistente.garantia_fornecedor_ate || '';
-  }
-
-  bloco.querySelector('.unidade-remove-btn').addEventListener('click', (e) => {
-    e.target.closest('.unidade-block').remove();
-    atualizarStatusUnidades();
-  });
-
-  DOM.unidadesContainer.appendChild(bloco);
-  atualizarStatusUnidades();
-}
-
-function limparUnidadesForm() {
-  DOM.unidadesContainer.innerHTML = '';
-  unidadeIdsCarregadas = [];
-}
-
-function coletarUnidadesDoForm() {
-  const blocos = DOM.unidadesContainer.querySelectorAll('.unidade-block');
-  const unidades = [];
-
-  for (const bloco of blocos) {
-    const imei = bloco.querySelector('.unidade-imei').value.trim();
-    if (!imei) continue;
-
-    if (!validarImei(imei)) {
-      showToast('❌ IMEI inválido. Deve conter exatamente 15 dígitos.', 'error');
-      return null;
-    }
-
-    const imei2 = bloco.querySelector('.unidade-imei2').value.trim();
-    if (imei2 && !validarImei(imei2)) {
-      showToast('❌ IMEI 2 inválido. Deve conter exatamente 15 dígitos.', 'error');
-      return null;
-    }
-
-    const saudeBateria = bloco.querySelector('.unidade-saude-bateria').value;
-    const notaFiscal = bloco.querySelector('.unidade-nota-fiscal').value.trim();
-    const garantia = bloco.querySelector('.unidade-garantia').value;
-
-    unidades.push({
-      id: bloco.dataset.unidadeId || null,
-      imei,
-      imei2: imei2 || null,
-      grade: bloco.querySelector('.unidade-grade').value,
-      saude_bateria: saudeBateria ? Number(saudeBateria) : null,
-      origem: bloco.querySelector('.unidade-origem').value,
-      nota_fiscal_fornecedor: notaFiscal || null,
-      garantia_fornecedor_ate: garantia || null,
-    });
-  }
-
-  return unidades;
-}
-
-async function verificarImeisDuplicados(imeis, produtoIdExcluir) {
-  if (!imeis.length) return [];
-
-  const { data, error } = await supabaseClient
-    .from('unidades_produto')
-    .select('imei, produto_id')
-    .eq('loja_id', lojaAtual.id)
-    .in('imei', imeis);
-
-  if (error) return [];
-
-  return [...new Set(
-    data.filter(u => u.produto_id !== produtoIdExcluir).map(u => u.imei)
-  )];
-}
-
-async function salvarUnidades(produtoId, unidades) {
-  const idsAtuais = unidades.filter(u => u.id).map(u => u.id);
-  const idsRemovidos = unidadeIdsCarregadas.filter(id => !idsAtuais.includes(id));
-
-  if (idsRemovidos.length) {
-    const { error } = await supabaseClient.from('unidades_produto').delete().in('id', idsRemovidos);
-    if (error) {
-      showToast('❌ Produto salvo, mas houve erro ao remover unidades excluídas.', 'error');
-      return false;
-    }
-  }
-
-  const novas = unidades
-    .filter(u => !u.id)
-    .map(({ id, ...resto }) => ({ ...resto, produto_id: produtoId, loja_id: lojaAtual.id }));
-
-  if (novas.length) {
-    const { error } = await supabaseClient.from('unidades_produto').insert(novas);
-    if (error) {
-      showToast('❌ Produto salvo, mas houve erro ao salvar as unidades com IMEI.', 'error');
-      return false;
-    }
-  }
-
-  const existentes = unidades.filter(u => u.id);
-  for (const unidade of existentes) {
-    const { id, ...campos } = unidade;
-    const { error } = await supabaseClient.from('unidades_produto').update(campos).eq('id', id);
-    if (error) {
-      showToast('❌ Produto salvo, mas houve erro ao atualizar uma unidade com IMEI.', 'error');
-      return false;
-    }
-  }
-
-  return true;
-}
-
-async function buscarUnidadesPorProdutos(produtoIds) {
-  if (!produtoIds.length) return {};
-
-  const { data, error } = await supabaseClient
-    .from('unidades_produto')
-    .select('*')
-    .eq('loja_id', lojaAtual.id)
-    .in('produto_id', produtoIds)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    showToast('❌ Erro ao carregar unidades dos produtos.', 'error');
-    return {};
-  }
-
-  const mapa = {};
-  data.forEach(u => {
-    if (!mapa[u.produto_id]) mapa[u.produto_id] = [];
-    mapa[u.produto_id].push(u);
-  });
-  return mapa;
-}
-
-async function atualizarStatusAnatel(unidadeId, novoStatus) {
-  const { error } = await supabaseClient
-    .from('unidades_produto')
-    .update({ status_anatel: novoStatus, data_consulta_anatel: new Date().toISOString() })
-    .eq('id', unidadeId);
-
-  if (error) {
-    showToast('❌ Erro ao atualizar status Anatel.', 'error');
-    return;
-  }
-
-  showToast('✅ Status Anatel atualizado.', 'success');
-  await refrescarUnidadesCache();
-  await applyFilters();
-}
-
-function abrirConsultaAnatel() {
-  window.open(URL_CONSULTA_ANATEL, '_blank');
-}
-
-const GRADE_LABELS = {
-  novo: 'Novo',
-  seminovo_a: 'Seminovo A',
-  seminovo_b: 'Seminovo B',
-  seminovo_c: 'Seminovo C',
-  usado: 'Usado',
-};
-
-function renderUnidadesSubTable(product, unidades) {
-  if (!unidades.length) {
-    return '<p class="unidades-empty-msg">Nenhuma unidade com IMEI cadastrada para este produto.</p>';
-  }
-
-  // Vendas de aparelho feitas antes da correção baixaram a quantidade, mas deixaram o
-  // IMEI como disponível. Quando sobra IMEI, o dono marca aqui qual foi vendido.
-  const sobrando = unidades.length - product.quantity;
-  const precisaAcerto = sobrando > 0 && souDono();
-
-  const avisoAcerto = precisaAcerto ? `
-    <div class="unidades-acerto-aviso">
-      <i class="ti ti-alert-circle"></i>
-      <span>${unidades.length} IMEIs disponíveis, mas só ${product.quantity} ${pluralize(product.quantity, 'aparelho')} em estoque.
-      Marque ${sobrando === 1 ? 'qual IMEI já foi vendido' : `quais ${sobrando} IMEIs já foram vendidos`} para acertar.</span>
-    </div>
-  ` : '';
-
-  const linhas = unidades.map(u => `
-    <tr data-unidade-id="${esc(u.id)}">
-      <td>${esc(u.imei)}${u.imei2 ? ` / ${esc(u.imei2)}` : ''}</td>
-      <td>${esc(GRADE_LABELS[u.grade] || u.grade || '-')}</td>
-      <td>
-        ${u.status_anatel === 'impedido' ? renderBadgeImeiAlerta() : renderBadgeStatusAnatel(u.status_anatel)}
-        <div class="unidade-status-actions">
-          <button type="button" class="unidade-consultar-btn">🔍 Consultar situação</button>
-          <select class="unidade-status-select">
-            <option value="nao_consultado" ${u.status_anatel === 'nao_consultado' ? 'selected' : ''}>Não consultado</option>
-            <option value="regular" ${u.status_anatel === 'regular' ? 'selected' : ''}>Regular</option>
-            <option value="impedido" ${u.status_anatel === 'impedido' ? 'selected' : ''}>Impedido</option>
-          </select>
-        </div>
-      </td>
-      <td>
-        <span class="badge-estoque ok">Em estoque</span>
-        ${precisaAcerto ? '<button type="button" class="unidade-marcar-vendido-btn">Já foi vendido</button>' : ''}
-      </td>
-    </tr>
-  `).join('');
-
-  return `
-    ${avisoAcerto}
-    <table class="unidades-subtable">
-      <thead>
-        <tr>
-          <th>IMEI</th>
-          <th>Grade</th>
-          <th>Status Anatel</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>${linhas}</tbody>
-    </table>
-  `;
-}
-
-function renderBadgeStatusAnatel(status) {
-  if (status === 'regular') {
-    return '<span class="badge-estoque ok">Regular</span>';
-  }
-  return '<span class="badge-estoque baixo">Não consultado</span>';
-}
-
-function renderBadgeImeiAlerta() {
-  return '<span class="badge-imei-alerta">IMEI IMPEDIDO - NÃO NEGOCIAR</span>';
-}
-
-function wireUnidadesSubTableEvents(container) {
-  container.querySelectorAll('tr[data-unidade-id]').forEach(tr => {
-    const unidadeId = tr.dataset.unidadeId;
-
-    tr.querySelector('.unidade-consultar-btn').addEventListener('click', abrirConsultaAnatel);
-
-    tr.querySelector('.unidade-status-select').addEventListener('change', (e) => {
-      atualizarStatusAnatel(unidadeId, e.target.value);
-    });
-
-    tr.querySelector('.unidade-marcar-vendido-btn')?.addEventListener('click', () => {
-      const imei = tr.querySelector('td').textContent.trim();
-      abrirModalConfirmacao({
-        titulo: 'Marcar IMEI como vendido',
-        mensagem: `Confirmar que o aparelho ${imei} já foi vendido? O estoque não muda, porque essa venda já foi descontada antes.`,
-        textoConfirmar: 'Marcar como vendido',
-        aoConfirmar: () => marcarUnidadeVendida(unidadeId),
-      });
-    });
-  });
-}
-
-async function marcarUnidadeVendida(unidadeId) {
-  const { error } = await supabaseClient.rpc('marcar_unidade_vendida', { p_unidade_id: unidadeId });
-
-  if (error) {
-    showToast(`❌ ${error.message || 'Erro ao acertar o IMEI.'}`, 'error');
-    return;
-  }
-
-  showToast('✅ IMEI marcado como vendido.', 'success');
-  await refrescarUnidadesCache();
-  await applyFilters();
-}
-
-function toggleUnidadesSubRow(subRow, botao) {
-  const jaAberta = subRow.classList.contains('active');
-  subRow.classList.toggle('active', !jaAberta);
-  botao.classList.toggle('expanded', !jaAberta);
-}
-
-// ============================================
-// FORM OPERATIONS
-// ============================================
-
-// ---- Tipo (seletor visual) --------------------------------------------------
-
-function sincronizarTypeSelector() {
-  const tipoAtual = DOM.formInputs.type.value;
-  DOM.typeOptions.forEach(btn => btn.classList.toggle('active', btn.dataset.type === tipoAtual));
-}
-
-function selecionarTipo(tipo) {
-  if (DOM.formInputs.type.value === tipo) return;
-  DOM.formInputs.type.value = tipo;
-  sincronizarTypeSelector();
-  DOM.formInputs.type.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// ---- Cor (paleta de bolinhas) -----------------------------------------------
-
-function renderColorPalette() {
-  DOM.colorPalette.innerHTML = Object.keys(CORES_MAPA).map(nome => `
-    <button type="button" class="color-swatch-btn" data-color="${nome}" title="${nome}">
-      <span class="color-swatch" style="background:${CORES_MAPA[nome]}"></span>
-      <span class="color-swatch-label">${nome}</span>
-    </button>
-  `).join('');
-}
-
-function sincronizarColorPalette() {
-  const corAtual = DOM.formInputs.color.value;
-  DOM.colorPalette.querySelectorAll('.color-swatch-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.color === corAtual);
-  });
-}
-
-function selecionarCor(cor) {
-  DOM.formInputs.color.value = cor;
-  sincronizarColorPalette();
-  DOM.formInputs.color.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// ---- Prévia ao vivo -----------------------------------------------------------
-
-function atualizarPreview() {
-  const brand = DOM.formInputs.brand.value.trim();
-  const model = DOM.formInputs.model.value.trim();
-  const color = DOM.formInputs.color.value;
-  const type = DOM.formInputs.type.value;
-  const price = parsePriceValue(DOM.formInputs.price.value);
-
-  const temNome = Boolean(brand && model);
-  DOM.previewName.textContent = temNome ? `${brand} ${model}` : 'Marca e modelo';
-  DOM.previewName.classList.toggle('preview-placeholder', !temNome);
-
-  const metaPartes = [color, TIPO_LABELS[type]].filter(Boolean);
-  DOM.previewMeta.textContent = metaPartes.length ? metaPartes.join(' · ') : 'Cor e tipo';
-  DOM.previewMeta.classList.toggle('preview-placeholder', metaPartes.length === 0);
-
-  DOM.previewPrice.textContent = formatCurrency(price || 0);
-  atualizarPrecificacao();
-}
-
-// ---- Lucro, margem e markup ao vivo ---------------------------------------------
-
-// Abaixo desta margem aparece um aviso informativo (não impede o cadastro).
-const MARGEM_MINIMA_ALERTA = 20;
-
-// Campo de custo vazio = custo não informado (null), nunca zero.
-function lerCusto() {
-  const bruto = DOM.formInputs.cost.value.trim();
-  return bruto ? parsePriceValue(bruto) : null;
-}
-
-function formatarPercentual(valor) {
-  return `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
-}
-
-function atualizarPrecificacao() {
-  const custo = lerCusto();
-  const venda = parsePriceValue(DOM.formInputs.price.value);
-  const { lucro, margem, markup } = calcularPrecificacao(custo, venda);
-
-  DOM.precificacaoLucro.textContent = lucro === null ? '—' : formatCurrency(lucro);
-  DOM.precificacaoMargem.textContent = margem === null ? '—' : formatarPercentual(margem);
-  DOM.precificacaoMarkup.textContent = markup === null ? '—' : formatarPercentual(markup);
-
-  let estado = 'neutro';
-  let aviso = 'Preencha o custo para ver o lucro. Se não souber agora, pode deixar em branco e completar depois.';
-
-  if (custo !== null && !venda) {
-    aviso = 'Agora preencha o preço de venda.';
-  } else if (custo !== null && venda < custo) {
-    estado = 'perigo';
-    aviso = 'Atenção: este preço está abaixo do custo cadastrado.';
-  } else if (margem !== null && margem < MARGEM_MINIMA_ALERTA) {
-    estado = 'atencao';
-    aviso = `Margem abaixo de ${MARGEM_MINIMA_ALERTA}%. Pode ser uma promoção; só confira se é isso mesmo.`;
-  } else if (lucro !== null) {
-    estado = 'ok';
-    aviso = 'Lucro bruto: ainda não desconta impostos, taxas de cartão e despesas da loja.';
-  }
-
-  DOM.precificacao.dataset.estado = estado;
-  DOM.precificacaoAviso.textContent = aviso;
-}
-
-// ---- Aviso de produto duplicado -----------------------------------------------
-
-function verificarProdutoDuplicado() {
-  const brand = DOM.formInputs.brand.value.trim();
-  const model = DOM.formInputs.model.value.trim();
-  const color = DOM.formInputs.color.value;
-
-  if (!brand || !model || !color) {
-    DOM.duplicateWarning.classList.add('hidden');
-    return;
-  }
-
-  const existente = products.find(p =>
-    p.brand === brand && p.model === model && p.color === color && p.id !== editingId
-  );
-
-  if (!existente) {
-    DOM.duplicateWarning.classList.add('hidden');
-    return;
-  }
-
-  DOM.duplicateWarning.innerHTML = `
-    <i class="ti ti-alert-circle"></i>
-    <span>Já existe um produto com essa marca, modelo e cor no estoque — quantidade atual: <strong>${existente.quantity}</strong> ${pluralize(existente.quantity, 'unidade')}.</span>
-    <button type="button" class="duplicate-warning-link" id="duplicate-warning-link">Editar produto existente</button>
-  `;
-  DOM.duplicateWarning.classList.remove('hidden');
-  DOM.duplicateWarning.querySelector('#duplicate-warning-link').addEventListener('click', () => startEditProduct(existente.id));
-}
-
-function atualizarPreviewEDuplicidade() {
-  atualizarPreview();
-  verificarProdutoDuplicado();
-}
-
-function updateModelOptions() {
-  const brand = DOM.formInputs.brand.value;
-  const models = BRAND_MODELS[brand] || [];
-  
-  DOM.formInputs.model.innerHTML = '';
-  
-  if (!models.length) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '-- Selecione a marca primeiro --';
-    opt.selected = true;
-    DOM.formInputs.model.appendChild(opt);
-    DOM.formInputs.model.disabled = true;
-  } else {
-    DOM.formInputs.model.disabled = false;
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = `-- Selecione um modelo de ${brand} --`;
-    opt.selected = true;
-    DOM.formInputs.model.appendChild(opt);
-    
-    models.forEach(model => {
-      const o = document.createElement('option');
-      o.value = model;
-      o.textContent = model;
-      DOM.formInputs.model.appendChild(o);
-    });
-  }
-}
-
-function resetForm() {
-  DOM.productForm.reset();
-  editingId = null;
-  DOM.cancelEditBtn.classList.add('hidden');
-  document.getElementById('save-button').textContent = '✓ Salvar produto';
-  limparUnidadesForm();
-  toggleUnidadesSection();
-  tipoAnteriorDoForm = DOM.formInputs.type.value;
-  sincronizarTypeSelector();
-  sincronizarColorPalette();
-  atualizarStatusUnidades();
-  atualizarPreviewEDuplicidade();
-}
-
-async function fillForm(product) {
-  DOM.formInputs.type.value = product.type;
-  sincronizarTypeSelector();
-  DOM.formInputs.brand.value = product.brand;
-  updateModelOptions();
-  DOM.formInputs.model.value = product.model;
-  DOM.formInputs.color.value = product.color || '';
-  sincronizarColorPalette();
-  DOM.formInputs.manufacture.value = product.manufacture;
-  DOM.formInputs.price.value = formatPriceInput(product.price);
-  const custo = custoDoProduto(product.id);
-  DOM.formInputs.cost.value = custo === null ? '' : formatPriceInput(custo);
-  DOM.formInputs.quantity.value = product.quantity;
-  DOM.formInputs.notes.value = product.notes || '';
-  limparUnidadesForm();
-  toggleUnidadesSection();
-  tipoAnteriorDoForm = product.type;
-
-  if (product.type === 'aparelhos') {
-    const unidadesPorProduto = await buscarUnidadesPorProdutos([product.id]);
-    // Só as disponíveis: unidade vendida é histórico e não pode ser editada nem apagada
-    // pelo formulário (salvarUnidades apaga do banco o que não estiver no form).
-    const unidadesExistentes = (unidadesPorProduto[product.id] || []).filter(u => u.status_venda === 'disponivel');
-    unidadeIdsCarregadas = unidadesExistentes.map(u => u.id);
-    unidadesExistentes.forEach(u => criarBlocoUnidade(u));
-  }
-
-  atualizarStatusUnidades();
-  atualizarPreviewEDuplicidade();
-}
-
-async function startEditProduct(id) {
-  const product = products.find(p => p.id === id);
-  if (!product) return;
-
-  editingId = id;
-  await fillForm(product);
-  document.getElementById('save-button').textContent = '↻ Atualizar produto';
-  DOM.cancelEditBtn.classList.remove('hidden');
-  changeTab('cadastro');
-}
-
-async function handleFormSubmit(event) {
-  event.preventDefault();
-
-  const brand = DOM.formInputs.brand.value.trim();
-  const model = DOM.formInputs.model.value.trim();
-  const type = DOM.formInputs.type.value;
-  const validModels = BRAND_MODELS[brand] || [];
-
-  if (!brand) {
-    showToast('❌ Selecione uma marca válida.', 'error');
-    return;
-  }
-
-  if (!model || !validModels.includes(model)) {
-    showToast(`❌ Selecione um modelo válido para ${brand}.`, 'error');
-    return;
-  }
-
-  if (!DOM.formInputs.color.value) {
-    showToast('❌ Selecione uma cor.', 'error');
-    return;
-  }
-
-  const productData = {
-    type,
-    brand,
-    model,
-    color: DOM.formInputs.color.value.trim(),
-    manufacture: DOM.formInputs.manufacture.value.trim(),
-    price: parsePriceValue(DOM.formInputs.price.value),
-    quantity: Number(DOM.formInputs.quantity.value),
-    notes: DOM.formInputs.notes.value.trim(),
-  };
-
-  if (productData.price < 0) {
-    showToast('❌ O preço de venda não pode ser negativo.', 'error');
-    return;
-  }
-
-  if (!Number.isInteger(productData.quantity) || productData.quantity < 0) {
-    showToast('❌ A quantidade em estoque precisa ser um número inteiro, 0 ou mais.', 'error');
-    return;
-  }
-
-  const custo = lerCusto();
-  if (custo !== null && custo < 0) {
-    showToast('❌ O preço de custo não pode ser negativo.', 'error');
-    return;
-  }
-
-  let unidades = [];
-  if (type === 'aparelhos') {
-    unidades = coletarUnidadesDoForm();
-    if (unidades === null) return;
-
-    if (unidades.length !== productData.quantity) {
-      atualizarStatusUnidades();
-      const faltam = productData.quantity - unidades.length;
-      if (faltam > 0) {
-        showToast(`❌ Adicione mais ${faltam} ${pluralize(faltam, 'IMEI', 'IMEIs')} para completar a quantidade em estoque (${unidades.length} de ${productData.quantity} cadastrados).`, 'error');
-      } else {
-        const excedente = Math.abs(faltam);
-        showToast(`❌ Você cadastrou ${unidades.length} IMEIs, mas a quantidade em estoque é ${productData.quantity}. Remova ${excedente} ${pluralize(excedente, 'unidade', 'unidades')} ou ajuste a quantidade.`, 'error');
-      }
-      return;
-    }
-
-    const imeis = unidades.map(u => u.imei);
-    if (new Set(imeis).size !== imeis.length) {
-      showToast('❌ Há IMEIs duplicados nesse formulário. Cada unidade precisa de um IMEI único.', 'error');
-      return;
-    }
-
-    const duplicadosNoBanco = await verificarImeisDuplicados(imeis, editingId);
-    if (duplicadosNoBanco.length) {
-      showToast(`❌ IMEI já cadastrado em outro produto: ${duplicadosNoBanco[0]}.`, 'error');
-      return;
-    }
-  }
-
-  if (editingId) {
-    const ok = await updateProductRow(editingId, productData);
-    if (!ok) return;
-    if (type === 'aparelhos') await salvarUnidades(editingId, unidades);
-    await salvarCusto(editingId, custo);
-    showToast(`✅ ${brand} ${model} atualizado!`, 'success');
-  } else {
-    const created = await insertProduct(productData);
-    if (!created) return;
-    if (type === 'aparelhos') await salvarUnidades(created.id, unidades);
-    await salvarCusto(created.id, custo);
-    showToast(`✅ ${brand} ${model} cadastrado!`, 'success');
-  }
-
-  await loadProducts();
-  applyFilters();
-  updateDashboard();
-  resetForm();
-}
-
-// ============================================
 // PRODUCT OPERATIONS
 // ============================================
 
@@ -1754,30 +927,22 @@ async function sellProduct(id, amount) {
     return;
   }
 
-  // Aparelho com IMEI: precisa escolher quais unidades saíram (o banco exige).
-  const unidades = product.type === 'aparelhos' ? unidadesDisponiveis(id) : [];
-  if (unidades.length) {
-    abrirModalEscolhaImei(product, amount, unidades, (unidadeIds) => confirmarVenda(product, amount, unidadeIds));
-    return;
-  }
-
-  await confirmarVenda(product, amount, null);
+  await confirmarVenda(product, amount);
 }
 
 let vendaEmAndamento = false;
 
-async function confirmarVenda(product, amount, unidadeIds) {
+async function confirmarVenda(product, amount) {
   // Trava contra clique duplo: só uma venda por vez sai desta tela.
   if (vendaEmAndamento) return;
   vendaEmAndamento = true;
 
   try {
-    // registrar_venda_v2 (sql/011) baixa o estoque, marca os IMEIs como vendidos e lança
-    // no livro-caixa numa única transação, com a linha do produto travada.
+    // registrar_venda_v2 (sql/011 e 012) baixa o estoque e lança no livro-caixa numa
+    // única transação, com a linha do produto travada.
     const { data: movimentacao, error } = await supabaseClient.rpc('registrar_venda_v2', {
       p_produto_id: product.id,
       p_quantidade: amount,
-      p_unidade_ids: unidadeIds,
     });
 
     if (error) {
@@ -1795,70 +960,9 @@ async function confirmarVenda(product, amount, unidadeIds) {
   }
 }
 
-function abrirModalEscolhaImei(product, quantidade, unidades, aoConfirmar) {
-  const linhas = unidades.map(u => {
-    const impedido = u.status_anatel === 'impedido';
-    return `
-      <label class="imei-opcao${impedido ? ' imei-opcao--impedido' : ''}">
-        <input type="checkbox" value="${esc(u.id)}" ${impedido ? 'disabled' : ''} />
-        <span class="imei-opcao-numero">${esc(u.imei)}</span>
-        <span class="imei-opcao-meta">${esc(GRADE_LABELS[u.grade] || u.grade || '')}${u.saude_bateria ? ` · bateria ${esc(u.saude_bateria)}%` : ''}</span>
-        ${impedido ? renderBadgeImeiAlerta() : ''}
-      </label>
-    `;
-  }).join('');
-
-  DOM.modalBody.innerHTML = `
-    <h3 class="modal-title">Qual aparelho está saindo?</h3>
-    <p class="modal-message">${esc(product.brand)} ${esc(product.model)} — escolha ${quantidade} ${pluralize(quantidade, 'IMEI', 'IMEIs')}.</p>
-    <div class="imei-opcoes">${linhas}</div>
-    <p class="imei-contador" id="imei-contador">0 de ${quantidade} ${pluralize(quantidade, 'selecionado', 'selecionados')}</p>
-    <div class="modal-actions">
-      <button type="button" class="secondary" id="modal-imei-cancelar">Cancelar</button>
-      <button type="button" class="primary" id="modal-imei-confirmar" disabled>Confirmar venda</button>
-    </div>
-  `;
-
-  const checkboxes = [...DOM.modalBody.querySelectorAll('.imei-opcoes input[type="checkbox"]')];
-  const contador = DOM.modalBody.querySelector('#imei-contador');
-  const btnConfirmar = DOM.modalBody.querySelector('#modal-imei-confirmar');
-
-  const atualizar = () => {
-    const marcados = checkboxes.filter(c => c.checked).length;
-    contador.textContent = `${marcados} de ${quantidade} ${pluralize(quantidade, 'selecionado', 'selecionados')}`;
-    btnConfirmar.disabled = marcados !== quantidade;
-    // Atingiu a quantidade: trava os demais pra não passar do número da venda.
-    checkboxes.forEach(c => {
-      if (!c.checked && !c.closest('.imei-opcao--impedido')) c.disabled = marcados >= quantidade;
-    });
-  };
-
-  checkboxes.forEach(c => c.addEventListener('change', atualizar));
-  DOM.modalBody.querySelector('#modal-imei-cancelar').addEventListener('click', fecharModal);
-  btnConfirmar.addEventListener('click', () => {
-    const ids = checkboxes.filter(c => c.checked).map(c => c.value);
-    btnConfirmar.disabled = true;
-    fecharModal();
-    aoConfirmar(ids);
-  });
-
-  abrirModal();
-}
-
 // ============================================
 // DASHBOARD
 // ============================================
-
-async function buscarTotalImeiImpedido() {
-  const { count, error } = await supabaseClient
-    .from('unidades_produto')
-    .select('id', { count: 'exact', head: true })
-    .eq('loja_id', lojaAtual.id)
-    .eq('status_anatel', 'impedido');
-
-  if (error) return 0;
-  return count || 0;
-}
 
 function corVar(nomeVariavel, fallback) {
   const valor = getComputedStyle(document.documentElement).getPropertyValue(nomeVariavel).trim();
@@ -1866,7 +970,7 @@ function corVar(nomeVariavel, fallback) {
 }
 
 function renderDashboardSkeleton() {
-  [DOM.dashTotal, DOM.dashValorCompra, DOM.dashValorVenda, DOM.dashVendasHoje, DOM.dashTicketMedio, DOM.dashImeiImpedido].forEach(el => {
+  [DOM.dashTotal, DOM.dashValorCompra, DOM.dashValorVenda, DOM.dashVendasHoje, DOM.dashTicketMedio].forEach(el => {
     el.classList.add('loading');
   });
 }
@@ -2260,7 +1364,7 @@ function renderLowStockList() {
     const li = document.createElement('li');
     li.className = 'dashboard-lowstock-item';
     li.innerHTML = `
-      <span class="dashboard-lowstock-name">${esc(p.brand)} ${esc(p.model)}<span class="dashboard-lowstock-color">${esc(p.color)}</span></span>
+      <span class="dashboard-lowstock-name">${esc(nomeProduto(p))}</span>
       <span class="badge-estoque baixo">${p.quantity} un.</span>
     `;
     li.addEventListener('click', () => startEditProduct(p.id));
@@ -2272,26 +1376,6 @@ function irParaEstoqueBaixo() {
   DOM.filterStock.value = 'low';
   applyFilters();
   changeTab('estoque');
-}
-
-function renderAlertasCard(totalImeiImpedido) {
-  const ativo = totalImeiImpedido > 0;
-
-  DOM.dashboardAlertasCard.classList.toggle('dashboard-card-alertas--ativo', ativo);
-  DOM.dashboardAlertasIconBox.classList.toggle('dashboard-card-icon-box--danger', ativo);
-  DOM.dashboardAlertasIconBox.classList.toggle('dashboard-card-icon-box--neutro', !ativo);
-  DOM.dashboardAlertasIconBox.innerHTML = ativo
-    ? '<i class="ti ti-alert-triangle"></i>'
-    : '<i class="ti ti-check"></i>';
-
-  if (ativo) {
-    DOM.dashImeiImpedido.classList.remove('hidden');
-    animarContagem(DOM.dashImeiImpedido, totalImeiImpedido);
-    DOM.dashboardAlertasSubtitle.textContent = `${pluralize(totalImeiImpedido, 'unidade')} com IMEI impedido — não negociar`;
-  } else {
-    DOM.dashImeiImpedido.classList.add('hidden');
-    DOM.dashboardAlertasSubtitle.textContent = 'Tudo certo por aqui';
-  }
 }
 
 // ============================================
@@ -2308,8 +1392,7 @@ function montarTextoRecibo(mov, produto) {
   return [
     '🧾 Recibo de venda — Vault',
     '',
-    `Produto: ${produto.brand} ${produto.model}${produto.color ? ' - ' + produto.color : ''}`,
-    ...(mov.produto_snapshot?.imeis?.length ? [`IMEI: ${mov.produto_snapshot.imeis.join(', ')}`] : []),
+    `Produto: ${nomeProduto(produto)}`,
     `Quantidade: ${Math.abs(mov.quantidade)}`,
     `Preço unitário: ${formatCurrency(mov.preco_unitario)}`,
     `Total: ${formatCurrency(mov.total)}`,
@@ -2325,9 +1408,7 @@ function abrirModalRecibo(mov, produto) {
   DOM.modalBody.innerHTML = `
     <h3 class="modal-title">✅ Venda registrada</h3>
     <div class="recibo-card">
-      <div class="recibo-linha"><span>Produto</span><strong>${esc(produto.brand)} ${esc(produto.model)}</strong></div>
-      <div class="recibo-linha"><span>Cor</span><strong>${esc(produto.color || '-')}</strong></div>
-      ${mov.produto_snapshot?.imeis?.length ? `<div class="recibo-linha"><span>IMEI</span><strong>${mov.produto_snapshot.imeis.map(esc).join('<br>')}</strong></div>` : ''}
+      <div class="recibo-linha"><span>Produto</span><strong>${esc(nomeProduto(produto))}</strong></div>
       <div class="recibo-linha"><span>Quantidade</span><strong>${Math.abs(mov.quantidade)}</strong></div>
       <div class="recibo-linha"><span>Preço unitário</span><strong>${formatCurrency(mov.preco_unitario)}</strong></div>
       <div class="recibo-linha recibo-total"><span>Total</span><strong>${formatCurrency(mov.total)}</strong></div>
@@ -2507,8 +1588,7 @@ function renderHistoricoVendas() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="historico-data">${formatarDataHora(m.created_at)}</td>
-      <td>${esc(snap.brand)} ${esc(snap.model)}${snap.imeis?.length ? `<span class="historico-imeis">IMEI ${snap.imeis.map(esc).join(', ')}</span>` : ''}</td>
-      <td>${renderCorCelula(snap.color)}</td>
+      <td>${renderNomeProduto(snap)}</td>
       <td>${Math.abs(m.quantidade)}</td>
       <td>${formatCurrency(m.preco_unitario)}</td>
       <td class="historico-total">${formatCurrency(m.total)}</td>
@@ -2673,14 +1753,12 @@ function renderValoresEstoque() {
 }
 
 async function updateDashboard() {
-  const [totalImeiImpedido, vendasHojeEOntem, ticketMedio, vendas7dias] = await Promise.all([
-    buscarTotalImeiImpedido(),
+  const [vendasHojeEOntem, ticketMedio, vendas7dias] = await Promise.all([
     buscarVendasHojeEOntem(),
     buscarTicketMedio(),
     buscarVendas7Dias(),
   ]);
 
-  renderAlertasCard(totalImeiImpedido);
   animarContagem(DOM.dashVendasHoje, vendasHojeEOntem.hoje.quantidade);
   DOM.dashVendasHojeValor.textContent = formatCurrency(vendasHojeEOntem.hoje.valor);
   renderVendasHojeTrend(vendasHojeEOntem.hoje.valor, vendasHojeEOntem.ontem.valor);
@@ -2707,7 +1785,7 @@ async function updateDashboard() {
 
 const TITULOS_PAGINA = {
   dashboard: { titulo: 'Dashboard', subtitulo: 'Visão geral da loja' },
-  cadastro: { titulo: 'Cadastro de produto', subtitulo: 'Adicione um novo item ao estoque' },
+  cadastro: { titulo: 'Cadastro de produtos', subtitulo: 'Cadastre vários modelos de uma vez' },
   estoque: { titulo: 'Estoque', subtitulo: 'Controle e consulta de estoque' },
   vendas: { titulo: 'Vendas', subtitulo: 'Registre vendas e acompanhe o histórico' },
   equipe: { titulo: 'Equipe', subtitulo: 'Gerencie quem tem acesso à loja' },
@@ -3204,58 +2282,8 @@ function initEventListeners() {
   DOM.sidebarClose.addEventListener('click', closeSidebar);
   DOM.navItems.forEach(btn => btn.addEventListener('click', () => changeTab(btn.dataset.tab)));
 
-  // Form
-  DOM.productForm.addEventListener('submit', handleFormSubmit);
-  DOM.cancelEditBtn.addEventListener('click', resetForm);
-  DOM.formInputs.brand.addEventListener('change', () => {
-    updateModelOptions();
-    atualizarPreviewEDuplicidade();
-  });
-  DOM.formInputs.model.addEventListener('change', atualizarPreviewEDuplicidade);
-  DOM.formInputs.color.addEventListener('change', atualizarPreviewEDuplicidade);
-  DOM.formInputs.type.addEventListener('change', handleTypeChange);
-  DOM.formInputs.quantity.addEventListener('input', atualizarStatusUnidades);
-  DOM.unidadesContainer.addEventListener('input', atualizarStatusUnidades);
-  DOM.addUnidadeBtn.addEventListener('click', () => criarBlocoUnidade());
-
-  // Tipo (seletor visual) e Cor (paleta)
-  DOM.typeOptions.forEach(btn => btn.addEventListener('click', () => selecionarTipo(btn.dataset.type)));
-  DOM.colorPalette.addEventListener('click', (e) => {
-    const btn = e.target.closest('.color-swatch-btn');
-    if (btn) selecionarCor(btn.dataset.color);
-  });
-
-  // Quantidade (stepper +/-)
-  DOM.quantityIncrement.addEventListener('click', () => {
-    DOM.formInputs.quantity.value = (Number(DOM.formInputs.quantity.value) || 0) + 1;
-    DOM.formInputs.quantity.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-  DOM.quantityDecrement.addEventListener('click', () => {
-    DOM.formInputs.quantity.value = Math.max((Number(DOM.formInputs.quantity.value) || 0) - 1, 0);
-    DOM.formInputs.quantity.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-
-  DOM.formInputs.price.addEventListener('focus', () => {
-    const value = parsePriceValue(DOM.formInputs.price.value);
-    DOM.formInputs.price.value = value ? value.toString().replace('.', ',') : '';
-  });
-
-  DOM.formInputs.price.addEventListener('blur', () => {
-    DOM.formInputs.price.value = formatPriceInput(DOM.formInputs.price.value);
-  });
-
-  DOM.formInputs.price.addEventListener('input', atualizarPreview);
-
-  // Custo: mesma máscara do preço, mas vazio continua vazio (= não informado).
-  DOM.formInputs.cost.addEventListener('focus', () => {
-    const custo = lerCusto();
-    DOM.formInputs.cost.value = custo === null ? '' : custo.toString().replace('.', ',');
-  });
-  DOM.formInputs.cost.addEventListener('blur', () => {
-    const custo = lerCusto();
-    DOM.formInputs.cost.value = custo === null ? '' : formatPriceInput(custo) || 'R$ 0,00';
-  });
-  DOM.formInputs.cost.addEventListener('input', atualizarPrecificacao);
+  // Cadastro: eventos próprios em cadastro.js
+  initCadastro();
 
   // Dashboard: aviso de custo pendente leva direto à lista de produtos sem custo.
   DOM.dashCustoPendenteLink.addEventListener('click', () => {
@@ -3265,7 +2293,7 @@ function initEventListeners() {
   });
 
   // Filters - Stock
-  [DOM.filterSearch, DOM.filterBrand, DOM.filterColor, DOM.filterStock].forEach(el => {
+  [DOM.filterSearch, DOM.filterBrand, DOM.filterStock].forEach(el => {
     el.addEventListener('change', applyFilters);
     el.addEventListener('input', applyFilters);
   });
@@ -3331,14 +2359,8 @@ function initEventListeners() {
 
 async function init() {
   loadTheme();
-  renderColorPalette();
   initEventListeners();
-  updateModelOptions();
-  toggleUnidadesSection();
-  sincronizarTypeSelector();
   sincronizarPapelSelector();
-  atualizarStatusUnidades();
-  atualizarPreview();
   aplicarModoLogin(false);
   moverIndicadorAtivo(document.querySelector('.nav-item.active')?.dataset.tab || 'dashboard');
   await iniciarSessao();
