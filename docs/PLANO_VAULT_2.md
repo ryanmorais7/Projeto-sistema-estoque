@@ -86,6 +86,18 @@ Cada etapa vai num branch próprio, vira preview na Vercel e só entra na `main`
 - `sql/012_imei_opcional.sql`: venda não exige mais IMEI.
 - Testes no Edge headless (com Supabase falso na página): 16/16.
 
+### Vault 3.0 — Reformulação visual + cadastro em lote por linha/tipo ✅ (branch `vault-3/redesign`)
+- Identidade light com sidebar azul-marinho, design system em `styles.css` (tokens, botões, campos, chips, cards, tabelas, badges, modal, toasts, vazios, skeletons). Tema escuro removido.
+- Menu: **Início · Vender · Produtos · Análises · Gestão**; no celular, barra inferior. Vendedor vê só Vender.
+- Início: card único de estoque (compra, venda, disco), 4 indicadores (vendas, lucro bruto, meta, estoque baixo) e gráfico vendas × lucro (7/30 dias, mês, personalizado; tooltip e tabela).
+- Produtos: tabela nova (custo, preço, qtd, situação, ver/editar/excluir), cartões no celular, filtros recolhíveis (categoria, marca, linha/tipo, situação).
+- Cadastro: categoria → linha (capinha) ou tipo (película) → marca → família → vários modelos; preço padrão com ajuste por modelo; quantidade e mínimo por modelo; duplicado exige "somar" ou "ignorar"; tudo gravado de uma vez (`cadastrar_lote`). Cor continua fora (decisão do Rudson).
+- Vender: frente de caixa com carrinho de vários itens numa venda (`registrar_venda_carrinho`, com chave contra clique duplo), painel de carrinho no celular, comprovante.
+- Análises: faturamento (comparação com período anterior), lucro e margem por categoria, mais vendidos, categorias, parados, itens críticos com sugestão de reposição, movimentações.
+- Gestão: meta mensal (`lojas.meta_mensal`), equipe, configurações (listas de linhas/tipos editáveis, com renomeação nos produtos; marcas/modelos guardados).
+- **SQL:** `013_vault_3.sql` (aditivo). Testado em Postgres local (PGlite): 23/23. Sem ele o site continua funcionando: cadastro em lote avisa, venda de 1 item usa a função antiga.
+- Testes de navegador (Supabase falso): 18/18 em dono, vendedor e banco sem 013. Telas conferidas em 1440px e 390px, sem rolagem horizontal.
+
 ### Etapa 2 — Base comercial
 - Cadastro: custo, lucro, margem e markup ao vivo; alerta de preço abaixo do custo; estoque mínimo; campos por categoria (acessório com nome livre, película com tipo, capinha com material).
 - Produtos antigos com selo "Custo não informado".

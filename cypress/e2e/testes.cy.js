@@ -24,7 +24,7 @@ describe('Login', () => {
     cy.get('#login-submit-btn').click();
 
     cy.get('#app-container', { timeout: 15000 }).should('have.class', 'active');
-    cy.get('#dashboard-saudacao').invoke('text').should('match', /^Olá, .+!$/);
+    cy.get('#page-title').invoke('text').should('match', /^(Olá, .+!|Vender)$/);
   });
 });
 

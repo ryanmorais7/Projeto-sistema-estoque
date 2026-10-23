@@ -2,689 +2,640 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vault - Controle de Estoque Profissional</title>
-  <meta name="description" content="Vault - sistema de gestão de estoque para lojas de celular e acessórios, com controle de IMEI, grade de conservação e apoio à consulta Anatel." />
-  <meta property="og:title" content="Vault - Controle de Estoque Profissional" />
-  <meta property="og:description" content="Gestão de estoque, IMEI e conservação para lojas de celular e acessórios." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#101A32" />
+  <title>Vault Gestão</title>
+  <meta name="description" content="Vault Gestão: estoque, vendas e lucro para lojas de capinhas, películas e acessórios de celular." />
+  <meta property="og:title" content="Vault Gestão" />
+  <meta property="og:description" content="Estoque, vendas e lucro para lojas de acessórios de celular." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230B0E14'/%3E%3Cstop offset='1' stop-color='%23131826'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='630' fill='url(%23g)'/%3E%3Ctext x='80' y='330' font-family='Arial, sans-serif' font-size='120' font-weight='800' fill='%237C6FFA'%3EVault%3C/text%3E%3Ctext x='80' y='400' font-family='Arial, sans-serif' font-size='36' fill='%2322D3C5'%3EControle de estoque profissional%3C/text%3E%3C/svg%3E" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237C6FFA' stroke-width='2'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3Ccircle cx='12' cy='16' r='1.5' fill='%2322D3C5' stroke='none'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233B6CFF'/%3E%3Cstop offset='1' stop-color='%237C5CFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 10l7 13 7-13' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.49.0/dist/tabler-icons.min.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Login / Cadastro -->
-  <div class="login-screen" id="login-screen">
-    <div class="login-container">
-      <div class="login-header">
-        <h1>Vault</h1>
-        <p id="login-subtitle">Entrar na sua conta</p>
+  <!-- Login / criar conta -->
+  <div class="auth-screen" id="login-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
+        <span class="logo-text">VAULT</span>
       </div>
-      <form id="login-form" class="login-form">
-        <div class="login-field">
-          <label for="login-email">E-mail</label>
-          <input
-            type="email"
-            id="login-email"
-            placeholder="seu@email.com"
-            autocomplete="email"
-            required
-          />
-        </div>
-        <div class="login-field">
-          <label for="login-password">Senha</label>
-          <input
-            type="password"
-            id="login-password"
-            placeholder="sua senha"
-            autocomplete="current-password"
-            minlength="6"
-            required
-          />
-        </div>
-        <button type="submit" id="login-submit-btn" class="login-button">Entrar</button>
-        <p class="login-hint">
+      <h1 class="auth-title" id="login-subtitle">Entrar na sua conta</h1>
+      <p class="auth-desc">Estoque, vendas e lucro da sua loja num só lugar.</p>
+      <form id="login-form" class="auth-form">
+        <label class="field">
+          <span class="field-label">E-mail</span>
+          <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required />
+        </label>
+        <label class="field">
+          <span class="field-label">Senha</span>
+          <input type="password" id="login-password" placeholder="Sua senha" autocomplete="current-password" minlength="6" required />
+        </label>
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-lg btn-block">Entrar</button>
+        <p class="auth-hint">
           <span id="login-toggle-text">Ainda não tem conta?</span>
-          <button type="button" id="login-toggle-mode" class="link-button">Criar conta</button>
+          <button type="button" id="login-toggle-mode" class="btn-link">Criar conta</button>
         </p>
       </form>
     </div>
   </div>
 
   <!-- Onboarding: criar loja -->
-  <div class="login-screen" id="onboarding-screen">
-    <div class="login-container">
-      <div class="login-header">
-        <h1>Vault</h1>
-        <p>Vamos criar a sua loja</p>
+  <div class="auth-screen" id="onboarding-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
+        <span class="logo-text">VAULT</span>
       </div>
-      <form id="onboarding-form" class="login-form">
-        <div class="login-field">
-          <label for="onboarding-nome">Nome da loja</label>
+      <h1 class="auth-title">Vamos criar a sua loja</h1>
+      <p class="auth-desc">Leva menos de um minuto.</p>
+      <form id="onboarding-form" class="auth-form">
+        <label class="field">
+          <span class="field-label">Nome da loja</span>
           <input type="text" id="onboarding-nome" placeholder="Ex: Celular Center" required />
-        </div>
-        <div class="login-field">
-          <label for="onboarding-tipo">Tipo de negócio</label>
+        </label>
+        <label class="field">
+          <span class="field-label">Tipo de negócio</span>
           <select id="onboarding-tipo" required>
             <option value="revenda">Revenda de celulares/acessórios</option>
             <option value="assistencia_tecnica">Assistência técnica</option>
             <option value="ambos">Revenda + Assistência técnica</option>
           </select>
-        </div>
-        <button type="submit" class="login-button">Criar minha loja</button>
+        </label>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Criar minha loja</button>
       </form>
     </div>
   </div>
 
-  <div class="app-container" id="app-container">
-    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-brand">
-          <svg class="icon icon-sm vault-emblem" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="5" y="11" width="14" height="10" rx="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"></circle>
-          </svg>
-          <h1>Painel</h1>
-        </div>
-        <button class="sidebar-close" id="sidebar-close" aria-label="Fechar sidebar">
-          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M18 6L6 18M6 6l12 12"></path>
-          </svg>
-        </button>
+  <div class="app" id="app-container">
+    <!-- Menu lateral (computador) -->
+    <aside class="sidebar" id="sidebar" aria-label="Menu principal">
+      <div class="sidebar-brand">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
+        <span class="logo-text">VAULT</span>
+        <span class="logo-tag">Gestão</span>
       </div>
-      <nav class="sidebar-nav" role="tablist">
-        <div class="nav-indicator" id="nav-indicator"></div>
-        <button class="nav-item active" data-tab="dashboard">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M3 3v18h18"></path>
-          <path d="M7 14l4-4 3 3 5-7"></path>
-        </svg>
-          Dashboard
-        </button>
-        <button class="nav-item" data-tab="cadastro">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M12 5v14m-7-7h14"></path>
-          </svg>
-          Cadastro
-        </button>
-        <button class="nav-item" data-tab="estoque">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M9 2L4 6v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V6l-5-4z"></path>
-            <path d="M9 2v4h6V2"></path>
-          </svg>
-          Estoque
-        </button>
-        <button class="nav-item" data-tab="vendas">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
-          Vendas
-        </button>
-        <button class="nav-item" data-tab="equipe">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          Equipe
-        </button>
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-item" data-nav="inicio"><i class="ti ti-layout-dashboard"></i><span>Início</span></button>
+        <button type="button" class="nav-item" data-nav="vender"><i class="ti ti-shopping-cart"></i><span>Vender</span></button>
+        <button type="button" class="nav-item" data-nav="produtos"><i class="ti ti-package"></i><span>Produtos</span></button>
+        <button type="button" class="nav-item" data-nav="analises"><i class="ti ti-chart-bar"></i><span>Análises</span></button>
+        <button type="button" class="nav-item" data-nav="gestao"><i class="ti ti-adjustments"></i><span>Gestão</span></button>
       </nav>
-      <div class="sidebar-footer">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">
-          <i class="ti ti-moon theme-icon theme-icon-dark"></i>
-          <i class="ti ti-sun theme-icon theme-icon-light"></i>
+      <div class="sidebar-user">
+        <button type="button" class="sidebar-user-btn" id="sidebar-user-btn" aria-label="Minha conta">
+          <span class="avatar" id="sidebar-avatar">--</span>
+          <span class="sidebar-user-text">
+            <span class="sidebar-user-name" id="sidebar-user-name"></span>
+            <span class="sidebar-user-loja" id="loja-atual-nome"></span>
+          </span>
         </button>
-        <button class="logout-button" id="logout-button">
-          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Sair
-        </button>
+        <button type="button" class="sidebar-logout" id="logout-button" aria-label="Sair" title="Sair"><i class="ti ti-logout"></i></button>
       </div>
     </aside>
 
-    <main class="app-shell">
-      <header class="header-bar">
-        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-        <div class="header-titles">
-          <h1 class="header-page-title" id="header-page-title">Dashboard</h1>
-          <p class="header-page-subtitle" id="header-page-subtitle">Visão geral da loja</p>
+    <main class="main" id="main">
+      <!-- Barra do topo no celular -->
+      <div class="mobile-topbar">
+        <div class="sidebar-brand">
+          <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
+          <span class="logo-text">VAULT</span>
         </div>
-        <div class="header-identity">
-          <div class="header-avatar" id="header-avatar">--</div>
-          <div class="header-identity-text">
-            <span class="header-loja-nome" id="loja-atual-nome"></span>
-            <span class="header-user-email" id="user-display"></span>
-          </div>
+        <button type="button" class="avatar avatar-btn" id="mobile-avatar" aria-label="Minha conta">--</button>
+      </div>
+
+      <header class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title" id="page-title">Início</h1>
+          <p class="page-desc" id="page-desc"></p>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn btn-primary" id="acao-nova-venda" data-acao-de="dashboard"><i class="ti ti-plus"></i>Nova venda</button>
+          <button type="button" class="btn btn-primary" id="acao-novo-produto" data-acao-de="estoque"><i class="ti ti-plus"></i>Novo produto</button>
         </div>
       </header>
 
-    <section id="dashboard" class="tab-panel active" role="tabpanel">
+      <nav class="subtabs hidden" id="subtabs" aria-label="Seções"></nav>
 
-      <h2 class="dashboard-saudacao" id="dashboard-saudacao"></h2>
-
-      <div class="dashboard-hero card">
-        <div class="dashboard-hero-values">
-          <div class="dashboard-hero-value dashboard-hero-value--compra">
-            <span class="dashboard-hero-label">
-              <span class="dashboard-hero-marcador"></span>
-              Valor total de compra
-              <i class="ti ti-info-circle dashboard-hero-info" title="Quanto custaram as mercadorias que estão no estoque agora: custo unitário × quantidade, somado para todos os produtos."></i>
+      <!-- ================= INÍCIO ================= -->
+      <section id="dashboard" class="tab-panel" aria-label="Início">
+        <div class="card resumo-estoque">
+          <div class="resumo-valor">
+            <span class="icon-box icon-box--blue"><i class="ti ti-package"></i></span>
+            <span class="resumo-label">Valor total de compra
+              <span class="info-tip" tabindex="0" data-tip="Quanto custaram as mercadorias que estão no estoque agora (custo × quantidade)."><i class="ti ti-info-circle"></i></span>
             </span>
-            <span class="dashboard-hero-amount" id="dash-valor-compra">R$ 0,00</span>
-            <span class="dashboard-hero-sub">investido no estoque atual</span>
+            <strong class="resumo-amount" id="dash-valor-compra">R$ 0,00</strong>
+            <span class="resumo-sub">custo do estoque atual</span>
           </div>
-          <div class="dashboard-hero-value dashboard-hero-value--venda">
-            <span class="dashboard-hero-label">
-              <span class="dashboard-hero-marcador"></span>
-              Valor total de venda
-              <i class="ti ti-info-circle dashboard-hero-info" title="Quanto a loja pode faturar se vender todas as unidades do estoque pelo preço cadastrado. É uma estimativa, não venda realizada."></i>
+          <div class="resumo-valor">
+            <span class="icon-box icon-box--teal"><i class="ti ti-tag"></i></span>
+            <span class="resumo-label">Valor total de venda
+              <span class="info-tip" tabindex="0" data-tip="Quanto a loja fatura se vender todo o estoque pelos preços cadastrados. É uma estimativa."><i class="ti ti-info-circle"></i></span>
             </span>
-            <span class="dashboard-hero-amount" id="dash-valor-venda">R$ 0,00</span>
-            <span class="dashboard-hero-sub">estimativa se vender todo o estoque</span>
+            <strong class="resumo-amount" id="dash-valor-venda">R$ 0,00</strong>
+            <span class="resumo-sub">potencial de venda do estoque</span>
           </div>
-          <p class="dashboard-hero-aviso hidden" id="dash-custo-pendente">
+          <div class="resumo-saude">
+            <div class="vault-dial" id="vault-dial-container"></div>
+            <div class="vault-dial-legend" id="vault-dial-legend"></div>
+          </div>
+          <p class="resumo-aviso hidden" id="dash-custo-pendente">
             <i class="ti ti-alert-circle"></i>
             <span id="dash-custo-pendente-texto"></span>
-            <button type="button" class="dashboard-hero-aviso-link" id="dash-custo-pendente-link">Preencher custos</button>
+            <button type="button" class="btn-link" id="dash-custo-pendente-link">Preencher custos</button>
           </p>
         </div>
-        <div class="vault-dial" id="vault-dial-container"></div>
-        <div class="vault-dial-legend" id="vault-dial-legend"></div>
-      </div>
 
-      <div class="dashboard-grid">
-        <div class="dashboard-card card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Vendas hoje</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-receipt-2"></i></span>
+        <div class="kpi-grid">
+          <div class="card kpi">
+            <div class="kpi-head"><span class="icon-box icon-box--teal"><i class="ti ti-receipt"></i></span><span class="kpi-title">Vendas de hoje</span></div>
+            <strong class="kpi-value" id="kpi-vendas-valor">R$ 0,00</strong>
+            <span class="kpi-sub" id="kpi-vendas-sub">Nenhuma venda ainda</span>
           </div>
-          <div class="dashboard-card-value" id="dash-vendas-hoje">0</div>
-          <div class="dashboard-card-subtitle" id="dash-vendas-hoje-valor">R$ 0,00</div>
-          <div class="dashboard-card-trend hidden" id="dash-vendas-hoje-trend"></div>
-        </div>
-
-        <div class="dashboard-card card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Produtos cadastrados</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--roxo"><i class="ti ti-package"></i></span>
+          <div class="card kpi">
+            <div class="kpi-head"><span class="icon-box icon-box--green"><i class="ti ti-trending-up"></i></span><span class="kpi-title">Lucro bruto de hoje</span></div>
+            <strong class="kpi-value" id="kpi-lucro-valor">R$ 0,00</strong>
+            <span class="kpi-sub" id="kpi-lucro-sub">&nbsp;</span>
           </div>
-          <div class="dashboard-card-value" id="dash-total">0</div>
-          <div class="dashboard-card-subtitle">no estoque</div>
-        </div>
-
-        <div class="dashboard-card card">
-          <div class="dashboard-card-header">
-            <span class="dashboard-card-title">Ticket médio</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--ambar"><i class="ti ti-chart-bar"></i></span>
-          </div>
-          <div class="dashboard-card-value" id="dash-ticket-medio">R$ 0,00</div>
-          <div class="dashboard-card-subtitle">últimos 30 dias</div>
-        </div>
-      </div>
-
-      <div class="dashboard-split-grid">
-        <div class="card dashboard-panel-card">
-          <div class="filters-title"><i class="ti ti-trending-up filters-title-icon filters-title-icon--primary"></i>Top marcas em valor</div>
-          <div class="dashboard-brandlist" id="dashboard-brandlist"></div>
-          <div class="dashboard-panel-empty hidden" id="dashboard-brandlist-empty">
-            <p>Cadastre seu primeiro produto pra ver aqui as marcas com maior valor em estoque.</p>
-            <button type="button" class="secondary" id="dashboard-brandlist-cta">+ Cadastrar produto</button>
-          </div>
-        </div>
-
-        <div class="card dashboard-panel-card">
-          <div class="dashboard-panel-header">
-            <div class="filters-title"><i class="ti ti-alert-triangle filters-title-icon filters-title-icon--warning"></i>Estoque baixo</div>
-            <span class="dashboard-panel-count hidden" id="dashboard-lowstock-count"></span>
-          </div>
-          <ul class="dashboard-lowstock-list" id="dashboard-lowstock-list"></ul>
-          <p class="dashboard-lowstock-empty hidden" id="dashboard-lowstock-empty"></p>
-          <button type="button" class="dashboard-panel-link hidden" id="dashboard-lowstock-vertodos">Ver todos →</button>
-        </div>
-      </div>
-
-      <div class="card chart-card dashboard-vendas7d-card">
-        <div class="filters-title"><i class="ti ti-chart-line filters-title-icon filters-title-icon--teal"></i>Vendas últimos 7 dias</div>
-        <div class="vendas7d-chart" id="dashboard-vendas7d-chart"></div>
-      </div>
-    </section>
-
-    <section id="cadastro" class="tab-panel" role="tabpanel">
-      <div class="cadastro-layout">
-        <form id="product-form" class="cadastro-form" novalidate>
-
-          <!-- Passo 1: tipo -->
-          <div class="card cadastro-card">
-            <h3 class="cadastro-card-title"><span class="cadastro-passo">1</span> O que você vai cadastrar?</h3>
-            <div class="type-selector" id="type-selector" role="group" aria-label="Tipo de produto">
-              <button type="button" class="type-option active" data-type="capinhas">
-                <i class="ti ti-shield"></i>
-                <span>Capinha</span>
-              </button>
-              <button type="button" class="type-option" data-type="peliculas">
-                <i class="ti ti-square-rounded"></i>
-                <span>Película</span>
-              </button>
-              <button type="button" class="type-option" data-type="acessorios">
-                <i class="ti ti-plug"></i>
-                <span>Acessório</span>
-              </button>
-              <!-- Só aparece ao editar um celular cadastrado antes (não dá pra cadastrar novos). -->
-              <button type="button" class="type-option hidden" data-type="aparelhos" id="type-option-aparelhos">
-                <i class="ti ti-device-mobile"></i>
-                <span>Aparelho</span>
-              </button>
-            </div>
-            <input type="hidden" id="type" value="capinhas" />
-          </div>
-
-          <!-- Passo 2: marca e modelos -->
-          <div class="card cadastro-card">
-            <h3 class="cadastro-card-title"><span class="cadastro-passo">2</span> <span id="cadastro-titulo-modelos">Para quais celulares?</span></h3>
-
-            <label class="cadastro-marca">
-              <span id="cadastro-label-marca">Marca do celular</span>
-              <input id="brand" type="text" list="brand-sugestoes" autocomplete="off" placeholder="Ex: Samsung" />
-              <datalist id="brand-sugestoes"></datalist>
-            </label>
-
-            <div class="modelos-sugeridos hidden" id="modelos-sugeridos">
-              <p class="cadastro-dica" id="modelos-sugeridos-dica">Toque nos modelos que você recebeu:</p>
-              <div class="modelos-chips" id="modelos-chips"></div>
-            </div>
-
-            <div class="modelo-livre">
-              <input id="modelo-livre-input" type="text" autocomplete="off" placeholder="Digite um modelo e aperte Enter · ex: Galaxy A15" />
-              <button type="button" class="secondary" id="modelo-livre-add"><i class="ti ti-plus"></i> Adicionar</button>
-            </div>
-
-            <div class="lote-lista" id="lote-lista" aria-live="polite"></div>
-            <p class="lote-vazio" id="lote-vazio">Nenhum modelo adicionado ainda.</p>
-          </div>
-
-          <!-- Passo 3: preço -->
-          <div class="card cadastro-card">
-            <h3 class="cadastro-card-title"><span class="cadastro-passo">3</span> Quanto custa?</h3>
-            <p class="cadastro-dica" id="cadastro-dica-preco">O mesmo preço vale para todos os modelos da lista.</p>
-            <div class="grid">
-              <label>
-                Preço de venda
-                <input id="price" type="text" inputmode="decimal" placeholder="Ex: R$ 35,00" />
-              </label>
-              <label>
-                Preço de custo <span class="cadastro-opcional">(opcional)</span>
-                <input id="cost" type="text" inputmode="decimal" placeholder="Quanto você pagou · ex: R$ 12,00" />
-              </label>
-            </div>
-
-            <div class="precificacao" id="precificacao" aria-live="polite">
-              <div class="precificacao-item">
-                <span class="precificacao-label">Lucro bruto por unidade</span>
-                <strong class="precificacao-valor" id="precificacao-lucro">—</strong>
-              </div>
-              <div class="precificacao-item">
-                <span class="precificacao-label">Margem</span>
-                <strong class="precificacao-valor" id="precificacao-margem">—</strong>
-              </div>
-              <div class="precificacao-item">
-                <span class="precificacao-label">Markup</span>
-                <strong class="precificacao-valor" id="precificacao-markup">—</strong>
-              </div>
-              <p class="precificacao-aviso" id="precificacao-aviso">Preencha o custo para ver o lucro. Se não souber agora, pode deixar em branco e completar depois.</p>
-            </div>
-          </div>
-
-          <!-- Opcional -->
-          <details class="card cadastro-card cadastro-detalhes" id="cadastro-detalhes">
-            <summary class="cadastro-card-title">Mais detalhes <span class="cadastro-opcional">(opcional)</span></summary>
-            <div class="grid">
-              <label>
-                Avisar quando o estoque chegar em
-                <input id="estoque-minimo" type="number" min="0" step="1" inputmode="numeric" placeholder="Padrão: 5 unidades" />
-              </label>
-              <label class="full-width">
-                Observações
-                <textarea id="notes" rows="2" placeholder="Ex: material, fornecedor, tipo de película (3D, privacidade)..."></textarea>
-              </label>
-            </div>
-          </details>
-
-          <div class="actions">
-            <button type="submit" id="save-button" class="primary">✓ Salvar</button>
-            <button type="button" id="cancel-edit" class="secondary hidden">✕ Cancelar edição</button>
-          </div>
-        </form>
-
-        <aside class="cadastro-preview">
-          <div class="card cadastro-preview-card">
-            <div class="preview-image" id="preview-image">
-              <i class="ti ti-shield"></i>
-            </div>
-            <div class="preview-name preview-placeholder" id="preview-name">Nenhum modelo ainda</div>
-            <div class="preview-meta preview-placeholder" id="preview-meta">Capinha</div>
-            <hr class="preview-divider" />
-            <div class="preview-resumo" id="preview-resumo">
-              <div><span>Produtos</span><strong id="preview-qtd-produtos">0</strong></div>
-              <div><span>Unidades</span><strong id="preview-qtd-unidades">0</strong></div>
-              <div><span>Valor de venda</span><strong id="preview-valor-venda">R$ 0,00</strong></div>
-            </div>
-            <div class="preview-price" id="preview-price">R$ 0,00</div>
-            <span class="preview-price-label">preço por unidade</span>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="estoque" class="tab-panel" role="tabpanel">
-      <div class="card filters-card">
-        <div class="filters-bar">
-          <div class="search-input-wrap">
-            <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-search" placeholder="Buscar marca ou modelo..." />
-          </div>
-          <div class="type-quickfilter" id="type-quickfilter" role="group" aria-label="Filtrar por tipo">
-            <button type="button" class="type-quickfilter-btn" data-type="capinhas" title="Capinhas"><i class="ti ti-shield"></i></button>
-            <button type="button" class="type-quickfilter-btn" data-type="peliculas" title="Películas"><i class="ti ti-square-rounded"></i></button>
-            <button type="button" class="type-quickfilter-btn" data-type="acessorios" title="Acessórios"><i class="ti ti-plug"></i></button>
-          </div>
-          <input type="hidden" id="filter-type" value="" />
-          <button type="button" class="secondary filters-toggle-btn" id="filters-toggle-btn">
-            <i class="ti ti-adjustments-horizontal"></i> Mais filtros
+          <button type="button" class="card kpi kpi--link" id="kpi-meta">
+            <div class="kpi-head"><span class="icon-box icon-box--purple"><i class="ti ti-target-arrow"></i></span><span class="kpi-title">Meta mensal</span></div>
+            <strong class="kpi-value" id="kpi-meta-valor">—</strong>
+            <span class="progress"><span class="progress-bar" id="kpi-meta-barra"></span></span>
+            <span class="kpi-sub" id="kpi-meta-sub">Defina uma meta</span>
+          </button>
+          <button type="button" class="card kpi kpi--link" id="kpi-baixo">
+            <div class="kpi-head"><span class="icon-box icon-box--orange"><i class="ti ti-alert-triangle"></i></span><span class="kpi-title">Estoque baixo</span></div>
+            <strong class="kpi-value" id="kpi-baixo-valor">0</strong>
+            <span class="kpi-sub" id="kpi-baixo-sub">&nbsp;</span>
           </button>
         </div>
 
-        <div class="filters-panel hidden" id="filters-panel">
-          <div class="filter-group">
-            <label for="filter-brand">Marca</label>
-            <select id="filter-brand">
-              <option value="">Todas</option>
-            </select>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <div>
+              <h2 class="card-title">Desempenho comercial</h2>
+              <div class="chart-totais" id="chart-totais">
+                <span class="legenda"><span class="legenda-barra legenda-barra--vendas"></span>Vendas <strong id="chart-total-vendas">R$ 0,00</strong></span>
+                <span class="legenda"><span class="legenda-linha legenda-linha--lucro"></span>Lucro bruto <strong id="chart-total-lucro">R$ 0,00</strong></span>
+              </div>
+            </div>
+            <div class="chart-filtros">
+              <div class="segmented" id="chart-periodo" role="group" aria-label="Período do gráfico">
+                <button type="button" data-periodo="7" class="active">7 dias</button>
+                <button type="button" data-periodo="30">30 dias</button>
+                <button type="button" data-periodo="mes">Este mês</button>
+                <button type="button" data-periodo="custom">Personalizado</button>
+              </div>
+              <div class="periodo-custom hidden" id="chart-periodo-custom">
+                <input type="date" id="chart-de" aria-label="De" />
+                <span>até</span>
+                <input type="date" id="chart-ate" aria-label="Até" />
+              </div>
+            </div>
           </div>
-          <div class="filter-group">
-            <label for="filter-stock">Estoque</label>
-            <select id="filter-stock">
-              <option value="">Todos</option>
-              <option value="zero">Zerado</option>
-              <option value="low">Baixo (no mínimo ou abaixo)</option>
-              <option value="medium">Médio (6-20)</option>
-              <option value="high">Alto (20+)</option>
-              <option value="sem_custo">Custo não informado</option>
-              <option value="arquivados">Arquivados</option>
-            </select>
+          <div class="chart-body">
+            <div class="chart-canvas-wrap" id="chart-wrap"><canvas id="chart-desempenho" aria-label="Gráfico de vendas e lucro bruto por dia" role="img"></canvas></div>
+            <div class="chart-estado hidden" id="chart-estado"></div>
           </div>
+          <div class="chart-foot">
+            <span class="chart-nota" id="chart-nota"></span>
+            <button type="button" class="btn-link" id="chart-ver-tabela">Ver tabela</button>
+          </div>
+          <div class="table-wrap hidden" id="chart-tabela"></div>
+        </div>
+      </section>
+
+      <!-- ================= VENDER: FRENTE DE CAIXA ================= -->
+      <section id="vendas" class="tab-panel" aria-label="Frente de caixa">
+        <div class="pdv">
+          <div class="card pdv-produtos">
+            <div class="search">
+              <i class="ti ti-search"></i>
+              <input type="search" id="pdv-busca" placeholder="Buscar produto, marca ou modelo..." autocomplete="off" />
+            </div>
+            <div class="chips-row" id="pdv-categorias" role="group" aria-label="Categoria">
+              <button type="button" class="chip active" data-tipo="">Todos</button>
+              <button type="button" class="chip" data-tipo="capinhas"><i class="ti ti-shield"></i>Capinhas</button>
+              <button type="button" class="chip" data-tipo="peliculas"><i class="ti ti-device-mobile"></i>Películas</button>
+              <button type="button" class="chip" data-tipo="acessorios"><i class="ti ti-plug"></i>Acessórios</button>
+            </div>
+            <ul class="pdv-lista" id="pdv-lista" aria-label="Produtos disponíveis"></ul>
+            <div class="empty hidden" id="pdv-vazio">
+              <i class="ti ti-search"></i>
+              <p id="pdv-vazio-texto">Nenhum produto encontrado.</p>
+            </div>
+          </div>
+
+          <div class="sheet-backdrop" id="pdv-backdrop"></div>
+          <aside class="card pdv-carrinho" id="pdv-carrinho" aria-label="Carrinho">
+            <div class="pdv-carrinho-head">
+              <h2 class="card-title">Carrinho <span class="badge badge-neutral" id="pdv-qtd-itens">0</span></h2>
+              <div>
+                <button type="button" class="btn-link" id="pdv-limpar">Limpar</button>
+                <button type="button" class="icon-btn pdv-fechar" id="pdv-fechar" aria-label="Fechar carrinho"><i class="ti ti-x"></i></button>
+              </div>
+            </div>
+            <ul class="pdv-itens" id="pdv-itens"></ul>
+            <div class="empty empty--compact" id="pdv-carrinho-vazio">
+              <i class="ti ti-shopping-cart"></i>
+              <p>Toque em um produto para adicionar.</p>
+            </div>
+            <div class="pdv-totais">
+              <div class="linha-valor"><span>Itens</span><span id="pdv-unidades">0</span></div>
+              <div class="linha-valor"><span>Subtotal</span><span id="pdv-subtotal">R$ 0,00</span></div>
+              <div class="linha-valor linha-valor--total"><span>Total</span><strong id="pdv-total">R$ 0,00</strong></div>
+            </div>
+            <button type="button" class="btn btn-primary btn-lg btn-block" id="pdv-finalizar" disabled><i class="ti ti-check"></i>Finalizar venda</button>
+          </aside>
         </div>
 
-        <div class="filters-chips hidden" id="filters-chips"></div>
-      </div>
+        <button type="button" class="pdv-barra" id="pdv-abrir" aria-label="Abrir carrinho">
+          <span class="pdv-barra-icone"><i class="ti ti-shopping-cart"></i><span class="pdv-barra-badge" id="pdv-barra-qtd">0</span></span>
+          <span class="pdv-barra-total" id="pdv-barra-total">R$ 0,00</span>
+          <span class="pdv-barra-acao">Ver carrinho <i class="ti ti-chevron-up"></i></span>
+        </button>
+      </section>
 
-      <div class="status-chips" id="status-chips"></div>
+      <!-- ================= VENDER: HISTÓRICO ================= -->
+      <section id="historico" class="tab-panel" aria-label="Histórico de vendas">
+        <div class="card stat-row">
+          <div class="stat"><span class="stat-label">Hoje</span><strong class="stat-value" id="resumo-vendas-hoje">R$ 0,00</strong></div>
+          <div class="stat"><span class="stat-label">Últimos 7 dias</span><strong class="stat-value" id="resumo-vendas-7dias">R$ 0,00</strong></div>
+          <div class="stat"><span class="stat-label">Este mês</span><strong class="stat-value" id="resumo-vendas-mes">R$ 0,00</strong></div>
+        </div>
 
-      <div class="card table-card">
-        <div class="table-toolbar">
-          <span id="stock-count">0 produtos cadastrados</span>
-          <span id="filter-result-count" class="filter-result-count"></span>
-          <button type="button" id="export-csv-btn" class="secondary"><i class="ti ti-download"></i> Exportar CSV</button>
-        </div>
-        <table id="estoque-table">
-          <thead>
-            <tr>
-              <th class="table-thumb-col"></th>
-              <th>Tipo</th>
-              <th>Marca / Modelo</th>
-              <th class="sortable" data-sort="price">Preço<span class="sort-icon">⇅</span></th>
-              <th class="sortable" data-sort="quantity">Qtd<span class="sort-icon">⇅</span></th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="product-table-body"></tbody>
-        </table>
-        <div class="empty-state" id="estoque-empty-state">
-          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
-            <path d="M3 8v8l9 5 9-5V8"></path>
-            <path d="M12 13v8"></path>
-          </svg>
-          <p class="empty-state-text">Nenhum produto cadastrado ainda</p>
-          <button type="button" class="primary" id="empty-state-cta">+ Cadastrar primeiro produto</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="vendas" class="tab-panel" role="tabpanel">
-      <div class="card filters-card">
-        <div class="filters-bar">
-          <div class="search-input-wrap">
-            <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-sales-search" placeholder="Buscar marca ou modelo..." />
+        <div class="toolbar">
+          <div class="search">
+            <i class="ti ti-search"></i>
+            <input type="search" id="filter-historico-search" placeholder="Buscar marca ou modelo..." />
           </div>
-          <select id="filter-sales-brand" class="filters-bar-select">
-            <option value="">Todas as marcas</option>
-          </select>
-        </div>
-        <div class="filters-chips hidden" id="filters-sales-chips"></div>
-      </div>
-      <div class="card table-card">
-        <div class="table-toolbar">
-          <span>Selecione um produto para vender</span>
-          <span id="sales-filter-result-count" class="filter-result-count"></span>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th class="table-thumb-col"></th>
-              <th>Produto</th>
-              <th>Estoque</th>
-              <th>Preço</th>
-              <th>Quantidade</th>
-              <th>Vender</th>
-            </tr>
-          </thead>
-          <tbody id="sales-table-body"></tbody>
-        </table>
-      </div>
-
-      <div class="vendas-resumo-grid">
-        <div class="card vendas-resumo-card">
-          <div class="vendas-resumo-header">
-            <span class="vendas-resumo-label">Hoje</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-dollar"></i></span>
-          </div>
-          <span class="vendas-resumo-valor" id="resumo-vendas-hoje">R$ 0,00</span>
-        </div>
-        <div class="card vendas-resumo-card">
-          <div class="vendas-resumo-header">
-            <span class="vendas-resumo-label">Últimos 7 dias</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-stats"></i></span>
-          </div>
-          <span class="vendas-resumo-valor" id="resumo-vendas-7dias">R$ 0,00</span>
-        </div>
-        <div class="card vendas-resumo-card">
-          <div class="vendas-resumo-header">
-            <span class="vendas-resumo-label">Mês atual</span>
-            <span class="dashboard-card-icon-box dashboard-card-icon-box--teal"><i class="ti ti-calendar-month"></i></span>
-          </div>
-          <span class="vendas-resumo-valor" id="resumo-vendas-mes">R$ 0,00</span>
-        </div>
-      </div>
-
-      <h3 class="vendas-historico-title">Histórico de vendas</h3>
-      <div class="card filters-card">
-        <div class="filters-bar">
-          <div class="search-input-wrap">
-            <i class="ti ti-search search-input-icon"></i>
-            <input type="text" id="filter-historico-search" placeholder="Buscar marca ou modelo..." />
-          </div>
-          <select id="filter-historico-periodo" class="filters-bar-select">
+          <select id="filter-historico-periodo" aria-label="Período">
             <option value="7">Últimos 7 dias</option>
             <option value="30" selected>Últimos 30 dias</option>
             <option value="90">Últimos 90 dias</option>
             <option value="0">Tudo</option>
           </select>
-          <select id="filter-historico-brand" class="filters-bar-select">
+          <select id="filter-historico-brand" aria-label="Marca">
             <option value="">Todas as marcas</option>
           </select>
+          <button type="button" class="icon-btn icon-btn--bordered" id="export-historico-csv-btn" title="Exportar CSV" aria-label="Exportar CSV"><i class="ti ti-download"></i></button>
         </div>
-        <div class="filters-chips hidden" id="filters-historico-chips"></div>
-      </div>
-      <div class="card table-card">
-        <div class="table-toolbar">
-          <span id="historico-count">0 vendas no período</span>
-          <button type="button" id="export-historico-csv-btn" class="secondary"><i class="ti ti-download"></i> Exportar CSV</button>
-        </div>
-        <table id="historico-vendas-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Produto</th>
-              <th>Qtd</th>
-              <th>Preço unit.</th>
-              <th>Total</th>
-              <th>Vendido por</th>
-            </tr>
-          </thead>
-          <tbody id="historico-vendas-body"></tbody>
-          <tfoot>
-            <tr class="historico-total-row hidden" id="historico-total-row">
-              <td colspan="4" class="historico-total-label">Total no período</td>
-              <td class="historico-total-valor" id="historico-total-valor"></td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-        <div class="empty-state" id="historico-vendas-empty">
-          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 3v18h18"></path>
-            <path d="M7 14l4-4 3 3 5-7"></path>
-          </svg>
-          <p class="empty-state-text">Nenhuma venda registrada nesse período ainda.</p>
-        </div>
-      </div>
-    </section>
+        <div class="filter-chips hidden" id="filters-historico-chips"></div>
 
-    <section id="equipe" class="tab-panel" role="tabpanel">
-
-      <form id="invite-form" class="card form-card invite-form hidden">
-        <h3 class="invite-form-title">Convidar membro</h3>
-        <label class="full-width">
-          Papel
-          <div class="type-selector papel-selector" id="papel-selector" role="group" aria-label="Papel do convidado">
-            <button type="button" class="type-option" data-papel="vendedor">
-              <i class="ti ti-tag"></i>
-              <span>Vendedor</span>
-            </button>
-            <button type="button" class="type-option" data-papel="dono">
-              <i class="ti ti-crown"></i>
-              <span>Dono</span>
-            </button>
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="table table--cards" id="historico-vendas-table">
+              <thead>
+                <tr><th>Data</th><th>Produto</th><th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Total</th><th>Vendido por</th></tr>
+              </thead>
+              <tbody id="historico-vendas-body"></tbody>
+              <tfoot>
+                <tr class="hidden" id="historico-total-row"><td colspan="4">Total no período</td><td class="num" id="historico-total-valor"></td><td></td></tr>
+              </tfoot>
+            </table>
           </div>
-          <input type="hidden" id="invite-papel" value="vendedor" required />
-        </label>
-        <p class="papel-descricao" id="papel-descricao"></p>
-        <div class="grid">
-          <label class="full-width">
-            E-mail
-            <input type="email" id="invite-email" placeholder="email@exemplo.com" required />
-          </label>
+          <div class="empty hidden" id="historico-vendas-empty">
+            <i class="ti ti-receipt-off"></i>
+            <p>Nenhuma venda nesse período.</p>
+          </div>
+          <div class="table-foot"><span id="historico-count">0 vendas no período</span></div>
         </div>
-        <div class="actions">
-          <button type="submit" class="primary"><i class="ti ti-mail"></i> Enviar convite</button>
-        </div>
-      </form>
+      </section>
 
-      <div class="card table-card">
-        <div class="table-toolbar">
-          <span>Membros da loja</span>
+      <!-- ================= PRODUTOS ================= -->
+      <section id="estoque" class="tab-panel" aria-label="Produtos">
+        <div class="toolbar">
+          <div class="search">
+            <i class="ti ti-search"></i>
+            <input type="search" id="filter-search" placeholder="Buscar produto, marca, modelo ou linha..." />
+          </div>
+          <button type="button" class="btn btn-secondary" id="filters-toggle-btn" aria-expanded="false"><i class="ti ti-filter"></i>Filtrar<span class="badge badge-blue hidden" id="filters-count"></span></button>
+          <button type="button" class="icon-btn icon-btn--bordered" id="export-csv-btn" title="Exportar CSV" aria-label="Exportar CSV"><i class="ti ti-download"></i></button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Membro</th>
-              <th>Papel</th>
-              <th>Desde</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="equipe-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+
+        <div class="card filters-panel hidden" id="filters-panel">
+          <label class="field">
+            <span class="field-label">Categoria</span>
+            <select id="filter-type">
+              <option value="">Todas</option>
+              <option value="capinhas">Capinhas</option>
+              <option value="peliculas">Películas</option>
+              <option value="acessorios">Acessórios</option>
+              <option value="aparelhos">Aparelhos (antigos)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Marca</span>
+            <select id="filter-brand"><option value="">Todas</option></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Linha / tipo</span>
+            <select id="filter-variacao"><option value="">Todas</option></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Situação</span>
+            <select id="filter-stock">
+              <option value="">Todas</option>
+              <option value="ok">Em estoque</option>
+              <option value="low">Estoque baixo</option>
+              <option value="zero">Sem estoque</option>
+              <option value="sem_custo">Custo não informado</option>
+              <option value="arquivados">Arquivados</option>
+            </select>
+          </label>
+          <button type="button" class="btn-link" id="filters-clear">Limpar filtros</button>
+        </div>
+        <div class="filter-chips hidden" id="filters-chips"></div>
+
+        <div class="card table-card">
+          <div class="table-wrap produtos-tabela">
+            <table class="table" id="estoque-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Categoria</th>
+                  <th class="num so-dono">Custo</th>
+                  <th class="num sortable" data-sort="price">Preço de venda <i class="ti ti-arrows-sort"></i></th>
+                  <th class="num sortable" data-sort="quantity">Qtd <i class="ti ti-arrows-sort"></i></th>
+                  <th>Situação</th>
+                  <th class="acoes-col"><span class="sr-only">Ações</span></th>
+                </tr>
+              </thead>
+              <tbody id="product-table-body"></tbody>
+            </table>
+          </div>
+          <ul class="produtos-cards" id="produtos-cards"></ul>
+          <div class="empty hidden" id="estoque-empty-state">
+            <i class="ti ti-package"></i>
+            <p id="estoque-empty-texto">Nenhum produto cadastrado ainda.</p>
+            <button type="button" class="btn btn-primary" id="empty-state-cta"><i class="ti ti-plus"></i>Cadastrar produto</button>
+          </div>
+          <div class="table-foot">
+            <span id="stock-count">0 produtos</span>
+            <span id="filter-result-count"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PRODUTOS: CADASTRO ================= -->
+      <section id="cadastro" class="tab-panel" aria-label="Cadastrar produto">
+        <form id="product-form" class="cadastro" novalidate>
+          <div class="cadastro-main">
+            <div class="section-head">
+              <h2 class="section-title" id="cadastro-titulo">Novo produto</h2>
+              <p class="section-desc" id="cadastro-desc">Preencha as informações para adicionar um produto ao estoque.</p>
+            </div>
+
+            <!-- Identificação -->
+            <div class="card form-section">
+              <h3 class="form-section-title"><span class="step">1</span>Identificação</h3>
+
+              <div class="field">
+                <span class="field-label">Categoria</span>
+                <div class="categoria-grid" id="type-selector" role="radiogroup" aria-label="Categoria">
+                  <button type="button" class="categoria-opcao" data-type="capinhas" role="radio"><i class="ti ti-shield"></i><span>Capinhas</span></button>
+                  <button type="button" class="categoria-opcao" data-type="peliculas" role="radio"><i class="ti ti-device-mobile"></i><span>Películas</span></button>
+                  <button type="button" class="categoria-opcao" data-type="acessorios" role="radio"><i class="ti ti-plug"></i><span>Acessórios</span></button>
+                  <button type="button" class="categoria-opcao hidden" data-type="aparelhos" role="radio" id="type-option-aparelhos"><i class="ti ti-device-mobile-message"></i><span>Aparelhos</span></button>
+                </div>
+              </div>
+
+              <div class="field" id="variacao-bloco">
+                <span class="field-label"><span id="variacao-rotulo">Linha</span> <span class="opcional">opcional</span>
+                  <button type="button" class="btn-link field-label-link so-dono" id="variacao-editar">Editar lista</button>
+                </span>
+                <div class="chips-row" id="variacao-chips" role="radiogroup"></div>
+                <div class="inline-add hidden" id="variacao-outra">
+                  <input type="text" id="variacao-outra-input" maxlength="60" placeholder="Nome da linha" />
+                  <label class="check"><input type="checkbox" id="variacao-outra-guardar" checked /> Guardar na lista</label>
+                </div>
+              </div>
+
+              <div class="field" id="marca-bloco">
+                <span class="field-label" id="cadastro-label-marca">Marca do celular</span>
+                <div class="marca-grid" id="marca-chips" role="radiogroup" aria-label="Marca"></div>
+                <div class="search search--sm">
+                  <i class="ti ti-search"></i>
+                  <input id="brand" type="text" list="brand-sugestoes" autocomplete="off" placeholder="Outra marca? Digite para buscar ou adicionar" />
+                  <datalist id="brand-sugestoes"></datalist>
+                </div>
+              </div>
+
+              <div class="field hidden" id="modelos-bloco">
+                <span class="field-label" id="modelos-rotulo">Modelos</span>
+                <div class="familias" id="familias-tabs" role="tablist" aria-label="Famílias"></div>
+                <div class="search search--sm">
+                  <i class="ti ti-search"></i>
+                  <input id="modelo-busca" type="text" autocomplete="off" placeholder="Buscar modelo · ex: A55" />
+                </div>
+                <div class="modelos-acoes">
+                  <span class="modelos-contagem" id="modelos-contagem"></span>
+                  <button type="button" class="btn-link" id="modelos-marcar-todos">Marcar todos</button>
+                </div>
+                <div class="modelos-chips" id="modelos-chips"></div>
+                <div class="inline-add">
+                  <input id="modelo-livre-input" type="text" autocomplete="off" maxlength="80" placeholder="Não achou? Digite o modelo e aperte Enter" />
+                  <button type="button" class="btn btn-secondary" id="modelo-livre-add"><i class="ti ti-plus"></i>Adicionar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Valores -->
+            <div class="card form-section">
+              <h3 class="form-section-title"><span class="step">2</span>Valores</h3>
+              <p class="form-section-desc" id="cadastro-dica-preco">O mesmo preço vale para todos os modelos. Dá para mudar um modelo específico na lista abaixo.</p>
+              <div class="grid-2">
+                <label class="field">
+                  <span class="field-label">Preço de custo <span class="opcional">opcional</span></span>
+                  <input id="cost" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Preço de venda</span>
+                  <input id="price" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+                </label>
+              </div>
+              <div class="margem" id="precificacao" data-estado="neutro" aria-live="polite">
+                <div class="margem-item"><span>Lucro bruto por unidade</span><strong id="precificacao-lucro">—</strong></div>
+                <div class="margem-item"><span>Margem bruta</span><strong id="precificacao-margem">—</strong></div>
+                <p class="margem-aviso" id="precificacao-aviso">Sem o custo, o lucro fica em branco. Dá para completar depois.</p>
+              </div>
+            </div>
+
+            <!-- Estoque -->
+            <div class="card form-section">
+              <h3 class="form-section-title"><span class="step">3</span>Estoque</h3>
+              <div class="lote-padroes" id="lote-padroes">
+                <label class="field field--inline">
+                  <span class="field-label">Quantidade para todos</span>
+                  <span class="input-acao">
+                    <input type="number" id="lote-qtd-padrao" min="0" step="1" inputmode="numeric" placeholder="Ex: 10" />
+                    <button type="button" class="btn btn-secondary btn-sm" id="lote-qtd-aplicar">Aplicar</button>
+                  </span>
+                </label>
+                <label class="field field--inline">
+                  <span class="field-label">Estoque mínimo para todos</span>
+                  <span class="input-acao">
+                    <input type="number" id="estoque-minimo" min="0" step="1" inputmode="numeric" placeholder="Padrão: 5" />
+                    <button type="button" class="btn btn-secondary btn-sm" id="lote-min-aplicar">Aplicar</button>
+                  </span>
+                </label>
+              </div>
+
+              <div class="lote" id="lote" aria-live="polite">
+                <div class="lote-head" id="lote-head">
+                  <span>Modelo</span><span>Quantidade</span><span>Mínimo</span><span class="sr-only">Ações</span>
+                </div>
+                <div class="lote-lista" id="lote-lista"></div>
+              </div>
+              <p class="empty-inline" id="lote-vazio">Nenhum modelo selecionado ainda.</p>
+
+              <details class="detalhes" id="cadastro-detalhes">
+                <summary>Observações <span class="opcional">opcional</span></summary>
+                <textarea id="notes" rows="2" placeholder="Ex: fornecedor, material..."></textarea>
+              </details>
+            </div>
+          </div>
+
+          <!-- Resumo -->
+          <aside class="cadastro-resumo">
+            <div class="card resumo-card">
+              <h3 class="card-title">Resumo</h3>
+              <dl class="resumo-lista">
+                <div><dt>Categoria</dt><dd id="resumo-categoria">—</dd></div>
+                <div><dt id="resumo-variacao-rotulo">Linha</dt><dd id="resumo-variacao">—</dd></div>
+                <div><dt>Marca</dt><dd id="resumo-marca">—</dd></div>
+                <div><dt>Modelos</dt><dd id="resumo-modelos">0</dd></div>
+                <div><dt>Unidades</dt><dd id="resumo-unidades">0</dd></div>
+                <div><dt>Custo padrão</dt><dd id="resumo-custo">—</dd></div>
+                <div><dt>Venda padrão</dt><dd id="resumo-venda">—</dd></div>
+              </dl>
+              <div class="resumo-alerta hidden" id="resumo-alerta"></div>
+              <div class="resumo-acoes">
+                <button type="submit" id="save-button" class="btn btn-primary btn-lg btn-block">Cadastrar produto</button>
+                <button type="button" id="cancel-edit" class="btn btn-ghost btn-block">Cancelar</button>
+              </div>
+            </div>
+          </aside>
+        </form>
+      </section>
+
+      <!-- ================= ANÁLISES ================= -->
+      <section id="analises" class="tab-panel" aria-label="Análises">
+        <div class="toolbar toolbar--end">
+          <div class="segmented" id="analises-periodo" role="group" aria-label="Período">
+            <button type="button" data-dias="7">7 dias</button>
+            <button type="button" data-dias="30" class="active">30 dias</button>
+            <button type="button" data-dias="90">90 dias</button>
+            <button type="button" data-dias="mes">Este mês</button>
+          </div>
+        </div>
+        <div id="analises-conteudo"></div>
+      </section>
+
+      <!-- ================= GESTÃO: METAS ================= -->
+      <section id="metas" class="tab-panel" aria-label="Metas">
+        <div class="card meta-card">
+          <div class="meta-head">
+            <span class="icon-box icon-box--purple"><i class="ti ti-target-arrow"></i></span>
+            <div>
+              <h2 class="card-title">Meta de faturamento do mês</h2>
+              <p class="card-desc" id="meta-mes-nome"></p>
+            </div>
+          </div>
+          <div class="meta-numeros">
+            <div class="stat"><span class="stat-label">Meta</span><strong class="stat-value" id="meta-valor">—</strong></div>
+            <div class="stat"><span class="stat-label">Alcançado</span><strong class="stat-value" id="meta-alcancado">R$ 0,00</strong></div>
+            <div class="stat"><span class="stat-label">Percentual</span><strong class="stat-value" id="meta-percentual">—</strong></div>
+            <div class="stat"><span class="stat-label">Falta</span><strong class="stat-value" id="meta-restante">—</strong></div>
+          </div>
+          <span class="progress progress--lg"><span class="progress-bar" id="meta-barra"></span></span>
+          <p class="card-desc" id="meta-ritmo"></p>
+          <form class="meta-form so-dono" id="meta-form">
+            <label class="field">
+              <span class="field-label">Nova meta mensal</span>
+              <input type="text" id="meta-input" inputmode="decimal" placeholder="Ex: R$ 15.000,00" />
+            </label>
+            <button type="submit" class="btn btn-primary">Salvar meta</button>
+            <button type="button" class="btn btn-ghost" id="meta-remover">Remover meta</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= GESTÃO: EQUIPE ================= -->
+      <section id="equipe" class="tab-panel" aria-label="Equipe">
+        <form id="invite-form" class="card form-section invite-form hidden">
+          <h3 class="form-section-title">Convidar pessoa</h3>
+          <div class="invite-grid">
+            <label class="field">
+              <span class="field-label">E-mail</span>
+              <input type="email" id="invite-email" placeholder="email@exemplo.com" required />
+            </label>
+            <div class="field">
+              <span class="field-label">Perfil</span>
+              <div class="segmented" id="papel-selector" role="radiogroup" aria-label="Perfil">
+                <button type="button" data-papel="vendedor"><i class="ti ti-tag"></i>Vendedor</button>
+                <button type="button" data-papel="dono"><i class="ti ti-crown"></i>Dono</button>
+              </div>
+              <input type="hidden" id="invite-papel" value="vendedor" />
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="ti ti-send"></i>Enviar convite</button>
+          </div>
+          <p class="form-section-desc" id="papel-descricao"></p>
+        </form>
+
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="table table--cards">
+              <thead><tr><th>Nome</th><th>Perfil</th><th>Situação</th><th>Desde</th><th class="acoes-col"><span class="sr-only">Ações</span></th></tr></thead>
+              <tbody id="equipe-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= GESTÃO: CONFIGURAÇÕES ================= -->
+      <section id="config" class="tab-panel" aria-label="Configurações">
+        <div class="config-grid" id="config-conteudo"></div>
+      </section>
     </main>
+
+    <!-- Navegação inferior (celular) -->
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Menu principal">
+      <button type="button" class="bottom-nav-item" data-nav="inicio"><i class="ti ti-layout-dashboard"></i><span>Início</span></button>
+      <button type="button" class="bottom-nav-item" data-nav="vender"><i class="ti ti-shopping-cart"></i><span>Vender</span></button>
+      <button type="button" class="bottom-nav-item" data-nav="produtos"><i class="ti ti-package"></i><span>Produtos</span></button>
+      <button type="button" class="bottom-nav-item" data-nav="analises"><i class="ti ti-chart-bar"></i><span>Análises</span></button>
+      <button type="button" class="bottom-nav-item" data-nav="gestao"><i class="ti ti-adjustments"></i><span>Gestão</span></button>
+    </nav>
   </div>
 
   <!-- Modal -->
   <div class="modal-backdrop" id="modal-backdrop"></div>
-  <div class="modal" id="modal">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <button class="modal-close" id="modal-close">
-        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M18 6L6 18M6 6l12 12"></path>
-        </svg>
-      </button>
-      <div class="modal-body">
-        <!-- Conteúdo dinâmico -->
-      </div>
+      <button type="button" class="icon-btn modal-close" id="modal-close" aria-label="Fechar"><i class="ti ti-x"></i></button>
+      <div class="modal-body"></div>
     </div>
   </div>
 
-  <div class="toast-container" id="toast-container"></div>
-
-  <template id="product-row-template">
-    <tr>
-      <td class="product-image-cell">
-        <div class="table-thumb"><i class="ti ti-photo"></i></div>
-      </td>
-      <td class="product-type" data-label="Tipo"></td>
-      <td class="product-name" data-label="Marca / Modelo"></td>
-      <td class="product-price" data-label="Preço"></td>
-      <td class="product-quantity" data-label="Qtd"></td>
-      <td class="product-actions" data-label="Ações"></td>
-    </tr>
-  </template>
-
-  <template id="sales-row-template">
-    <tr>
-      <td class="sale-image-cell">
-        <div class="table-thumb"><i class="ti ti-photo"></i></div>
-      </td>
-      <td class="sale-name"></td>
-      <td class="sale-stock"></td>
-      <td class="sale-price"></td>
-      <td>
-        <div class="quantity-stepper quantity-stepper-sm">
-          <button type="button" class="quantity-btn sale-qty-decrement" aria-label="Diminuir quantidade"><i class="ti ti-minus"></i></button>
-          <input class="sale-qty" type="number" min="1" value="1" />
-          <button type="button" class="quantity-btn sale-qty-increment" aria-label="Aumentar quantidade"><i class="ti ti-plus"></i></button>
-        </div>
-      </td>
-      <td>
-        <button class="sell-button"><i class="ti ti-shopping-cart-check"></i> Vender</button>
-      </td>
-    </tr>
-  </template>
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
   <script src="supabase-client.js"></script>
   <script src="auth.js"></script>
   <script src="app_refactored.js"></script>
+  <script src="catalogo.js"></script>
+  <script src="dashboard.js"></script>
   <script src="cadastro.js"></script>
+  <script src="pdv.js"></script>
+  <script src="analises.js"></script>
+  <script src="gestao.js"></script>
 </body>
 </html>

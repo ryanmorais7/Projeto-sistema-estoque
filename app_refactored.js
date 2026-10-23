@@ -1,36 +1,25 @@
 // ============================================
-// CONSTANTS & DATA
+// VAULT GESTÃO · núcleo do app
+// ============================================
+// Este arquivo tem o que as telas compartilham: dados de produtos e custos, regras de
+// estoque, navegação, tabela de produtos, histórico de vendas, equipe, login, modal e
+// avisos. Cada tela maior tem o seu arquivo:
+//   dashboard.js (Início) · cadastro.js · pdv.js (Vender) · analises.js · gestao.js
+//   catalogo.js (marcas, famílias, modelos, linhas e tipos)
+
+// ============================================
+// CONSTANTES
 // ============================================
 
 // Estoque mínimo padrão, usado quando o produto não tem um estoque_minimo próprio.
 // A regra de "baixo/zerado" fica toda em situacaoEstoque().
 const LIMITE_ESTOQUE_BAIXO = 5;
-const PAPEL_LABELS = {
-  dono: 'Dono',
-  vendedor: 'Vendedor',
-};
+
+const PAPEL_LABELS = { dono: 'Dono', vendedor: 'Vendedor' };
 
 const PAPEL_DESCRICOES = {
-  vendedor: 'Acessa só a aba Vendas, pode vender produtos e ajustar quantidade através da venda, não edita estoque nem cadastro.',
-  dono: 'Acesso total ao sistema, incluindo cadastro, estoque e gestão da equipe.',
-};
-
-const BRAND_MODELS = {
-  'Apple': ['iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max', 'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max'],
-  'Samsung': ['Galaxy S24', 'Galaxy S24+', 'Galaxy S24 Ultra', 'Galaxy S23', 'Galaxy S23+', 'Galaxy S23 Ultra', 'Galaxy S22', 'Galaxy S22+', 'Galaxy S22 Ultra', 'Galaxy A54', 'Galaxy A53', 'Galaxy A52', 'Galaxy A51', 'Galaxy Z Fold 6', 'Galaxy Z Flip 6'],
-  'Xiaomi': ['Xiaomi 14', 'Xiaomi 14 Ultra', 'Xiaomi 14 Pro', 'Xiaomi 13', 'Xiaomi 13 Ultra', 'Xiaomi 13 Pro', 'Xiaomi 12', 'Xiaomi 12 Pro', 'Xiaomi 12 Ultra', 'Redmi Note 13 Pro', 'Redmi Note 13', 'Redmi Note 12 Pro', 'Redmi 12', 'Redmi 11'],
-  'Motorola': ['Edge 50 Pro', 'Edge 50', 'Edge 50 Fusion', 'Edge 40', 'Edge 40 Pro', 'Edge 40 Fusion', 'Moto G54', 'Moto G53', 'Moto G52', 'Razr 40', 'Razr 50'],
-  'LG': ['LG G9', 'LG V50', 'LG V60', 'LG Wing', 'LG Velvet', 'LG K42', 'LG K52'],
-  'Huawei': ['Huawei P60', 'Huawei P60 Pro', 'Huawei P50 Pro', 'Huawei Mate 60 Pro', 'Huawei Mate 50 Pro', 'Huawei Nova 11 Pro', 'Huawei Nova 10 Pro'],
-  'OnePlus': ['OnePlus 12', 'OnePlus 12 Pro', 'OnePlus 11 Pro', 'OnePlus 11', 'OnePlus 10 Pro', 'OnePlus 10', 'OnePlus Nord 3', 'OnePlus Nord 2'],
-  'TCL': ['TCL 30 Ultra', 'TCL 40 Ultra', 'TCL 50 Pro', 'TCL Fold', 'TCL 30'],
-  'Nokia': ['Nokia G60', 'Nokia G50', 'Nokia G40', 'Nokia X30', 'Nokia X20', 'Nokia C3'],
-  'Realme': ['Realme 13 Pro', 'Realme 12 Pro', 'Realme 12', 'Realme 11 Pro', 'Realme 11', 'Realme 10 Pro', 'Realme GT 6', 'Realme GT 5 Pro'],
-  'Vivo': ['Vivo X100 Pro', 'Vivo X100', 'Vivo X90 Pro+', 'Vivo X90 Pro', 'Vivo X80 Pro', 'Vivo V29 Pro', 'Vivo Y200', 'Vivo Y100'],
-  'Oppo': ['Oppo Find X8 Pro', 'Oppo Find X8', 'Oppo Find X7', 'Oppo Reno 11 Pro', 'Oppo Reno 11', 'Oppo A79', 'Oppo A78'],
-  'Sony': ['Sony Xperia 1 VI', 'Sony Xperia 1 V', 'Sony Xperia 5 V', 'Sony Xperia 10 V', 'Sony Xperia 1 IV', 'Sony Xperia Pro'],
-  'Google Pixel': ['Pixel 9 Pro', 'Pixel 9 Pro XL', 'Pixel 9 Pro Fold', 'Pixel 9', 'Pixel 8 Pro', 'Pixel 8', 'Pixel 7 Pro', 'Pixel 7'],
-  'Outro': ['Modelo personalizado']
+  vendedor: 'Vendedor acessa só Vender: registra vendas e vê o histórico. Não edita produtos nem vê custos.',
+  dono: 'Dono tem acesso total: produtos, custos, análises, metas e equipe.',
 };
 
 const TIPO_LABELS = {
@@ -40,191 +29,167 @@ const TIPO_LABELS = {
   acessorios: 'Acessórios',
 };
 
+const TIPO_LABEL_SINGULAR = {
+  aparelhos: 'Aparelho',
+  capinhas: 'Capinha',
+  peliculas: 'Película',
+  acessorios: 'Acessório',
+};
+
 const TIPO_ICONES = {
-  aparelhos: 'ti-device-mobile',
+  aparelhos: 'ti-device-mobile-message',
   capinhas: 'ti-shield',
-  peliculas: 'ti-square-rounded',
+  peliculas: 'ti-device-mobile',
   acessorios: 'ti-plug',
 };
 
 const STOCK_FILTER_LABELS = {
-  zero: 'Zerado',
-  low: 'Baixo',
+  ok: 'Em estoque',
+  low: 'Estoque baixo',
+  zero: 'Sem estoque',
   sem_custo: 'Custo não informado',
   arquivados: 'Arquivados',
-  medium: 'Médio (6-20)',
-  high: 'Alto (20+)',
+};
+
+const SITUACAO_INFO = {
+  ok: { label: 'Em estoque', classe: 'badge-ok' },
+  baixo: { label: 'Estoque baixo', classe: 'badge-baixo' },
+  zerado: { label: 'Sem estoque', classe: 'badge-zerado' },
 };
 
 // ============================================
-// DOM ELEMENTS
+// ELEMENTOS
 // ============================================
 
+const $ = (id) => document.getElementById(id);
+
 const DOM = {
-  // Auth
-  loginScreen: document.getElementById('login-screen'),
-  appContainer: document.getElementById('app-container'),
-  loginForm: document.getElementById('login-form'),
-  loginEmail: document.getElementById('login-email'),
-  loginPassword: document.getElementById('login-password'),
-  loginSubtitle: document.getElementById('login-subtitle'),
-  loginSubmitBtn: document.getElementById('login-submit-btn'),
-  loginToggleText: document.getElementById('login-toggle-text'),
-  loginToggleMode: document.getElementById('login-toggle-mode'),
-  userDisplay: document.getElementById('user-display'),
-  logoutButton: document.getElementById('logout-button'),
-  themeToggle: document.getElementById('theme-toggle'),
+  // Login
+  loginScreen: $('login-screen'),
+  appContainer: $('app-container'),
+  loginForm: $('login-form'),
+  loginEmail: $('login-email'),
+  loginPassword: $('login-password'),
+  loginSubtitle: $('login-subtitle'),
+  loginSubmitBtn: $('login-submit-btn'),
+  loginToggleText: $('login-toggle-text'),
+  loginToggleMode: $('login-toggle-mode'),
+  logoutButton: $('logout-button'),
 
   // Onboarding
-  onboardingScreen: document.getElementById('onboarding-screen'),
-  onboardingForm: document.getElementById('onboarding-form'),
-  onboardingNome: document.getElementById('onboarding-nome'),
-  onboardingTipo: document.getElementById('onboarding-tipo'),
-  lojaAtualNome: document.getElementById('loja-atual-nome'),
-  dashboardSaudacao: document.getElementById('dashboard-saudacao'),
+  onboardingScreen: $('onboarding-screen'),
+  onboardingForm: $('onboarding-form'),
+  onboardingNome: $('onboarding-nome'),
+  onboardingTipo: $('onboarding-tipo'),
 
-  // Header (barra de identidade, reaproveitada em todas as telas)
-  headerPageTitle: document.getElementById('header-page-title'),
-  headerPageSubtitle: document.getElementById('header-page-subtitle'),
-  headerAvatar: document.getElementById('header-avatar'),
+  // Estrutura
+  navItems: document.querySelectorAll('[data-nav]'),
+  panels: document.querySelectorAll('.tab-panel'),
+  pageTitle: $('page-title'),
+  pageDesc: $('page-desc'),
+  subtabs: $('subtabs'),
+  acoesPagina: document.querySelectorAll('[data-acao-de]'),
+  lojaAtualNome: $('loja-atual-nome'),
+  sidebarUserName: $('sidebar-user-name'),
+  sidebarAvatar: $('sidebar-avatar'),
+  sidebarUserBtn: $('sidebar-user-btn'),
+  mobileAvatar: $('mobile-avatar'),
+
+  // Produtos
+  productTableBody: $('product-table-body'),
+  produtosCards: $('produtos-cards'),
+  stockCountDisplay: $('stock-count'),
+  estoqueTable: $('estoque-table'),
+  estoqueEmptyState: $('estoque-empty-state'),
+  estoqueEmptyTexto: $('estoque-empty-texto'),
+  emptyStateCta: $('empty-state-cta'),
+  sortableHeaders: document.querySelectorAll('#estoque-table th.sortable'),
+  exportCsvBtn: $('export-csv-btn'),
+  filterSearch: $('filter-search'),
+  filterType: $('filter-type'),
+  filterBrand: $('filter-brand'),
+  filterVariacao: $('filter-variacao'),
+  filterStock: $('filter-stock'),
+  filtersToggleBtn: $('filters-toggle-btn'),
+  filtersCount: $('filters-count'),
+  filtersPanel: $('filters-panel'),
+  filtersClear: $('filters-clear'),
+  filtersChips: $('filters-chips'),
+  filterResultCount: $('filter-result-count'),
+
+  // Histórico de vendas
+  resumoVendasHoje: $('resumo-vendas-hoje'),
+  resumoVendas7dias: $('resumo-vendas-7dias'),
+  resumoVendasMes: $('resumo-vendas-mes'),
+  filterHistoricoSearch: $('filter-historico-search'),
+  filterHistoricoPeriodo: $('filter-historico-periodo'),
+  filterHistoricoBrand: $('filter-historico-brand'),
+  filtersHistoricoChips: $('filters-historico-chips'),
+  historicoCount: $('historico-count'),
+  historicoVendasTable: $('historico-vendas-table'),
+  historicoVendasBody: $('historico-vendas-body'),
+  historicoVendasEmpty: $('historico-vendas-empty'),
+  historicoTotalRow: $('historico-total-row'),
+  historicoTotalValor: $('historico-total-valor'),
+  exportHistoricoCsvBtn: $('export-historico-csv-btn'),
 
   // Equipe
-  inviteForm: document.getElementById('invite-form'),
-  inviteEmail: document.getElementById('invite-email'),
-  invitePapel: document.getElementById('invite-papel'),
-  papelOptions: document.querySelectorAll('#papel-selector .type-option'),
-  papelDescricao: document.getElementById('papel-descricao'),
-  equipeTableBody: document.getElementById('equipe-table-body'),
+  inviteForm: $('invite-form'),
+  inviteEmail: $('invite-email'),
+  invitePapel: $('invite-papel'),
+  papelOptions: document.querySelectorAll('#papel-selector [data-papel]'),
+  papelDescricao: $('papel-descricao'),
+  equipeTableBody: $('equipe-table-body'),
 
-  // Sidebar
-  sidebar: document.getElementById('sidebar'),
-  menuToggle: document.getElementById('menu-toggle'),
-  sidebarClose: document.getElementById('sidebar-close'),
-  sidebarBackdrop: document.getElementById('sidebar-backdrop'),
-  navItems: document.querySelectorAll('.nav-item'),
-  navIndicator: document.getElementById('nav-indicator'),
-  
-  // Content
-  panels: document.querySelectorAll('.tab-panel'),
-  
-  // O formulário de cadastro tem as próprias referências em cadastro.js.
-
-  // Tables
-  productTableBody: document.getElementById('product-table-body'),
-  salesTableBody: document.getElementById('sales-table-body'),
-  stockCountDisplay: document.getElementById('stock-count'),
-  estoqueTable: document.getElementById('estoque-table'),
-  estoqueEmptyState: document.getElementById('estoque-empty-state'),
-  emptyStateCta: document.getElementById('empty-state-cta'),
-  sortableHeaders: document.querySelectorAll('#estoque-table th.sortable'),
-  exportCsvBtn: document.getElementById('export-csv-btn'),
-
-  // Templates
-  productRowTemplate: document.getElementById('product-row-template'),
-  salesRowTemplate: document.getElementById('sales-row-template'),
-  
-  // Stock Filters
-  filterSearch: document.getElementById('filter-search'),
-  filterType: document.getElementById('filter-type'),
-  typeQuickfilterBtns: document.querySelectorAll('.type-quickfilter-btn'),
-  filtersToggleBtn: document.getElementById('filters-toggle-btn'),
-  filtersPanel: document.getElementById('filters-panel'),
-  filtersChips: document.getElementById('filters-chips'),
-  statusChips: document.getElementById('status-chips'),
-  filterBrand: document.getElementById('filter-brand'),
-  filterStock: document.getElementById('filter-stock'),
-  filterResultCount: document.getElementById('filter-result-count'),
-
-  // Sales Filters
-  filterSalesSearch: document.getElementById('filter-sales-search'),
-  filterSalesBrand: document.getElementById('filter-sales-brand'),
-  filtersSalesChips: document.getElementById('filters-sales-chips'),
-  salesFilterResultCount: document.getElementById('sales-filter-result-count'),
-
-  // Resumo e histórico de vendas
-  resumoVendasHoje: document.getElementById('resumo-vendas-hoje'),
-  resumoVendas7dias: document.getElementById('resumo-vendas-7dias'),
-  resumoVendasMes: document.getElementById('resumo-vendas-mes'),
-  filterHistoricoSearch: document.getElementById('filter-historico-search'),
-  filterHistoricoPeriodo: document.getElementById('filter-historico-periodo'),
-  filterHistoricoBrand: document.getElementById('filter-historico-brand'),
-  filtersHistoricoChips: document.getElementById('filters-historico-chips'),
-  historicoCount: document.getElementById('historico-count'),
-  historicoVendasTable: document.getElementById('historico-vendas-table'),
-  historicoVendasBody: document.getElementById('historico-vendas-body'),
-  historicoVendasEmpty: document.getElementById('historico-vendas-empty'),
-  historicoTotalRow: document.getElementById('historico-total-row'),
-  historicoTotalValor: document.getElementById('historico-total-valor'),
-  exportHistoricoCsvBtn: document.getElementById('export-historico-csv-btn'),
-
-  // Dashboard
-  dashTotal: document.getElementById('dash-total'),
-  dashValorCompra: document.getElementById('dash-valor-compra'),
-  dashValorVenda: document.getElementById('dash-valor-venda'),
-  dashCustoPendente: document.getElementById('dash-custo-pendente'),
-  dashCustoPendenteTexto: document.getElementById('dash-custo-pendente-texto'),
-  dashCustoPendenteLink: document.getElementById('dash-custo-pendente-link'),
-  dashVendasHoje: document.getElementById('dash-vendas-hoje'),
-  dashVendasHojeValor: document.getElementById('dash-vendas-hoje-valor'),
-  dashVendasHojeTrend: document.getElementById('dash-vendas-hoje-trend'),
-  dashTicketMedio: document.getElementById('dash-ticket-medio'),
-  vendas7dChartContainer: document.getElementById('dashboard-vendas7d-chart'),
-  vaultDialContainer: document.getElementById('vault-dial-container'),
-  vaultDialLegend: document.getElementById('vault-dial-legend'),
-  dashboardBrandlist: document.getElementById('dashboard-brandlist'),
-  dashboardBrandlistEmpty: document.getElementById('dashboard-brandlist-empty'),
-  dashboardBrandlistCta: document.getElementById('dashboard-brandlist-cta'),
-  lowStockList: document.getElementById('dashboard-lowstock-list'),
-  lowStockEmpty: document.getElementById('dashboard-lowstock-empty'),
-  lowStockCount: document.getElementById('dashboard-lowstock-count'),
-  lowStockVerTodos: document.getElementById('dashboard-lowstock-vertodos'),
-
-  // Toast
-  toastContainer: document.getElementById('toast-container'),
-
-  // Modal
-  modalBackdrop: document.getElementById('modal-backdrop'),
-  modal: document.getElementById('modal'),
-  modalClose: document.getElementById('modal-close'),
+  // Modal e avisos
+  toastContainer: $('toast-container'),
+  modalBackdrop: $('modal-backdrop'),
+  modal: $('modal'),
+  modalClose: $('modal-close'),
   modalBody: document.querySelector('#modal .modal-body'),
   modalContent: document.querySelector('#modal .modal-content'),
 };
 
 // ============================================
-// STATE
+// ESTADO
 // ============================================
 
-// products = só os ativos (o que aparece em estoque, vendas e dashboard).
+// products = só os ativos (o que aparece em produtos, vendas e início).
 // produtosArquivados = produtos com histórico que o dono "excluiu"; só aparecem no
-// filtro "Arquivados" do estoque, de onde podem ser restaurados.
+// filtro "Arquivados", de onde podem ser restaurados.
 let products = [];
 let produtosArquivados = [];
 let filteredProducts = [];
-let filteredSalesProducts = [];
 let sortConfig = { field: null, direction: 'asc' };
 let historicoVendas = [];
+let abaAtual = 'dashboard';
 
 // ============================================
 // PRODUTOS (Supabase)
 // ============================================
 
+// Produtos e custos chegam juntos: nunca existe um momento em que a tela mostra os
+// produtos com todos os custos "não informados".
 async function loadProducts() {
-  const { data, error } = await supabaseClient
-    .from('products')
-    .select('*')
-    .eq('loja_id', lojaAtual.id)
-    .order('id', { ascending: false });
+  const [{ data, error }, custos] = await Promise.all([
+    supabaseClient
+      .from('products')
+      .select('*')
+      .eq('loja_id', lojaAtual.id)
+      .order('id', { ascending: false }),
+    buscarCustos(),
+  ]);
 
   if (error) {
-    showToast('❌ Erro ao carregar produtos do Supabase.', 'error');
+    showToast('Não foi possível carregar os produtos. Confira a internet e recarregue a página.', 'error', 5000);
     products = [];
     produtosArquivados = [];
     return;
   }
 
+  custoPorProduto = custos;
   products = data.filter(p => !p.arquivado_em);
   produtosArquivados = data.filter(p => p.arquivado_em);
-  await carregarCustos();
 }
 
 // ============================================
@@ -235,20 +200,21 @@ async function loadProducts() {
 // que NUNCA é tratado como zero nas contas.
 let custoPorProduto = {};
 
-async function carregarCustos() {
-  custoPorProduto = {};
-  if (!souDono()) return;
+async function buscarCustos() {
+  const mapa = {};
+  if (!souDono()) return mapa;
 
   const { data, error } = await supabaseClient
     .from('produtos_custos')
     .select('produto_id, custo_unitario')
     .eq('loja_id', lojaAtual.id);
 
-  if (error) return;
+  if (error) return mapa;
 
   data.forEach(c => {
-    if (c.custo_unitario !== null) custoPorProduto[c.produto_id] = Number(c.custo_unitario);
+    if (c.custo_unitario !== null) mapa[c.produto_id] = Number(c.custo_unitario);
   });
+  return mapa;
 }
 
 function custoDoProduto(produtoId) {
@@ -271,7 +237,7 @@ async function salvarCusto(produtoId, custo) {
     }, { onConflict: 'produto_id' });
 
   if (error) {
-    showToast('❌ Produto salvo, mas não foi possível salvar o preço de custo.', 'error');
+    showToast('Produto salvo, mas o preço de custo não foi gravado. Edite para tentar de novo.', 'warning', 5000);
     return false;
   }
   return true;
@@ -291,8 +257,8 @@ function calcularPrecificacao(custo, venda) {
   };
 }
 
-// Valores do estoque atual para o dashboard. Produto com quantidade e sem custo
-// entra em "pendentes" e não soma nada no total de compra.
+// Valores do estoque atual. Produto com quantidade e sem custo entra em "pendentes"
+// e não soma nada no total de compra.
 function calcularValoresEstoque(lista) {
   return lista.reduce((acc, p) => {
     const qtd = Math.max(Number(p.quantity) || 0, 0);
@@ -314,10 +280,9 @@ async function updateProductRow(id, productData) {
     .eq('loja_id', lojaAtual.id);
 
   if (error) {
-    showToast('❌ Erro ao atualizar produto no Supabase.', 'error');
+    showToast('Não foi possível atualizar o produto.', 'error');
     return false;
   }
-
   return true;
 }
 
@@ -329,46 +294,47 @@ async function deleteProductRow(id) {
     .eq('loja_id', lojaAtual.id);
 
   if (error) {
-    showToast('❌ Erro ao excluir produto no Supabase.', 'error');
+    showToast('Não foi possível excluir o produto.', 'error');
     return false;
   }
-
   return true;
 }
 
-// ============================================
-// STORAGE & AUTH
-// ============================================
-
-function saveTheme(theme) {
-  localStorage.setItem('invenstore-theme', theme);
-}
-
-function loadTheme() {
-  const saved = localStorage.getItem('invenstore-theme');
-  const theme = saved || 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
+// Recarrega produtos e atualiza todas as telas que dependem deles.
+async function recarregarProdutos() {
+  await loadProducts();
+  applyFilters();
+  updateDashboard();
+  if (typeof renderPdv === 'function') renderPdv();
+  renderSubtabs();
 }
 
 // ============================================
-// FORMATTING & UTILITIES
+// FORMATAÇÃO E UTILIDADES
 // ============================================
+
+const FORMATO_BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
+  return FORMATO_BRL.format(Number(value) || 0);
 }
 
 function parsePriceValue(value) {
-  return Number(value.replace(/\s/g, '').replace(/R\$\s?/, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
+  return Number(String(value ?? '').replace(/\s/g, '').replace(/R\$\s?/, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
 }
 
 function formatPriceInput(value) {
   if (!value) return '';
   const num = typeof value === 'number' ? value : parsePriceValue(value);
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
+  return FORMATO_BRL.format(num);
+}
+
+function formatarPercentual(valor) {
+  return `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+}
+
+function formatarNumero(valor) {
+  return Math.round(valor).toLocaleString('pt-BR');
 }
 
 function getUniqueBrands() {
@@ -379,12 +345,34 @@ function pluralize(count, singular, plural = singular + 's') {
   return count === 1 ? singular : plural;
 }
 
-// Escapa texto vindo do banco antes de entrar num innerHTML (nome de produto, cor,
-// e-mail, observações...). Sem isso, um nome como "<img onerror=...>" viraria código.
+// Escapa texto vindo do banco antes de entrar num innerHTML (nome de produto, e-mail,
+// observações...). Sem isso, um nome como "<img onerror=...>" viraria código.
 function esc(valor) {
   return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
+}
+
+function corVar(nomeVariavel, fallback) {
+  const valor = getComputedStyle(document.documentElement).getPropertyValue(nomeVariavel).trim();
+  return valor || fallback;
+}
+
+function baixarArquivo(conteudo, nome, tipo) {
+  const blob = new Blob(['﻿' + conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function gerarCSV(cabecalho, linhas) {
+  const campo = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
+  return [cabecalho, ...linhas].map(l => l.map(campo).join(',')).join('\r\n');
 }
 
 // Estoque mínimo do produto: o que o dono configurou nele ou, se não configurou, o padrão.
@@ -393,30 +381,17 @@ function estoqueMinimo(product) {
   return Number.isInteger(minimo) && minimo >= 0 ? minimo : LIMITE_ESTOQUE_BAIXO;
 }
 
-// Única regra de situação do estoque, usada no badge, nos filtros, nos chips e no dashboard.
+// Única regra de situação do estoque: badge, filtros, dial, cards e análises usam esta.
 function situacaoEstoque(product) {
   if (product.quantity <= 0) return 'zerado';
   if (product.quantity <= estoqueMinimo(product)) return 'baixo';
   return 'ok';
 }
 
-// ============================================
-// TABLE RENDERING
-// ============================================
-
-const ICONES_ACAO = {
-  editar: '<i class="ti ti-edit"></i>',
-  excluir: '<i class="ti ti-trash"></i>',
-  restaurar: '<i class="ti ti-archive-off"></i>',
-};
-
-function renderBadgeEstoque(product) {
-  const quantity = product.quantity;
-  const situacao = situacaoEstoque(product);
-
-  if (situacao === 'zerado') return '<span class="badge-estoque esgotado">Esgotado</span>';
-  if (situacao === 'baixo') return `<span class="badge-estoque baixo">${quantity} (baixo)</span>`;
-  return `<span class="badge-estoque ok">${quantity} em estoque</span>`;
+function renderBadgeSituacao(product) {
+  if (product.arquivado_em) return '<span class="badge badge-arquivado">Arquivado</span>';
+  const info = SITUACAO_INFO[situacaoEstoque(product)];
+  return `<span class="badge ${info.classe}">${info.label}</span>`;
 }
 
 // "Samsung Galaxy S24" — marca é opcional, então pode ser só o modelo/nome.
@@ -424,556 +399,30 @@ function nomeProduto(product) {
   return [product.brand, product.model].filter(Boolean).join(' ').trim() || 'Sem nome';
 }
 
-// Nome para tabelas. Cor não é mais cadastrada, mas produtos antigos que têm cor
-// continuam mostrando ela em letra pequena, pra não perder a informação.
-function renderNomeProduto(product) {
-  const cor = product.color ? `<span class="produto-nome-meta">${esc(product.color)}</span>` : '';
-  return `${esc(nomeProduto(product))}${cor}`;
+// Linha de detalhe embaixo do nome: linha/tipo e, em produtos antigos, a cor.
+function metaProduto(product, { comCategoria = false } = {}) {
+  const partes = [];
+  if (comCategoria) partes.push(TIPO_LABEL_SINGULAR[product.type] || product.type);
+  if (product.variacao) partes.push(product.variacao);
+  if (product.color) partes.push(product.color);
+  return partes.map(esc).join('<span class="sep">·</span>');
 }
 
-function createProductRow(product) {
-  const template = DOM.productRowTemplate.content.cloneNode(true);
-  const row = template.querySelector('tr');
-  const arquivado = Boolean(product.arquivado_em);
-
-  row.classList.toggle('product-row--arquivado', arquivado);
-  row.querySelector('.product-type').innerHTML = `<i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i> ${esc(TIPO_LABELS[product.type] || product.type)}`;
-  row.querySelector('.product-name').innerHTML = renderNomeProduto(product);
-  row.querySelector('.product-price').textContent = formatCurrency(product.price);
-  row.querySelector('.product-quantity').innerHTML = arquivado
-    ? '<span class="badge-estoque arquivado">Arquivado</span>'
-    : renderBadgeEstoque(product);
-
-  const actionsCell = row.querySelector('.product-actions');
-  const espaco = '<span class="action-spacer"></span>';
-
-  if (arquivado) {
-    actionsCell.innerHTML = `
-      ${espaco}
-      ${souDono() ? `<button class="restaurar-btn" title="Restaurar produto">${ICONES_ACAO.restaurar}</button>` : espaco}
-    `;
-    actionsCell.querySelector('.restaurar-btn')?.addEventListener('click', () => restaurarProduto(product.id));
-    return row;
-  }
-
-  actionsCell.innerHTML = `
-    ${souDono() ? `<button class="edit-btn" title="Editar produto">${ICONES_ACAO.editar}</button>` : espaco}
-    ${souDono() ? `<button class="delete-btn delete" title="Excluir produto">${ICONES_ACAO.excluir}</button>` : espaco}
-  `;
-
-  actionsCell.querySelector('.edit-btn')?.addEventListener('click', () => startEditProduct(product.id));
-  actionsCell.querySelector('.delete-btn')?.addEventListener('click', () => deleteProduct(product.id));
-
-  return row;
-}
-
-function createSalesRow(product) {
-  const template = DOM.salesRowTemplate.content.cloneNode(true);
-  const row = template.querySelector('tr');
-
-  row.querySelector('.sale-name').innerHTML = renderNomeProduto(product);
-  row.querySelector('.sale-stock').innerHTML = renderBadgeEstoque(product);
-  row.querySelector('.sale-price').textContent = formatCurrency(product.price);
-
-  const qtyInput = row.querySelector('.sale-qty');
-  qtyInput.max = product.quantity;
-
-  row.querySelector('.sale-qty-increment').addEventListener('click', () => {
-    qtyInput.value = Math.min((Number(qtyInput.value) || 0) + 1, product.quantity);
-  });
-  row.querySelector('.sale-qty-decrement').addEventListener('click', () => {
-    qtyInput.value = Math.max((Number(qtyInput.value) || 0) - 1, 1);
-  });
-
-  row.querySelector('.sell-button').addEventListener('click', () => {
-    const amount = Number(qtyInput.value) || 1;
-    sellProduct(product.id, amount);
-  });
-
-  return row;
-}
-
-async function renderProductsTables() {
-  DOM.productTableBody.innerHTML = '';
-  DOM.salesTableBody.innerHTML = '';
-
-  filteredProducts.forEach(product => {
-    DOM.productTableBody.appendChild(createProductRow(product));
-  });
-
-  filteredSalesProducts.forEach(product => {
-    DOM.salesTableBody.appendChild(createSalesRow(product));
-  });
-
-  updateFilterBrands();
-  updateFilterResultCount();
-  updateSalesFilterResultCount();
-  updateStockCount();
-  updateEstoqueEmptyState();
-  renderStatusChips();
-  renderFilterChips();
-  renderVenderFilterChips();
-}
-
-function renderSkeletonRows(quantidade = 3) {
-  DOM.estoqueTable.style.display = '';
-  DOM.estoqueEmptyState.classList.remove('active');
-  DOM.productTableBody.innerHTML = Array.from({ length: quantidade }).map(() => `
-    <tr class="skeleton-row">
-      ${Array.from({ length: 6 }).map(() => '<td><div class="skeleton-cell"></div></td>').join('')}
-    </tr>
-  `).join('');
-}
-
-function updateEstoqueEmptyState() {
-  const semProdutos = products.length === 0;
-  DOM.estoqueTable.style.display = semProdutos ? 'none' : '';
-  DOM.estoqueEmptyState.classList.toggle('active', semProdutos);
-}
-
-function updateStockCount() {
-  const count = products.length;
-  DOM.stockCountDisplay.textContent = `${count} ${pluralize(count, 'produto')} ${pluralize(count, 'cadastrado')}`;
+function renderProdutoCell(product, opcoes = {}) {
+  const meta = metaProduto(product, opcoes);
+  return `
+    <div class="produto-cell">
+      <span class="produto-icone"><i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i></span>
+      <div style="min-width:0">
+        <div class="produto-nome">${esc(nomeProduto(product))}</div>
+        ${meta ? `<div class="produto-meta">${meta}</div>` : ''}
+      </div>
+    </div>`;
 }
 
 // ============================================
-// FILTERING
+// ANIMAÇÕES
 // ============================================
-
-function getFilterValues() {
-  return {
-    search: DOM.filterSearch.value.toLowerCase(),
-    type: DOM.filterType.value,
-    brand: DOM.filterBrand.value,
-    stock: DOM.filterStock.value,
-  };
-}
-
-// Busca por marca, modelo/nome, cor (produtos antigos) ou observação. Aceita
-// "s24 samsung" na ordem que for: todas as palavras precisam aparecer.
-function matchesSearchTerm(product, searchTerm) {
-  if (!searchTerm) return true;
-  const texto = [product.brand, product.model, product.color, product.notes].filter(Boolean).join(' ').toLowerCase();
-  return searchTerm.trim().split(/\s+/).every(palavra => texto.includes(palavra));
-}
-
-function matchesStockFilter(product, filter) {
-  const quantity = product.quantity;
-  if (!filter || filter === 'arquivados') return true;
-  if (filter === 'zero') return situacaoEstoque(product) === 'zerado';
-  if (filter === 'low') return situacaoEstoque(product) === 'baixo';
-  if (filter === 'sem_custo') return custoDoProduto(product.id) === null;
-  if (filter === 'medium') return quantity >= 6 && quantity <= 20;
-  if (filter === 'high') return quantity > 20;
-  return true;
-}
-
-function filterProducts() {
-  const { search, type, brand, stock } = getFilterValues();
-  const base = stock === 'arquivados' ? produtosArquivados : products;
-
-  return base.filter(product =>
-    matchesSearchTerm(product, search) &&
-    (!type || product.type === type) &&
-    (!brand || product.brand === brand) &&
-    matchesStockFilter(product, stock)
-  );
-}
-
-// Filtro da tabela "selecionar produto pra vender" — independente do filtro de Estoque
-// (tabs diferentes, cada um com sua própria busca/marca).
-function filterSalesProducts() {
-  const search = DOM.filterSalesSearch.value.toLowerCase();
-  const brand = DOM.filterSalesBrand.value;
-
-  return products.filter(product =>
-    matchesSearchTerm(product, search) &&
-    (!brand || product.brand === brand)
-  );
-}
-
-function ordenarFiltrados(lista) {
-  if (!sortConfig.field) return lista;
-
-  const fator = sortConfig.direction === 'asc' ? 1 : -1;
-  return [...lista].sort((a, b) => (a[sortConfig.field] - b[sortConfig.field]) * fator);
-}
-
-function ordenarPor(campo) {
-  if (sortConfig.field === campo) {
-    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortConfig.field = campo;
-    sortConfig.direction = 'asc';
-  }
-
-  DOM.sortableHeaders.forEach(th => {
-    th.classList.remove('sort-asc', 'sort-desc');
-    if (th.dataset.sort === sortConfig.field) {
-      th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
-    }
-  });
-
-  applyFilters();
-}
-
-async function applyFilters() {
-  filteredProducts = ordenarFiltrados(filterProducts());
-  filteredSalesProducts = filterSalesProducts();
-  await renderProductsTables();
-}
-
-function clearAllFilters() {
-  DOM.filterSearch.value = '';
-  DOM.filterType.value = '';
-  sincronizarTypeQuickfilter();
-  DOM.filterBrand.value = '';
-  DOM.filterStock.value = '';
-  applyFilters();
-}
-
-// ---- Tipo (filtro rápido em ícones) ------------------------------------------
-
-function sincronizarTypeQuickfilter() {
-  const tipoAtivo = DOM.filterType.value;
-  DOM.typeQuickfilterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.type === tipoAtivo));
-}
-
-function selecionarFiltroTipo(tipo) {
-  DOM.filterType.value = (DOM.filterType.value === tipo) ? '' : tipo;
-  sincronizarTypeQuickfilter();
-  applyFilters();
-}
-
-// ---- "Mais filtros" (painel de marca/cor/estoque) ------------------------------
-
-function toggleFiltersPanel(forcarAberto = null) {
-  const abrir = forcarAberto !== null ? forcarAberto : DOM.filtersPanel.classList.contains('hidden');
-  DOM.filtersPanel.classList.toggle('hidden', !abrir);
-  DOM.filtersToggleBtn.classList.toggle('active', abrir);
-}
-
-// ---- Chips de filtro ativo (marca/cor/estoque/tipo) ----------------------------
-
-function renderFilterChips() {
-  const chips = [];
-
-  if (DOM.filterType.value) {
-    chips.push({ label: `Tipo: ${TIPO_LABELS[DOM.filterType.value] || DOM.filterType.value}`, limpar: () => selecionarFiltroTipo(DOM.filterType.value) });
-  }
-  if (DOM.filterBrand.value) {
-    chips.push({ label: `Marca: ${DOM.filterBrand.value}`, limpar: () => { DOM.filterBrand.value = ''; applyFilters(); } });
-  }
-  if (DOM.filterStock.value) {
-    chips.push({ label: `Estoque: ${STOCK_FILTER_LABELS[DOM.filterStock.value] || DOM.filterStock.value}`, limpar: () => { DOM.filterStock.value = ''; applyFilters(); } });
-  }
-
-  if (!chips.length) {
-    DOM.filtersChips.classList.add('hidden');
-    DOM.filtersChips.innerHTML = '';
-    return;
-  }
-
-  DOM.filtersChips.classList.remove('hidden');
-  DOM.filtersChips.innerHTML = chips.map((chip, i) => `
-    <span class="filter-chip" data-chip-index="${i}">
-      ${esc(chip.label)}
-      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
-    </span>
-  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all">Limpar tudo</button>`;
-
-  DOM.filtersChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
-    btn.addEventListener('click', () => chips[i].limpar());
-  });
-  document.getElementById('filter-chip-clear-all').addEventListener('click', clearAllFilters);
-
-  // Se algum filtro do painel "Mais filtros" estiver ativo, deixa o painel já aberto.
-  if (DOM.filterBrand.value || DOM.filterStock.value) {
-    toggleFiltersPanel(true);
-  }
-}
-
-// ---- Chips de atalho por status (acima da tabela) ------------------------------
-
-function renderStatusChips() {
-  const total = products.length;
-  const baixo = products.filter(p => situacaoEstoque(p) === 'baixo').length;
-  const zerado = products.filter(p => situacaoEstoque(p) === 'zerado').length;
-  const arquivados = produtosArquivados.length;
-  const semCusto = souDono() ? products.filter(p => custoDoProduto(p.id) === null).length : 0;
-  const stockAtivo = DOM.filterStock.value;
-
-  DOM.statusChips.innerHTML = `
-    <button type="button" class="status-chip ${!stockAtivo ? 'active' : ''}" data-stock="">Todos <span class="status-chip-count">${total}</span></button>
-    <button type="button" class="status-chip ${stockAtivo === 'low' ? 'active' : ''}" data-stock="low">Estoque baixo <span class="status-chip-count">${baixo}</span></button>
-    <button type="button" class="status-chip ${stockAtivo === 'zero' ? 'active' : ''}" data-stock="zero">Sem estoque <span class="status-chip-count">${zerado}</span></button>
-    ${semCusto ? `<button type="button" class="status-chip ${stockAtivo === 'sem_custo' ? 'active' : ''}" data-stock="sem_custo">Custo não informado <span class="status-chip-count">${semCusto}</span></button>` : ''}
-    ${arquivados ? `<button type="button" class="status-chip ${stockAtivo === 'arquivados' ? 'active' : ''}" data-stock="arquivados">Arquivados <span class="status-chip-count">${arquivados}</span></button>` : ''}
-  `;
-}
-
-function selecionarChipStatus(valor) {
-  DOM.filterStock.value = valor;
-  applyFilters();
-}
-
-function clearSalesFilters() {
-  DOM.filterSalesSearch.value = '';
-  DOM.filterSalesBrand.value = '';
-  applyFilters();
-}
-
-function renderVenderFilterChips() {
-  const chips = [];
-
-  if (DOM.filterSalesSearch.value) {
-    chips.push({ label: `Busca: "${DOM.filterSalesSearch.value}"`, limpar: () => { DOM.filterSalesSearch.value = ''; applyFilters(); } });
-  }
-  if (DOM.filterSalesBrand.value) {
-    chips.push({ label: `Marca: ${DOM.filterSalesBrand.value}`, limpar: () => { DOM.filterSalesBrand.value = ''; applyFilters(); } });
-  }
-
-  if (!chips.length) {
-    DOM.filtersSalesChips.classList.add('hidden');
-    DOM.filtersSalesChips.innerHTML = '';
-    return;
-  }
-
-  DOM.filtersSalesChips.classList.remove('hidden');
-  DOM.filtersSalesChips.innerHTML = chips.map((chip, i) => `
-    <span class="filter-chip" data-chip-index="${i}">
-      ${esc(chip.label)}
-      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
-    </span>
-  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-vendas">Limpar tudo</button>`;
-
-  DOM.filtersSalesChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
-    btn.addEventListener('click', () => chips[i].limpar());
-  });
-  document.getElementById('filter-chip-clear-all-vendas').addEventListener('click', clearSalesFilters);
-}
-
-function updateFilterBrands() {
-  const brands = getUniqueBrands();
-  
-  [DOM.filterBrand, DOM.filterSalesBrand].forEach(select => {
-    const currentValue = select.value;
-    select.innerHTML = '<option value="">Todas</option>';
-    brands.forEach(brand => {
-      const opt = document.createElement('option');
-      opt.value = brand;
-      opt.textContent = brand;
-      select.appendChild(opt);
-    });
-    select.value = currentValue;
-  });
-}
-
-function updateFilterResultCount() {
-  const count = filteredProducts.length;
-  const total = products.length;
-  const hasFilter = count < total && total > 0;
-  const isEmpty = count === 0 && total > 0;
-
-  let text = '';
-  if (hasFilter) text = `${count} de ${total} produtos`;
-  if (isEmpty) text = 'Nenhum produto encontrado';
-
-  DOM.filterResultCount.textContent = text;
-  DOM.filterResultCount.classList.toggle('active', text !== '');
-}
-
-function updateSalesFilterResultCount() {
-  const count = filteredSalesProducts.length;
-  const total = products.length;
-  const hasFilter = count < total && total > 0;
-  const isEmpty = count === 0 && total > 0;
-
-  let text = '';
-  if (hasFilter) text = `${count} de ${total} produtos`;
-  if (isEmpty) text = 'Nenhum produto encontrado';
-
-  DOM.salesFilterResultCount.textContent = text;
-  DOM.salesFilterResultCount.classList.toggle('active', text !== '');
-}
-
-// ============================================
-// EXPORTAÇÃO CSV
-// ============================================
-
-function gerarCSVEstoque(lista) {
-  const cabecalho = ['Tipo', 'Marca', 'Modelo', 'Cor', 'Fabricação', 'Preço', 'Quantidade', 'Observações'];
-  const escaparCampo = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
-
-  const linhas = lista.map(p => [
-    p.type, p.brand, p.model, p.color, p.manufacture, p.price, p.quantity, p.notes,
-  ].map(escaparCampo).join(','));
-
-  return [cabecalho.map(escaparCampo).join(','), ...linhas].join('\r\n');
-}
-
-function exportarEstoqueCSV() {
-  if (!products.length) {
-    showToast('⚠️ Não há produtos para exportar.', 'warning');
-    return;
-  }
-
-  const csv = gerarCSVEstoque(products);
-  const BOM_UTF8 = '﻿';
-  const blob = new Blob([BOM_UTF8 + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `vault-estoque-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
-  showToast('✅ CSV exportado com sucesso!', 'success');
-}
-
-// ============================================
-// PRODUCT OPERATIONS
-// ============================================
-
-async function produtoTemHistorico(id) {
-  const { count, error } = await supabaseClient
-    .from('movimentacoes_estoque')
-    .select('id', { count: 'exact', head: true })
-    .eq('loja_id', lojaAtual.id)
-    .eq('produto_id', id);
-
-  // Na dúvida (erro de rede), trata como "tem histórico": arquivar é reversível,
-  // excluir não.
-  if (error) return true;
-  return count > 0;
-}
-
-async function definirArquivado(id, arquivar) {
-  const { error } = await supabaseClient
-    .from('products')
-    .update({ arquivado_em: arquivar ? new Date().toISOString() : null })
-    .eq('id', id)
-    .eq('loja_id', lojaAtual.id);
-
-  if (error) {
-    showToast(arquivar ? '❌ Erro ao arquivar o produto.' : '❌ Erro ao restaurar o produto.', 'error');
-    return false;
-  }
-
-  await loadProducts();
-  applyFilters();
-  updateDashboard();
-  return true;
-}
-
-async function restaurarProduto(id) {
-  const product = produtosArquivados.find(p => p.id === id);
-  if (!product) return;
-
-  if (await definirArquivado(id, false)) {
-    showToast(`✅ ${product.brand} ${product.model} voltou para o estoque.`, 'success');
-  }
-}
-
-async function deleteProduct(id) {
-  const product = products.find(p => p.id === id);
-  if (!product) return;
-
-  // O livro-caixa aponta para o produto, então quem já teve venda/movimentação não
-  // pode ser apagado sem perder histórico. Nesse caso o produto é arquivado.
-  if (await produtoTemHistorico(id)) {
-    abrirModalConfirmacao({
-      titulo: 'Arquivar produto',
-      mensagem: `${product.brand} ${product.model} já tem vendas registradas, então não pode ser excluído sem apagar esse histórico. Ele será arquivado: sai do estoque e das vendas, mas o histórico continua nos relatórios. Dá pra restaurar depois em Estoque → Arquivados.`,
-      textoConfirmar: 'Arquivar',
-      aoConfirmar: async () => {
-        if (await definirArquivado(id, true)) {
-          showToast('✅ Produto arquivado.', 'success');
-        }
-      },
-    });
-    return;
-  }
-
-  abrirModalConfirmacao({
-    titulo: 'Excluir produto',
-    mensagem: `Tem certeza que deseja excluir ${product.brand} ${product.model}? Essa ação não pode ser desfeita.`,
-    textoConfirmar: 'Excluir',
-    aoConfirmar: async () => {
-      const ok = await deleteProductRow(id);
-      if (!ok) return;
-      await loadProducts();
-      applyFilters();
-      updateDashboard();
-      showToast(`✅ Produto removido.`, 'success');
-    },
-  });
-}
-
-async function sellProduct(id, amount) {
-  const product = products.find(p => p.id === id);
-  if (!product) return;
-
-  if (amount < 1) {
-    showToast('⚠️ Quantidade inválida.', 'warning');
-    return;
-  }
-
-  if (amount > product.quantity) {
-    showToast('❌ Quantidade maior que estoque.', 'error');
-    return;
-  }
-
-  await confirmarVenda(product, amount);
-}
-
-let vendaEmAndamento = false;
-
-async function confirmarVenda(product, amount) {
-  // Trava contra clique duplo: só uma venda por vez sai desta tela.
-  if (vendaEmAndamento) return;
-  vendaEmAndamento = true;
-
-  try {
-    // registrar_venda_v2 (sql/011 e 012) baixa o estoque e lança no livro-caixa numa
-    // única transação, com a linha do produto travada.
-    const { data: movimentacao, error } = await supabaseClient.rpc('registrar_venda_v2', {
-      p_produto_id: product.id,
-      p_quantidade: amount,
-    });
-
-    if (error) {
-      showToast(`❌ ${error.message || 'Erro ao registrar a venda.'}`, 'error');
-      return;
-    }
-
-    await loadProducts();
-    applyFilters();
-    updateDashboard();
-    await atualizarAbaVendas();
-    abrirModalRecibo(movimentacao, product);
-  } finally {
-    vendaEmAndamento = false;
-  }
-}
-
-// ============================================
-// DASHBOARD
-// ============================================
-
-function corVar(nomeVariavel, fallback) {
-  const valor = getComputedStyle(document.documentElement).getPropertyValue(nomeVariavel).trim();
-  return valor || fallback;
-}
-
-function renderDashboardSkeleton() {
-  [DOM.dashTotal, DOM.dashValorCompra, DOM.dashValorVenda, DOM.dashVendasHoje, DOM.dashTicketMedio].forEach(el => {
-    el.classList.add('loading');
-  });
-}
 
 const DURACAO_ANIMACAO_MS = 900;
 
@@ -1003,384 +452,428 @@ function animar(alvo, aoAvancar, duracaoMs = DURACAO_ANIMACAO_MS) {
   animacoesAtivas.set(alvo, requestAnimationFrame(passo));
 }
 
-function animarContagem(elemento, valorFinal, formatar = (v) => Math.round(v).toString()) {
-  elemento.classList.remove('loading');
+function animarContagem(elemento, valorFinal, formatar = formatarNumero) {
+  elemento.classList.remove('is-loading');
   animar(elemento, (p) => { elemento.textContent = formatar(valorFinal * p); });
 }
 
 // ============================================
-// DISCO DO COFRE (Vault Dial)
+// TABELA DE PRODUTOS
 // ============================================
-// Gauge circular em SVG puro (sem dependência nova): três arcos proporcionais a
-// saudável/baixo/zerado. É o elemento de assinatura do dashboard, não decorativo —
-// muda de verdade conforme o estoque muda.
 
-function renderVaultDial(container, { saudavel, baixo, zerado }) {
-  const total = saudavel + baixo + zerado;
-  const pct = (n) => (total ? (n / total) * 100 : 0);
-  const pctSaudavel = pct(saudavel);
-  const pctBaixo = pct(baixo);
-  const pctZerado = pct(zerado);
-
-  const size = 176;
-  const strokeWidth = 16;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const center = size / 2;
-
-  // Cada arco nasce com comprimento 0 e cresce até o tamanho real (ver animação abaixo);
-  // o início de cada um também acompanha o crescimento dos anteriores, então o anel
-  // "se fecha" de forma contínua em vez de três arcos pulando de uma vez.
-  const arc = (percent, offsetPercent, color) => {
-    if (percent <= 0) return '';
-    return `<circle class="vault-dial-arc" data-pct="${percent}" data-offset="${offsetPercent}" cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="0 ${circumference}" stroke-linecap="round" transform="rotate(-90 ${center} ${center})"></circle>`;
-  };
-
-  let cursor = 0;
-  const corSaudavel = corVar('--color-secondary', '#22D3C5');
-  const corBaixo = corVar('--color-warning', '#F5A623');
-  const corZerado = corVar('--color-danger', '#FF5C7A');
-
-  const arcoSaudavel = arc(pctSaudavel, cursor, corSaudavel);
-  cursor += pctSaudavel;
-  const arcoBaixo = arc(pctBaixo, cursor, corBaixo);
-  cursor += pctBaixo;
-  const arcoZerado = arc(pctZerado, cursor, corZerado);
-
-  // Texto central: mostra o status que domina a distribuição agora (não sempre
-  // "saudável"). Em empate, prioriza o pior dos empatados — mais importante chamar
-  // atenção pra um problema real do que esconder atrás de um "saudável" que empatou.
-  const statusPorPrioridade = [
-    { pct: pctZerado, label: 'sem estoque', cor: corZerado },
-    { pct: pctBaixo, label: 'baixo', cor: corBaixo },
-    { pct: pctSaudavel, label: 'saudável', cor: corSaudavel },
-  ];
-  const maiorPct = Math.max(pctZerado, pctBaixo, pctSaudavel);
-  const dominante = statusPorPrioridade.find(s => s.pct === maiorPct);
-
-  container.innerHTML = `
-    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="${Math.round(dominante.pct)}% do estoque está ${dominante.label}">
-      <circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="var(--border-color)" stroke-width="${strokeWidth}"></circle>
-      ${arcoSaudavel}${arcoBaixo}${arcoZerado}
-      <text x="${center}" y="${center - 2}" text-anchor="middle" class="vault-dial-value" fill="${dominante.cor}">0%</text>
-      <text x="${center}" y="${center + 20}" text-anchor="middle" class="vault-dial-caption" fill="${dominante.cor}">${dominante.label}</text>
-    </svg>
-  `;
-
-  const arcos = [...container.querySelectorAll('.vault-dial-arc')];
-  const textoValor = container.querySelector('.vault-dial-value');
-  const pctFinal = Math.round(dominante.pct);
-
-  animar(container, (p) => {
-    arcos.forEach(el => {
-      const length = (Number(el.dataset.pct) / 100) * circumference * p;
-      const rotation = (Number(el.dataset.offset) * p / 100) * 360 - 90;
-      el.setAttribute('stroke-dasharray', `${length} ${circumference - length}`);
-      el.setAttribute('transform', `rotate(${rotation} ${center} ${center})`);
-      // A ponta arredondada desenharia um "pontinho" com comprimento zero.
-      el.style.opacity = length > 0.5 ? 1 : 0;
-    });
-    textoValor.textContent = `${Math.round(pctFinal * p)}%`;
-  });
+function botoesAcaoProduto(product) {
+  if (!souDono()) return '';
+  if (product.arquivado_em) {
+    return `<button type="button" class="icon-btn" data-acao="restaurar" title="Restaurar" aria-label="Restaurar ${esc(nomeProduto(product))}"><i class="ti ti-archive-off"></i></button>`;
+  }
+  return `
+    <button type="button" class="icon-btn" data-acao="ver" title="Ver detalhes" aria-label="Ver ${esc(nomeProduto(product))}"><i class="ti ti-eye"></i></button>
+    <button type="button" class="icon-btn" data-acao="editar" title="Editar" aria-label="Editar ${esc(nomeProduto(product))}"><i class="ti ti-pencil"></i></button>
+    <button type="button" class="icon-btn icon-btn--danger" data-acao="excluir" title="Excluir" aria-label="Excluir ${esc(nomeProduto(product))}"><i class="ti ti-trash"></i></button>`;
 }
 
-function renderVaultDialLegend(container, { saudavel, baixo, zerado }) {
-  const total = saudavel + baixo + zerado;
-  const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
-  const itens = [
-    { cor: corVar('--color-secondary', '#22D3C5'), label: 'Estoque saudável', valor: pct(saudavel) },
-    { cor: corVar('--color-warning', '#F5A623'), label: 'Estoque baixo', valor: pct(baixo) },
-    { cor: corVar('--color-danger', '#FF5C7A'), label: 'Sem estoque', valor: pct(zerado) },
-  ];
+function renderCusto(product) {
+  const custo = custoDoProduto(product.id);
+  return custo === null ? '<span class="texto-pendente">Não informado</span>' : formatCurrency(custo);
+}
 
-  container.innerHTML = itens.map(i => `
-    <div class="vault-dial-legend-item"><span class="vault-dial-dot" style="background:${i.cor}"></span>${i.label} <strong>0%</strong></div>
+function renderLinhaProduto(product) {
+  return `
+    <tr data-id="${product.id}" class="${product.arquivado_em ? 'row-arquivado' : ''}">
+      <td>${renderProdutoCell(product)}</td>
+      <td>${esc(TIPO_LABEL_SINGULAR[product.type] || product.type)}</td>
+      <td class="num so-dono">${renderCusto(product)}</td>
+      <td class="num">${formatCurrency(product.price)}</td>
+      <td class="num"><strong>${product.quantity}</strong></td>
+      <td>${renderBadgeSituacao(product)}</td>
+      <td><div class="acoes">${botoesAcaoProduto(product)}</div></td>
+    </tr>`;
+}
+
+function renderCardProduto(product) {
+  return `
+    <li class="produto-card ${product.arquivado_em ? 'row-arquivado' : ''}" data-id="${product.id}" tabindex="0" role="button" aria-label="${esc(nomeProduto(product))}">
+      <span class="produto-icone"><i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i></span>
+      <div style="min-width:0">
+        <div class="produto-nome">${esc(nomeProduto(product))}</div>
+        <div class="produto-meta">${metaProduto(product, { comCategoria: true })}<span class="sep">·</span>${product.quantity} un.</div>
+      </div>
+      <div class="produto-card-lado">
+        <span class="produto-card-preco">${formatCurrency(product.price)}</span>
+        ${renderBadgeSituacao(product)}
+      </div>
+    </li>`;
+}
+
+function renderProductsTables() {
+  DOM.productTableBody.innerHTML = filteredProducts.map(renderLinhaProduto).join('');
+  DOM.produtosCards.innerHTML = filteredProducts.map(renderCardProduto).join('');
+
+  updateFilterOptions();
+  updateEstoqueEmptyState();
+  updateStockCount();
+  renderFilterChips();
+}
+
+function renderSkeletonRows(quantidade = 4) {
+  DOM.estoqueEmptyState.classList.add('hidden');
+  DOM.productTableBody.innerHTML = Array.from({ length: quantidade }).map(() => `
+    <tr>${Array.from({ length: 7 }).map(() => '<td><span class="skeleton" style="height:14px;width:70%"></span></td>').join('')}</tr>
   `).join('');
+}
 
-  const numeros = [...container.querySelectorAll('strong')];
-  animar(container, (p) => {
-    numeros.forEach((el, idx) => { el.textContent = `${Math.round(itens[idx].valor * p)}%`; });
+function updateEstoqueEmptyState() {
+  const semNada = filteredProducts.length === 0;
+  const lojaVazia = products.length === 0 && DOM.filterStock.value !== 'arquivados';
+  DOM.estoqueTable.classList.toggle('hidden', semNada);
+  DOM.estoqueEmptyState.classList.toggle('hidden', !semNada);
+  DOM.emptyStateCta.classList.toggle('hidden', !lojaVazia || !souDono());
+  DOM.estoqueEmptyTexto.textContent = lojaVazia
+    ? 'Nenhum produto cadastrado ainda.'
+    : 'Nenhum produto com esses filtros.';
+}
+
+function updateStockCount() {
+  const total = products.length;
+  DOM.stockCountDisplay.textContent = `${total} ${pluralize(total, 'produto')} ativos`;
+  const mostrando = filteredProducts.length;
+  DOM.filterResultCount.textContent = temFiltroAtivo() ? `Mostrando ${mostrando}` : '';
+}
+
+function produtoPorElemento(el) {
+  const id = Number(el.closest('[data-id]')?.dataset.id);
+  return products.find(p => p.id === id) || produtosArquivados.find(p => p.id === id) || null;
+}
+
+function handleCliqueTabelaProdutos(e) {
+  const botao = e.target.closest('[data-acao]');
+  const produto = produtoPorElemento(e.target);
+  if (!produto) return;
+
+  if (!botao) {
+    if (e.currentTarget === DOM.produtosCards) abrirDetalhesProduto(produto.id);
+    return;
+  }
+  const acao = botao.dataset.acao;
+  if (acao === 'ver') abrirDetalhesProduto(produto.id);
+  if (acao === 'editar') startEditProduct(produto.id);
+  if (acao === 'excluir') deleteProduct(produto.id);
+  if (acao === 'restaurar') restaurarProduto(produto.id);
+}
+
+// ---- Detalhes do produto (olho na tabela / toque no cartão) ----------------------
+
+function abrirDetalhesProduto(id) {
+  const product = products.find(p => p.id === id) || produtosArquivados.find(p => p.id === id);
+  if (!product) return;
+
+  const arquivado = Boolean(product.arquivado_em);
+  const custo = custoDoProduto(product.id);
+  const { lucro, margem } = calcularPrecificacao(custo, Number(product.price));
+  const linhas = [
+    ['Categoria', esc(TIPO_LABEL_SINGULAR[product.type] || product.type)],
+    product.variacao ? [rotuloVariacao(product.type), esc(product.variacao)] : null,
+    product.color ? ['Cor', esc(product.color)] : null,
+    ['Preço de venda', formatCurrency(product.price)],
+    souDono() ? ['Preço de custo', custo === null ? '<span class="texto-pendente">Não informado</span>' : formatCurrency(custo)] : null,
+    souDono() && lucro !== null ? ['Lucro bruto por unidade', formatCurrency(lucro)] : null,
+    souDono() && margem !== null ? ['Margem bruta', formatarPercentual(margem)] : null,
+    ['Quantidade', `${product.quantity} un.`],
+    ['Estoque mínimo', `${estoqueMinimo(product)} un.${product.estoque_minimo === null || product.estoque_minimo === undefined ? ' (padrão)' : ''}`],
+    ['Situação', renderBadgeSituacao(product)],
+    product.created_at ? ['Cadastrado em', new Date(product.created_at).toLocaleDateString('pt-BR')] : null,
+    product.notes ? ['Observações', esc(product.notes)] : null,
+  ].filter(Boolean);
+
+  let acoes = '<button type="button" class="btn btn-secondary" data-modal="fechar">Fechar</button>';
+  if (souDono() && arquivado) {
+    acoes = '<button type="button" class="btn btn-secondary" data-modal="fechar">Fechar</button><button type="button" class="btn btn-primary" data-modal="restaurar"><i class="ti ti-archive-off"></i>Restaurar</button>';
+  } else if (souDono()) {
+    acoes = `
+      <button type="button" class="btn btn-ghost" data-modal="excluir" style="margin-right:auto;color:var(--red-ink)"><i class="ti ti-trash"></i>Excluir</button>
+      <button type="button" class="btn btn-primary" data-modal="editar"><i class="ti ti-pencil"></i>Editar</button>`;
+  }
+
+  abrirModal(`
+    <div class="detalhe-topo">
+      <span class="produto-icone"><i class="ti ${TIPO_ICONES[product.type] || 'ti-package'}"></i></span>
+      <div><h3 class="modal-title" style="padding:0">${esc(nomeProduto(product))}</h3></div>
+    </div>
+    <dl class="detalhe-lista">${linhas.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+    <div class="modal-actions">${acoes}</div>
+  `);
+
+  DOM.modalBody.querySelector('[data-modal="fechar"]')?.addEventListener('click', fecharModal);
+  DOM.modalBody.querySelector('[data-modal="editar"]')?.addEventListener('click', () => { fecharModal(); startEditProduct(product.id); });
+  DOM.modalBody.querySelector('[data-modal="excluir"]')?.addEventListener('click', () => deleteProduct(product.id));
+  DOM.modalBody.querySelector('[data-modal="restaurar"]')?.addEventListener('click', () => { fecharModal(); restaurarProduto(product.id); });
+}
+
+// ============================================
+// FILTROS DE PRODUTOS
+// ============================================
+
+function getFilterValues() {
+  return {
+    search: DOM.filterSearch.value,
+    type: DOM.filterType.value,
+    brand: DOM.filterBrand.value,
+    variacao: DOM.filterVariacao.value,
+    stock: DOM.filterStock.value,
+  };
+}
+
+function temFiltroAtivo() {
+  const f = getFilterValues();
+  return Boolean(f.search.trim() || f.type || f.brand || f.variacao || f.stock);
+}
+
+// Busca por marca, modelo, linha/tipo, cor (produtos antigos) ou observação. Aceita
+// "a15 premium" em qualquer ordem: todas as palavras precisam aparecer.
+function matchesSearchTerm(product, searchTerm) {
+  const termo = chaveNome(searchTerm);
+  if (!termo) return true;
+  const texto = chaveNome([product.brand, product.model, product.variacao, product.color, product.notes].filter(Boolean).join(' '));
+  return termo.split(' ').every(palavra => texto.includes(palavra));
+}
+
+function matchesStockFilter(product, filter) {
+  if (!filter || filter === 'arquivados') return true;
+  if (filter === 'ok') return situacaoEstoque(product) === 'ok';
+  if (filter === 'zero') return situacaoEstoque(product) === 'zerado';
+  if (filter === 'low') return situacaoEstoque(product) === 'baixo';
+  if (filter === 'sem_custo') return custoDoProduto(product.id) === null;
+  return true;
+}
+
+function filterProducts() {
+  const { search, type, brand, variacao, stock } = getFilterValues();
+  const base = stock === 'arquivados' ? produtosArquivados : products;
+
+  return base.filter(product =>
+    matchesSearchTerm(product, search) &&
+    (!type || product.type === type) &&
+    (!brand || product.brand === brand) &&
+    (!variacao || product.variacao === variacao) &&
+    matchesStockFilter(product, stock)
+  );
+}
+
+function ordenarFiltrados(lista) {
+  if (!sortConfig.field) return lista;
+  const fator = sortConfig.direction === 'asc' ? 1 : -1;
+  return [...lista].sort((a, b) => (Number(a[sortConfig.field]) - Number(b[sortConfig.field])) * fator);
+}
+
+function ordenarPor(campo) {
+  if (sortConfig.field === campo) {
+    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortConfig.field = campo;
+    sortConfig.direction = 'asc';
+  }
+
+  DOM.sortableHeaders.forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    th.removeAttribute('aria-sort');
+    if (th.dataset.sort === sortConfig.field) {
+      th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+      th.setAttribute('aria-sort', sortConfig.direction === 'asc' ? 'ascending' : 'descending');
+    }
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  filteredProducts = ordenarFiltrados(filterProducts());
+  renderProductsTables();
+  if (abaAtual === 'estoque') renderSubtabs();
+}
+
+function clearAllFilters() {
+  DOM.filterSearch.value = '';
+  DOM.filterType.value = '';
+  DOM.filterBrand.value = '';
+  DOM.filterVariacao.value = '';
+  DOM.filterStock.value = '';
+  applyFilters();
+}
+
+function toggleFiltersPanel(forcarAberto = null) {
+  const abrir = forcarAberto !== null ? forcarAberto : DOM.filtersPanel.classList.contains('hidden');
+  DOM.filtersPanel.classList.toggle('hidden', !abrir);
+  DOM.filtersToggleBtn.classList.toggle('active', abrir);
+  DOM.filtersToggleBtn.setAttribute('aria-expanded', String(abrir));
+}
+
+function renderFilterChips() {
+  const chips = [];
+  const { type, brand, variacao, stock } = getFilterValues();
+
+  if (type) chips.push({ label: `Categoria: ${TIPO_LABELS[type] || type}`, limpar: () => { DOM.filterType.value = ''; } });
+  if (brand) chips.push({ label: `Marca: ${brand}`, limpar: () => { DOM.filterBrand.value = ''; } });
+  if (variacao) chips.push({ label: `Linha/tipo: ${variacao}`, limpar: () => { DOM.filterVariacao.value = ''; } });
+  if (stock) chips.push({ label: STOCK_FILTER_LABELS[stock] || stock, limpar: () => { DOM.filterStock.value = ''; } });
+
+  DOM.filtersCount.textContent = chips.length;
+  DOM.filtersCount.classList.toggle('hidden', chips.length === 0);
+
+  if (!chips.length) {
+    DOM.filtersChips.classList.add('hidden');
+    DOM.filtersChips.innerHTML = '';
+    return;
+  }
+
+  DOM.filtersChips.classList.remove('hidden');
+  DOM.filtersChips.innerHTML = chips.map((chip, i) => `
+    <span class="filter-chip">${esc(chip.label)}<button type="button" data-chip="${i}" aria-label="Remover filtro ${esc(chip.label)}"><i class="ti ti-x"></i></button></span>
+  `).join('') + (chips.length > 1 ? '<button type="button" class="btn-link" data-chip="todos">Limpar tudo</button>' : '');
+
+  DOM.filtersChips.onclick = (e) => {
+    const alvo = e.target.closest('[data-chip]');
+    if (!alvo) return;
+    if (alvo.dataset.chip === 'todos') { clearAllFilters(); return; }
+    chips[Number(alvo.dataset.chip)].limpar();
+    applyFilters();
+  };
+}
+
+function preencherSelect(select, valores, rotuloTodos = 'Todas') {
+  const atual = select.value;
+  select.innerHTML = `<option value="">${rotuloTodos}</option>` +
+    valores.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  select.value = valores.includes(atual) ? atual : '';
+}
+
+function updateFilterOptions() {
+  preencherSelect(DOM.filterBrand, getUniqueBrands());
+  const variacoes = [...new Set([...products, ...produtosArquivados].map(p => p.variacao).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  preencherSelect(DOM.filterVariacao, variacoes);
+}
+
+// ============================================
+// EXPORTAÇÃO CSV
+// ============================================
+
+function exportarEstoqueCSV() {
+  if (!products.length) {
+    showToast('Não há produtos para exportar.', 'warning');
+    return;
+  }
+
+  const cabecalho = ['Categoria', 'Marca', 'Modelo', 'Linha/Tipo', 'Preço de venda'];
+  if (souDono()) cabecalho.push('Preço de custo');
+  cabecalho.push('Quantidade', 'Estoque mínimo', 'Situação', 'Observações');
+
+  const linhas = products.map(p => {
+    const custo = custoDoProduto(p.id);
+    const linha = [TIPO_LABEL_SINGULAR[p.type] || p.type, p.brand, p.model, p.variacao, p.price];
+    if (souDono()) linha.push(custo === null ? '' : custo);
+    linha.push(p.quantity, estoqueMinimo(p), SITUACAO_INFO[situacaoEstoque(p)].label, p.notes);
+    return linha;
+  });
+
+  baixarArquivo(gerarCSV(cabecalho, linhas), `vault-estoque-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  showToast('Planilha do estoque exportada.', 'success');
+}
+
+// ============================================
+// EXCLUIR, ARQUIVAR E RESTAURAR
+// ============================================
+
+async function produtoTemHistorico(id) {
+  const { count, error } = await supabaseClient
+    .from('movimentacoes_estoque')
+    .select('id', { count: 'exact', head: true })
+    .eq('loja_id', lojaAtual.id)
+    .eq('produto_id', id);
+
+  // Na dúvida (erro de rede), trata como "tem histórico": arquivar é reversível,
+  // excluir não.
+  if (error) return true;
+  return count > 0;
+}
+
+async function definirArquivado(id, arquivar) {
+  const { error } = await supabaseClient
+    .from('products')
+    .update({ arquivado_em: arquivar ? new Date().toISOString() : null })
+    .eq('id', id)
+    .eq('loja_id', lojaAtual.id);
+
+  if (error) {
+    showToast(arquivar ? 'Não foi possível arquivar o produto.' : 'Não foi possível restaurar o produto.', 'error');
+    return false;
+  }
+
+  await recarregarProdutos();
+  return true;
+}
+
+async function restaurarProduto(id) {
+  const product = produtosArquivados.find(p => p.id === id);
+  if (!product) return;
+
+  if (await definirArquivado(id, false)) {
+    showToast(`${nomeProduto(product)} voltou para o estoque.`, 'success');
+  }
+}
+
+async function deleteProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  // O livro-caixa aponta para o produto, então quem já teve venda/movimentação não
+  // pode ser apagado sem perder histórico. Nesse caso o produto é arquivado.
+  if (await produtoTemHistorico(id)) {
+    abrirModalConfirmacao({
+      titulo: 'Arquivar produto?',
+      mensagem: `${nomeProduto(product)} já tem vendas registradas, então não pode ser excluído sem apagar esse histórico. Ele será arquivado: sai do estoque e da frente de caixa, mas as vendas continuam nos relatórios. Dá para restaurar em Produtos → Filtrar → Arquivados.`,
+      textoConfirmar: 'Arquivar',
+      aoConfirmar: async () => {
+        if (await definirArquivado(id, true)) showToast('Produto arquivado.', 'success');
+      },
+    });
+    return;
+  }
+
+  abrirModalConfirmacao({
+    titulo: 'Excluir produto?',
+    mensagem: `${nomeProduto(product)} será excluído de vez. Essa ação não pode ser desfeita.`,
+    textoConfirmar: 'Excluir',
+    aoConfirmar: async () => {
+      if (!(await deleteProductRow(id))) return;
+      await recarregarProdutos();
+      showToast('Produto excluído.', 'success');
+    },
   });
 }
 
 // ============================================
-// VENDAS (livro-caixa — movimentacoes_estoque)
+// DATAS
 // ============================================
+
+function inicioDoDia(data = new Date()) {
+  const d = new Date(data);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 function inicioDoDiaISO(diasAtras = 0) {
-  const data = new Date();
-  data.setHours(0, 0, 0, 0);
+  const data = inicioDoDia();
   data.setDate(data.getDate() - diasAtras);
   return data.toISOString();
 }
 
-async function buscarVendasHojeEOntem() {
-  const vazio = { hoje: { quantidade: 0, valor: 0 }, ontem: { valor: 0 } };
-
-  const { data, error } = await supabaseClient
-    .from('movimentacoes_estoque')
-    .select('quantidade, total, created_at')
-    .eq('loja_id', lojaAtual.id)
-    .eq('tipo', 'venda')
-    .gte('created_at', inicioDoDiaISO(1));
-
-  if (error) return vazio;
-
-  const hojeChave = new Date().toDateString();
-  const ontemChave = new Date(Date.now() - 86400000).toDateString();
-
-  return data.reduce((acc, m) => {
-    const chave = new Date(m.created_at).toDateString();
-    const valor = Number(m.total) || 0;
-    if (chave === hojeChave) {
-      acc.hoje.quantidade += Math.abs(m.quantidade);
-      acc.hoje.valor += valor;
-    } else if (chave === ontemChave) {
-      acc.ontem.valor += valor;
-    }
-    return acc;
-  }, vazio);
+function inicioDoMes(data = new Date()) {
+  return new Date(data.getFullYear(), data.getMonth(), 1);
 }
 
-function renderVendasHojeTrend(hoje, ontem) {
-  const el = DOM.dashVendasHojeTrend;
-
-  if (!ontem || ontem <= 0) {
-    el.classList.add('hidden');
-    return;
-  }
-
-  const variacao = ((hoje - ontem) / ontem) * 100;
-  const alta = variacao >= 0;
-
-  el.classList.remove('hidden');
-  el.classList.toggle('dashboard-trend--alta', alta);
-  el.classList.toggle('dashboard-trend--queda', !alta);
-  el.innerHTML = `
-    <span class="dashboard-trend-arrow">${alta ? '▲' : '▼'}</span>
-    <span class="dashboard-trend-pct">${Math.abs(Math.round(variacao))}%</span>
-    <span class="dashboard-trend-label">vs. ontem</span>
-  `;
+function chaveDia(data) {
+  const d = new Date(data);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-
-async function buscarTicketMedio() {
-  const { data, error } = await supabaseClient
-    .from('movimentacoes_estoque')
-    .select('total')
-    .eq('loja_id', lojaAtual.id)
-    .eq('tipo', 'venda')
-    .gte('created_at', inicioDoDiaISO(30));
-
-  if (error || !data.length) return 0;
-
-  const soma = data.reduce((acc, m) => acc + (Number(m.total) || 0), 0);
-  return soma / data.length;
-}
-
-async function buscarVendas7Dias() {
-  const dias = [];
-  for (let i = 6; i >= 0; i--) {
-    const data = new Date();
-    data.setDate(data.getDate() - i);
-    dias.push({
-      chave: data.toDateString(),
-      label: data.toLocaleDateString('pt-BR', { weekday: 'short' }),
-      labelCompleto: data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      total: 0,
-    });
-  }
-
-  const { data, error } = await supabaseClient
-    .from('movimentacoes_estoque')
-    .select('total, created_at')
-    .eq('loja_id', lojaAtual.id)
-    .eq('tipo', 'venda')
-    .gte('created_at', inicioDoDiaISO(6));
-
-  if (!error) {
-    data.forEach(m => {
-      const chave = new Date(m.created_at).toDateString();
-      const dia = dias.find(d => d.chave === chave);
-      if (dia) dia.total += Number(m.total) || 0;
-    });
-  }
-
-  return dias;
-}
-
-function renderTop5MarcasValorList() {
-  if (!products.length) {
-    DOM.dashboardBrandlist.innerHTML = '';
-    DOM.dashboardBrandlistEmpty.classList.remove('hidden');
-    return;
-  }
-
-  DOM.dashboardBrandlistEmpty.classList.add('hidden');
-
-  const valorPorMarca = {};
-  products.forEach(p => {
-    valorPorMarca[p.brand] = (valorPorMarca[p.brand] || 0) + p.price * p.quantity;
-  });
-
-  const top5 = Object.entries(valorPorMarca).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const maiorValor = top5.length ? top5[0][1] : 0;
-
-  DOM.dashboardBrandlist.innerHTML = top5.map(([marca, valor]) => {
-    const largura = maiorValor ? Math.max((valor / maiorValor) * 100, 4) : 0;
-    return `
-      <div class="dashboard-brandlist-row">
-        <div class="dashboard-brandlist-info">
-          <span class="dashboard-brandlist-name">${esc(marca)}</span>
-          <span class="dashboard-brandlist-value">${formatCurrency(valor)}</span>
-        </div>
-        <div class="dashboard-brandlist-bar-track">
-          <div class="dashboard-brandlist-bar" style="width:${largura}%"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Alinha os rótulos (dia da semana / valor em destaque) sem deixar a metade do texto
-// vazar pra fora do card nas duas pontas — centralizado no meio, ancorado nas bordas.
-function alinhamentoBordaSegura(indice, total) {
-  if (indice === 0) return { left: '0%', transform: 'translateX(0)' };
-  if (indice === total - 1) return { left: '100%', transform: 'translateX(-100%)' };
-  return { left: `${(indice / (total - 1)) * 100}%`, transform: 'translateX(-50%)' };
-}
-
-function renderVendas7DiasChart(dias) {
-  const valores = dias.map(d => Number(d.total) || 0);
-  const maiorValor = Math.max(...valores, 0);
-  const semVendas = maiorValor === 0;
-
-  const indicesPico = semVendas
-    ? []
-    : valores.reduce((acc, v, i) => (v === maiorValor ? [...acc, i] : acc), []);
-
-  // Espaço de coordenadas do SVG é fixo (o CSS `aspect-ratio` que escala o desenho pro
-  // tamanho real do card) — evita ter que reler clientWidth ou reagir a resize.
-  const VBW = 700;
-  const VBH = 128;
-  const padX = 26;
-  const padTopoSvg = 12;
-  const padBaseSvg = 10;
-  const baselineY = VBH - padBaseSvg;
-  const alturaPlot = baselineY - padTopoSvg;
-
-  const pontos = dias.map((d, i) => {
-    const valor = valores[i];
-    const xFrac = dias.length > 1 ? i / (dias.length - 1) : 0.5;
-    const x = padX + xFrac * (VBW - padX * 2);
-    const valorFrac = semVendas ? 0 : valor / maiorValor;
-    const y = baselineY - valorFrac * alturaPlot;
-    return { x, y, valor, dia: d };
-  });
-
-  const ptAt = (i) => pontos[Math.max(0, Math.min(pontos.length - 1, i))];
-
-  // Catmull-Rom -> Bézier cúbica (curva suave passando por todos os pontos). O `y` dos
-  // pontos de controle é limitado à baseline pra curva nunca "afundar" abaixo do zero
-  // entre dois dias vizinhos — o que pareceria venda negativa.
-  let curvaPath = `M ${pontos[0].x},${pontos[0].y}`;
-  for (let i = 0; i < pontos.length - 1; i++) {
-    const p0 = ptAt(i - 1), p1 = pontos[i], p2 = pontos[i + 1], p3 = ptAt(i + 2);
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = Math.min(p1.y + (p2.y - p0.y) / 6, baselineY);
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = Math.min(p2.y - (p3.y - p1.y) / 6, baselineY);
-    curvaPath += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
-  }
-
-  const ultimo = pontos[pontos.length - 1];
-  const areaPath = `${curvaPath} L ${ultimo.x},${baselineY} L ${pontos[0].x},${baselineY} Z`;
-
-  const circulosSvg = pontos.map((p, i) => {
-    const ehPico = indicesPico.includes(i);
-    return `<circle class="vendas7d-dot${ehPico ? ' vendas7d-dot--peak' : ''}" cx="${p.x}" cy="${p.y}" r="${ehPico ? 6 : 3.5}"><title>${p.dia.labelCompleto}: ${formatCurrency(p.valor)}</title></circle>`;
-  }).join('');
-
-  const picosHtml = indicesPico.map(i => {
-    const { left, transform } = alinhamentoBordaSegura(i, pontos.length);
-    return `<span class="vendas7d-peak-value" style="left:${left};transform:${transform}">${formatCurrency(pontos[i].valor)}</span>`;
-  }).join('');
-
-  const eixoHtml = pontos.map((p, i) => {
-    const ehPico = indicesPico.includes(i);
-    const { left, transform } = alinhamentoBordaSegura(i, pontos.length);
-    return `<span class="vendas7d-axis-label${ehPico ? ' vendas7d-axis-label--peak' : ''}" style="left:${left};transform:${transform}">${p.dia.label}</span>`;
-  }).join('');
-
-  DOM.vendas7dChartContainer.innerHTML = `
-    <div class="vendas7d-topline">${picosHtml}</div>
-    <div class="vendas7d-plot">
-      <svg class="vendas7d-svg" viewBox="0 0 ${VBW} ${VBH}" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="vendas7dLineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="var(--color-primary)"></stop>
-            <stop offset="100%" stop-color="var(--color-secondary)"></stop>
-          </linearGradient>
-          <linearGradient id="vendas7dAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--color-secondary)" stop-opacity="0.32"></stop>
-            <stop offset="100%" stop-color="var(--color-secondary)" stop-opacity="0"></stop>
-          </linearGradient>
-        </defs>
-        <line class="vendas7d-baseline" x1="${padX - 6}" y1="${baselineY}" x2="${VBW - padX + 6}" y2="${baselineY}"></line>
-        ${!semVendas ? `<path class="vendas7d-area" d="${areaPath}" fill="url(#vendas7dAreaGrad)"></path>` : ''}
-        <path class="vendas7d-line" d="${curvaPath}" stroke="${semVendas ? 'var(--border-color)' : 'url(#vendas7dLineGrad)'}"></path>
-        ${circulosSvg}
-      </svg>
-    </div>
-    <div class="vendas7d-axis">${eixoHtml}</div>
-    ${semVendas ? '<p class="vendas7d-empty-msg">Nenhuma venda nos últimos 7 dias</p>' : ''}
-  `;
-}
-
-const LOWSTOCK_LIMITE_EXIBICAO = 5;
-
-function renderLowStockList() {
-  const lowStockProducts = products
-    .filter(p => situacaoEstoque(p) === 'baixo')
-    .sort((a, b) => a.quantity - b.quantity);
-
-  DOM.lowStockList.innerHTML = '';
-
-  if (!lowStockProducts.length) {
-    DOM.lowStockCount.classList.add('hidden');
-    DOM.lowStockVerTodos.classList.add('hidden');
-    DOM.lowStockEmpty.classList.remove('hidden');
-    DOM.lowStockEmpty.textContent = products.length === 0
-      ? 'Cadastre seu primeiro produto para ver alertas de estoque aqui.'
-      : 'Nenhum produto com estoque baixo agora. 🎉';
-    return;
-  }
-
-  DOM.lowStockEmpty.classList.add('hidden');
-  DOM.lowStockCount.textContent = `${lowStockProducts.length} ${pluralize(lowStockProducts.length, 'item', 'itens')}`;
-  DOM.lowStockCount.classList.remove('hidden');
-  DOM.lowStockVerTodos.classList.toggle('hidden', lowStockProducts.length <= LOWSTOCK_LIMITE_EXIBICAO);
-
-  lowStockProducts.slice(0, LOWSTOCK_LIMITE_EXIBICAO).forEach(p => {
-    const li = document.createElement('li');
-    li.className = 'dashboard-lowstock-item';
-    li.innerHTML = `
-      <span class="dashboard-lowstock-name">${esc(nomeProduto(p))}</span>
-      <span class="badge-estoque baixo">${p.quantity} un.</span>
-    `;
-    li.addEventListener('click', () => startEditProduct(p.id));
-    DOM.lowStockList.appendChild(li);
-  });
-}
-
-function irParaEstoqueBaixo() {
-  DOM.filterStock.value = 'low';
-  applyFilters();
-  changeTab('estoque');
-}
-
-// ============================================
-// RECIBO DE VENDA
-// ============================================
 
 function formatarDataHora(iso) {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -1388,49 +881,33 @@ function formatarDataHora(iso) {
   });
 }
 
-function montarTextoRecibo(mov, produto) {
-  return [
-    '🧾 Recibo de venda — Vault',
-    '',
-    `Produto: ${nomeProduto(produto)}`,
-    `Quantidade: ${Math.abs(mov.quantidade)}`,
-    `Preço unitário: ${formatCurrency(mov.preco_unitario)}`,
-    `Total: ${formatCurrency(mov.total)}`,
-    `Data: ${formatarDataHora(mov.created_at)}`,
-    '',
-    'Comprovante simples, não é nota fiscal.',
-  ].join('\n');
+// Vendas do livro-caixa entre duas datas (fim exclusivo). Usado por início e análises.
+async function buscarVendasEntre(inicio, fim, colunas = 'quantidade, total, custo_unitario, created_at, venda_id, id, produto_id, produto_snapshot') {
+  let query = supabaseClient
+    .from('movimentacoes_estoque')
+    .select(colunas)
+    .eq('loja_id', lojaAtual.id)
+    .eq('tipo', 'venda')
+    .gte('created_at', inicio.toISOString())
+    .order('created_at', { ascending: true })
+    .limit(10000);
+  if (fim) query = query.lt('created_at', fim.toISOString());
+
+  const { data, error } = await query;
+  if (error) return { erro: true, vendas: [] };
+  return { erro: false, vendas: data };
 }
 
-function abrirModalRecibo(mov, produto) {
-  const texto = montarTextoRecibo(mov, produto);
+// Lucro bruto de um lançamento de venda. Sem custo gravado = null (não vira zero).
+function lucroDaMovimentacao(m) {
+  if (m.custo_unitario === null || m.custo_unitario === undefined) return null;
+  return (Number(m.total) || 0) - Number(m.custo_unitario) * Math.abs(Number(m.quantidade) || 0);
+}
 
-  DOM.modalBody.innerHTML = `
-    <h3 class="modal-title">✅ Venda registrada</h3>
-    <div class="recibo-card">
-      <div class="recibo-linha"><span>Produto</span><strong>${esc(nomeProduto(produto))}</strong></div>
-      <div class="recibo-linha"><span>Quantidade</span><strong>${Math.abs(mov.quantidade)}</strong></div>
-      <div class="recibo-linha"><span>Preço unitário</span><strong>${formatCurrency(mov.preco_unitario)}</strong></div>
-      <div class="recibo-linha recibo-total"><span>Total</span><strong>${formatCurrency(mov.total)}</strong></div>
-      <div class="recibo-linha recibo-data"><span>${formatarDataHora(mov.created_at)}</span></div>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="secondary" id="modal-recibo-fechar">Fechar</button>
-      <button type="button" class="primary" id="modal-recibo-copiar">📋 Copiar recibo</button>
-    </div>
-  `;
-
-  DOM.modalBody.querySelector('#modal-recibo-fechar').addEventListener('click', fecharModal);
-  DOM.modalBody.querySelector('#modal-recibo-copiar').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(texto);
-      showToast('✅ Recibo copiado!', 'success');
-    } catch {
-      showToast('❌ Não foi possível copiar. Copie manualmente.', 'error');
-    }
-  });
-
-  abrirModal();
+// Uma venda do carrinho gera um lançamento por item com o mesmo venda_id. Vendas
+// antigas (um item por venda) não têm venda_id: cada lançamento é uma venda.
+function contarVendas(movimentacoes) {
+  return new Set(movimentacoes.map(m => m.venda_id || m.id)).size;
 }
 
 // ============================================
@@ -1449,104 +926,58 @@ async function carregarHistoricoVendas() {
     .eq('loja_id', lojaAtual.id)
     .eq('tipo', 'venda')
     .order('created_at', { ascending: false })
-    .limit(300);
+    .limit(500);
 
   const desde = inicioPeriodoISO(DOM.filterHistoricoPeriodo.value);
   if (desde) query = query.gte('created_at', desde);
 
   const { data, error } = await query;
   if (error) {
-    showToast('❌ Erro ao carregar histórico de vendas.', 'error');
+    showToast('Não foi possível carregar o histórico de vendas.', 'error');
     historicoVendas = [];
     return;
   }
-
   historicoVendas = data;
 }
 
 function updateHistoricoBrandFilter() {
-  const marcas = [...new Set(historicoVendas.map(m => m.produto_snapshot?.brand).filter(Boolean))].sort();
-  const select = DOM.filterHistoricoBrand;
-  const atual = select.value;
-
-  select.innerHTML = '<option value="">Todas</option>';
-  marcas.forEach(marca => {
-    const opt = document.createElement('option');
-    opt.value = marca;
-    opt.textContent = marca;
-    select.appendChild(opt);
-  });
-  select.value = atual;
+  const marcas = [...new Set(historicoVendas.map(m => m.produto_snapshot?.brand).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  preencherSelect(DOM.filterHistoricoBrand, marcas, 'Todas as marcas');
 }
 
-const PERIODO_LABELS = {
-  '7': 'Últimos 7 dias',
-  '30': 'Últimos 30 dias',
-  '90': 'Últimos 90 dias',
-  '0': 'Tudo',
-};
+const PERIODO_LABELS = { '7': 'Últimos 7 dias', '30': 'Últimos 30 dias', '90': 'Últimos 90 dias', '0': 'Tudo' };
 
 function filtrarHistoricoAtual() {
   const marca = DOM.filterHistoricoBrand.value;
-  const busca = DOM.filterHistoricoSearch.value.toLowerCase();
+  const busca = DOM.filterHistoricoSearch.value;
 
   return historicoVendas.filter(m => {
     const snap = m.produto_snapshot || {};
-    const combinaMarca = !marca || snap.brand === marca;
-    const combinaBusca = !busca ||
-      (snap.brand || '').toLowerCase().includes(busca) ||
-      (snap.model || '').toLowerCase().includes(busca) ||
-      (snap.color || '').toLowerCase().includes(busca);
-    return combinaMarca && combinaBusca;
+    return (!marca || snap.brand === marca) && matchesSearchTerm(snap, busca);
   });
-}
-
-function limparFiltrosHistorico() {
-  DOM.filterHistoricoSearch.value = '';
-  DOM.filterHistoricoPeriodo.value = '30';
-  DOM.filterHistoricoBrand.value = '';
-  atualizarAbaVendas();
 }
 
 function renderHistoricoFilterChips() {
   const chips = [];
-
-  if (DOM.filterHistoricoSearch.value) {
-    chips.push({ label: `Busca: "${DOM.filterHistoricoSearch.value}"`, limpar: () => { DOM.filterHistoricoSearch.value = ''; renderHistoricoVendas(); } });
-  }
   if (DOM.filterHistoricoBrand.value) {
     chips.push({ label: `Marca: ${DOM.filterHistoricoBrand.value}`, limpar: () => { DOM.filterHistoricoBrand.value = ''; renderHistoricoVendas(); } });
   }
   if (DOM.filterHistoricoPeriodo.value !== '30') {
     chips.push({
-      label: `Período: ${PERIODO_LABELS[DOM.filterHistoricoPeriodo.value] || DOM.filterHistoricoPeriodo.value}`,
-      limpar: async () => {
-        DOM.filterHistoricoPeriodo.value = '30';
-        await carregarHistoricoVendas();
-        updateHistoricoBrandFilter();
-        renderHistoricoVendas();
-      },
+      label: PERIODO_LABELS[DOM.filterHistoricoPeriodo.value] || DOM.filterHistoricoPeriodo.value,
+      limpar: () => { DOM.filterHistoricoPeriodo.value = '30'; atualizarAbaVendas(); },
     });
   }
 
-  if (!chips.length) {
-    DOM.filtersHistoricoChips.classList.add('hidden');
-    DOM.filtersHistoricoChips.innerHTML = '';
-    return;
-  }
-
-  DOM.filtersHistoricoChips.classList.remove('hidden');
+  DOM.filtersHistoricoChips.classList.toggle('hidden', chips.length === 0);
   DOM.filtersHistoricoChips.innerHTML = chips.map((chip, i) => `
-    <span class="filter-chip" data-chip-index="${i}">
-      ${esc(chip.label)}
-      <button type="button" class="filter-chip-remove" aria-label="Remover filtro"><i class="ti ti-x"></i></button>
-    </span>
-  `).join('') + `<button type="button" class="filter-chip-clear-all" id="filter-chip-clear-all-historico">Limpar tudo</button>`;
-
-  DOM.filtersHistoricoChips.querySelectorAll('.filter-chip-remove').forEach((btn, i) => {
-    btn.addEventListener('click', () => chips[i].limpar());
-  });
-  document.getElementById('filter-chip-clear-all-historico').addEventListener('click', limparFiltrosHistorico);
+    <span class="filter-chip">${esc(chip.label)}<button type="button" data-chip="${i}" aria-label="Remover filtro"><i class="ti ti-x"></i></button></span>
+  `).join('');
+  DOM.filtersHistoricoChips.onclick = (e) => {
+    const alvo = e.target.closest('[data-chip]');
+    if (alvo) chips[Number(alvo.dataset.chip)].limpar();
+  };
 }
 
 function obterIniciaisPessoa(texto) {
@@ -1557,45 +988,42 @@ function obterIniciaisPessoa(texto) {
   return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
-// Não existe campo de nome cadastrado pra membros da loja hoje (só e-mail) — usa a
-// parte antes do @ como nome de exibição, conforme combinado. Reaproveitado tanto no
-// histórico de vendas ("Vendido por") quanto na lista de membros da Equipe.
-function renderPessoaChip(email) {
-  if (!email) return '<span class="vendedor-vazio">-</span>';
+// Não existe nome cadastrado para os membros da loja (só e-mail): usa a parte antes do
+// @ como nome de exibição. O nome do próprio usuário vem do perfil (nomeUsuario()).
+function nomeDoEmail(email) {
+  const usuario = String(email || '').split('@')[0];
+  return usuario.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).trim();
+}
 
-  const usuario = email.split('@')[0];
-  const nomeExibicao = usuario.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  const iniciais = obterIniciaisPessoa(usuario);
-
+function renderPessoaChip(email, nome = null) {
+  if (!email) return '<span class="texto-muted">—</span>';
+  const exibicao = nome || nomeDoEmail(email);
   return `
     <span class="vendedor-chip">
-      <span class="vendedor-avatar">${esc(iniciais)}</span>
-      ${esc(nomeExibicao)}
-    </span>
-  `;
+      <span class="avatar avatar--sm avatar--soft">${esc(obterIniciaisPessoa(exibicao))}</span>
+      ${esc(exibicao)}
+    </span>`;
 }
 
 function renderHistoricoVendas() {
   const filtrado = filtrarHistoricoAtual();
 
-  DOM.historicoVendasBody.innerHTML = '';
-  DOM.historicoCount.textContent = `${filtrado.length} ${pluralize(filtrado.length, 'venda')} no período`;
-  DOM.historicoVendasTable.style.display = filtrado.length === 0 ? 'none' : '';
-  DOM.historicoVendasEmpty.classList.toggle('active', filtrado.length === 0);
+  DOM.historicoCount.textContent = `${filtrado.length} ${pluralize(filtrado.length, 'item vendido', 'itens vendidos')} no período`;
+  DOM.historicoVendasTable.classList.toggle('hidden', filtrado.length === 0);
+  DOM.historicoVendasEmpty.classList.toggle('hidden', filtrado.length > 0);
 
-  filtrado.forEach(m => {
+  DOM.historicoVendasBody.innerHTML = filtrado.map(m => {
     const snap = m.produto_snapshot || {};
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="historico-data">${formatarDataHora(m.created_at)}</td>
-      <td>${renderNomeProduto(snap)}</td>
-      <td>${Math.abs(m.quantidade)}</td>
-      <td>${formatCurrency(m.preco_unitario)}</td>
-      <td class="historico-total">${formatCurrency(m.total)}</td>
-      <td>${renderPessoaChip(m.responsavel_email)}</td>
-    `;
-    DOM.historicoVendasBody.appendChild(tr);
-  });
+    return `
+      <tr>
+        <td data-label="Data" class="texto-muted">${formatarDataHora(m.created_at)}</td>
+        <td data-label="" class="td-titulo">${renderProdutoCell(snap, { comCategoria: true })}</td>
+        <td data-label="Quantidade" class="num">${Math.abs(m.quantidade)}</td>
+        <td data-label="Preço unit." class="num">${formatCurrency(m.preco_unitario)}</td>
+        <td data-label="Total" class="num"><strong>${formatCurrency(m.total)}</strong></td>
+        <td data-label="Vendido por">${renderPessoaChip(m.responsavel_email)}</td>
+      </tr>`;
+  }).join('');
 
   const totalPeriodo = filtrado.reduce((soma, m) => soma + (Number(m.total) || 0), 0);
   DOM.historicoTotalRow.classList.toggle('hidden', filtrado.length === 0);
@@ -1604,87 +1032,51 @@ function renderHistoricoVendas() {
   renderHistoricoFilterChips();
 }
 
-function gerarCSVHistoricoVendas(lista) {
-  const cabecalho = ['Data', 'Marca', 'Modelo', 'Cor', 'Quantidade', 'Preço unitário', 'Total', 'Vendido por'];
-  const escaparCampo = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
+function exportarHistoricoCSV() {
+  const filtrado = filtrarHistoricoAtual();
+  if (!filtrado.length) {
+    showToast('Não há vendas para exportar nesse período.', 'warning');
+    return;
+  }
 
-  const linhas = lista.map(m => {
+  const linhas = filtrado.map(m => {
     const snap = m.produto_snapshot || {};
     return [
       formatarDataHora(m.created_at),
-      snap.brand,
-      snap.model,
-      snap.color,
-      Math.abs(m.quantidade),
-      m.preco_unitario,
-      m.total,
-      m.responsavel_email,
-    ].map(escaparCampo).join(',');
+      TIPO_LABEL_SINGULAR[snap.type] || snap.type,
+      snap.brand, snap.model, snap.variacao,
+      Math.abs(m.quantidade), m.preco_unitario, m.total, m.responsavel_email,
+    ];
   });
-
-  return [cabecalho.map(escaparCampo).join(','), ...linhas].join('\r\n');
-}
-
-function exportarHistoricoCSV() {
-  const filtrado = filtrarHistoricoAtual();
-
-  if (!filtrado.length) {
-    showToast('⚠️ Não há vendas para exportar nesse período.', 'warning');
-    return;
-  }
-
-  const csv = gerarCSVHistoricoVendas(filtrado);
-  const BOM_UTF8 = '﻿';
-  const blob = new Blob([BOM_UTF8 + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `vault-vendas-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
-  showToast('✅ CSV exportado com sucesso!', 'success');
+  const cabecalho = ['Data', 'Categoria', 'Marca', 'Modelo', 'Linha/Tipo', 'Quantidade', 'Preço unitário', 'Total', 'Vendido por'];
+  baixarArquivo(gerarCSV(cabecalho, linhas), `vault-vendas-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  showToast('Planilha de vendas exportada.', 'success');
 }
 
 async function carregarResumoVendas() {
-  const { data, error } = await supabaseClient
-    .from('movimentacoes_estoque')
-    .select('total, created_at')
-    .eq('loja_id', lojaAtual.id)
-    .eq('tipo', 'venda')
-    .gte('created_at', inicioDoDiaISO(31));
-
-  if (error) {
-    [DOM.resumoVendasHoje, DOM.resumoVendas7dias, DOM.resumoVendasMes].forEach(el => {
-      el.textContent = formatCurrency(0);
-    });
+  const { erro, vendas } = await buscarVendasEntre(new Date(inicioDoDiaISO(31)), null, 'total, created_at');
+  const alvos = [DOM.resumoVendasHoje, DOM.resumoVendas7dias, DOM.resumoVendasMes];
+  if (erro) {
+    alvos.forEach(el => { el.textContent = formatCurrency(0); });
     return;
   }
 
-  const hojeChave = new Date().toDateString();
+  const hojeChave = chaveDia(new Date());
   const seteDiasAtras = new Date(inicioDoDiaISO(6));
-  const inicioMes = new Date();
-  inicioMes.setDate(1);
-  inicioMes.setHours(0, 0, 0, 0);
+  const mes = inicioDoMes();
+  let hoje = 0, seteDias = 0, noMes = 0;
 
-  let hoje = 0;
-  let seteDias = 0;
-  let mes = 0;
-
-  data.forEach(m => {
-    const dataVenda = new Date(m.created_at);
+  vendas.forEach(m => {
+    const data = new Date(m.created_at);
     const valor = Number(m.total) || 0;
-    if (dataVenda.toDateString() === hojeChave) hoje += valor;
-    if (dataVenda >= seteDiasAtras) seteDias += valor;
-    if (dataVenda >= inicioMes) mes += valor;
+    if (chaveDia(data) === hojeChave) hoje += valor;
+    if (data >= seteDiasAtras) seteDias += valor;
+    if (data >= mes) noMes += valor;
   });
 
-  DOM.resumoVendasHoje.textContent = formatCurrency(hoje);
-  DOM.resumoVendas7dias.textContent = formatCurrency(seteDias);
-  DOM.resumoVendasMes.textContent = formatCurrency(mes);
+  animarContagem(DOM.resumoVendasHoje, hoje, formatCurrency);
+  animarContagem(DOM.resumoVendas7dias, seteDias, formatCurrency);
+  animarContagem(DOM.resumoVendasMes, noMes, formatCurrency);
 }
 
 async function atualizarAbaVendas() {
@@ -1694,188 +1086,195 @@ async function atualizarAbaVendas() {
   await carregarResumoVendas();
 }
 
-function obterHistoricoMetrica() {
-  // Nenhum histórico de séries temporais é persistido ainda (exigiria uma tabela de
-  // snapshots diários). Retorna null propositalmente para manter os sparklines ocultos
-  // graciosamente até essa base de dados existir.
-  return null;
-}
+// ============================================
+// NAVEGAÇÃO
+// ============================================
+// Menu: Início · Vender · Produtos · Análises · Gestão. Cada item agrupa uma ou mais
+// páginas (abas internas). "estoque-baixo" é a lista de produtos já filtrada.
 
-function renderSparklinesKPI() {
-  document.querySelectorAll('.kpi-sparkline').forEach(canvas => {
-    const historico = obterHistoricoMetrica(canvas.dataset.metric);
-    if (!historico || historico.length < 2) {
-      canvas.classList.add('hidden');
-      return;
-    }
+const NAV = {
+  inicio: { paginas: [['dashboard', 'Início']] },
+  vender: {
+    titulo: 'Vender',
+    desc: 'Registre vendas e acompanhe o histórico.',
+    paginas: [['vendas', 'Frente de caixa'], ['historico', 'Histórico']],
+  },
+  produtos: {
+    titulo: 'Produtos',
+    desc: 'Consulte e organize seu estoque.',
+    paginas: [['estoque', 'Todos os produtos'], ['cadastro', 'Cadastrar produto'], ['estoque-baixo', 'Estoque baixo']],
+  },
+  analises: {
+    titulo: 'Análises',
+    desc: 'Vendas, lucro, produtos e estoque em detalhe.',
+    paginas: [['analises', 'Análises']],
+  },
+  gestao: {
+    titulo: 'Gestão',
+    desc: 'Metas, equipe e configurações da loja.',
+    paginas: [['metas', 'Metas'], ['equipe', 'Equipe'], ['config', 'Configurações']],
+  },
+};
 
-    canvas.classList.remove('hidden');
-    new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: historico.map(() => ''),
-        datasets: [{ data: historico, borderColor: corVar('--color-primary', '#6366f1'), pointRadius: 0, tension: 0.4 }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: { x: { display: false }, y: { display: false } },
-      },
-    });
+const GRUPO_DA_ABA = {
+  dashboard: 'inicio', vendas: 'vender', historico: 'vender',
+  estoque: 'produtos', cadastro: 'produtos', 'estoque-baixo': 'produtos',
+  analises: 'analises', metas: 'gestao', equipe: 'gestao', config: 'gestao',
+};
+
+// Vendedor só acessa Vender (o RLS do Supabase é a barreira real; aqui é só para não
+// mostrar o que a pessoa não pode usar).
+const ABAS_VENDEDOR = ['vendas', 'historico'];
+
+function abasPermitidas() {
+  const tipo = lojaAtual?.tipo_negocio || 'ambos';
+  const comVenda = ['revenda', 'ambos'].includes(tipo);
+  return Object.keys(GRUPO_DA_ABA).filter(aba => {
+    if (!souDono()) return ABAS_VENDEDOR.includes(aba);
+    if (!comVenda && ['vendas', 'historico', 'estoque', 'cadastro', 'estoque-baixo'].includes(aba)) return false;
+    return true;
   });
 }
 
-// Valor total de compra (custo × quantidade) e de venda (preço × quantidade) do estoque
-// atual. Custo desconhecido não vira zero: o total de compra fica marcado como
-// incompleto e o aviso leva para a lista de produtos sem custo.
-function renderValoresEstoque() {
-  const { compra, venda, pendentes, comCusto } = calcularValoresEstoque(products);
+function primeiraAbaDoGrupo(grupo) {
+  const permitidas = abasPermitidas();
+  return NAV[grupo].paginas.map(([aba]) => aba).find(aba => permitidas.includes(aba)) || null;
+}
 
-  animarContagem(DOM.dashValorVenda, venda, formatCurrency);
+function nomeUsuario() {
+  const doPerfil = usuarioAtual?.user_metadata?.nome;
+  if (doPerfil && String(doPerfil).trim()) return String(doPerfil).trim();
+  return nomeDoEmail(usuarioAtual?.email) || 'você';
+}
 
-  if (comCusto === 0 && pendentes > 0) {
-    DOM.dashValorCompra.classList.remove('loading');
-    cancelAnimationFrame(animacoesAtivas.get(DOM.dashValorCompra));
-    DOM.dashValorCompra.textContent = 'Custo pendente';
-    DOM.dashValorCompra.classList.add('dashboard-hero-amount--pendente');
+function primeiroNome() {
+  return nomeUsuario().split(/\s+/)[0];
+}
+
+function atualizarCabecalho() {
+  const grupo = GRUPO_DA_ABA[abaAtual];
+  if (grupo === 'inicio') {
+    DOM.pageTitle.textContent = `Olá, ${primeiroNome()}!`;
+    DOM.pageDesc.textContent = 'Confira o resumo da sua loja.';
   } else {
-    DOM.dashValorCompra.classList.remove('dashboard-hero-amount--pendente');
-    animarContagem(DOM.dashValorCompra, compra, formatCurrency);
+    DOM.pageTitle.textContent = NAV[grupo].titulo;
+    DOM.pageDesc.textContent = NAV[grupo].desc;
   }
 
-  DOM.dashCustoPendente.classList.toggle('hidden', pendentes === 0);
-  if (pendentes > 0) {
-    DOM.dashCustoPendenteTexto.textContent = comCusto === 0
-      ? `Nenhum produto em estoque tem preço de custo ainda (${pendentes} ${pluralize(pendentes, 'produto')}).`
-      : `${pendentes} ${pluralize(pendentes, 'produto')} sem preço de custo: o total de compra está incompleto.`;
+  DOM.acoesPagina.forEach(btn => {
+    const visivel = btn.dataset.acaoDe === abaAtual && (btn.id !== 'acao-nova-venda' || abasPermitidas().includes('vendas'));
+    btn.classList.toggle('visivel', visivel && souDono());
+  });
+}
+
+function abaVisivelNoSubmenu() {
+  if (abaAtual === 'estoque' && DOM.filterStock.value === 'low') return 'estoque-baixo';
+  return abaAtual;
+}
+
+function renderSubtabs() {
+  const grupo = GRUPO_DA_ABA[abaAtual];
+  const permitidas = abasPermitidas();
+  const paginas = NAV[grupo].paginas.filter(([aba]) => permitidas.includes(aba));
+
+  if (paginas.length < 2) {
+    DOM.subtabs.classList.add('hidden');
+    DOM.subtabs.innerHTML = '';
+    return;
   }
-}
 
-async function updateDashboard() {
-  const [vendasHojeEOntem, ticketMedio, vendas7dias] = await Promise.all([
-    buscarVendasHojeEOntem(),
-    buscarTicketMedio(),
-    buscarVendas7Dias(),
-  ]);
-
-  animarContagem(DOM.dashVendasHoje, vendasHojeEOntem.hoje.quantidade);
-  DOM.dashVendasHojeValor.textContent = formatCurrency(vendasHojeEOntem.hoje.valor);
-  renderVendasHojeTrend(vendasHojeEOntem.hoje.valor, vendasHojeEOntem.ontem.valor);
-  animarContagem(DOM.dashTicketMedio, ticketMedio, formatCurrency);
-  renderVendas7DiasChart(vendas7dias);
-  renderSparklinesKPI();
-
-  const total = products.length;
-  const lowStock = products.filter(p => situacaoEstoque(p) === 'baixo').length;
-  const zeroStock = products.filter(p => situacaoEstoque(p) === 'zerado').length;
-  const saudavel = Math.max(total - lowStock - zeroStock, 0);
-
-  animarContagem(DOM.dashTotal, total);
-  renderValoresEstoque();
-  renderVaultDial(DOM.vaultDialContainer, { saudavel, baixo: lowStock, zerado: zeroStock });
-  renderVaultDialLegend(DOM.vaultDialLegend, { saudavel, baixo: lowStock, zerado: zeroStock });
-  renderTop5MarcasValorList();
-  renderLowStockList();
-}
-
-// ============================================
-// UI & NAVIGATION
-// ============================================
-
-const TITULOS_PAGINA = {
-  dashboard: { titulo: 'Dashboard', subtitulo: 'Visão geral da loja' },
-  cadastro: { titulo: 'Cadastro de produtos', subtitulo: 'Cadastre vários modelos de uma vez' },
-  estoque: { titulo: 'Estoque', subtitulo: 'Controle e consulta de estoque' },
-  vendas: { titulo: 'Vendas', subtitulo: 'Registre vendas e acompanhe o histórico' },
-  equipe: { titulo: 'Equipe', subtitulo: 'Gerencie quem tem acesso à loja' },
-};
-
-function atualizarTituloPagina(tabId) {
-  const info = TITULOS_PAGINA[tabId];
-  if (!info) return;
-  DOM.headerPageTitle.textContent = info.titulo;
-  DOM.headerPageSubtitle.textContent = info.subtitulo;
+  const ativa = abaVisivelNoSubmenu();
+  const baixos = products.filter(p => situacaoEstoque(p) === 'baixo').length;
+  DOM.subtabs.classList.remove('hidden');
+  DOM.subtabs.innerHTML = paginas.map(([aba, rotulo]) => {
+    const contador = aba === 'estoque-baixo' && baixos ? `<span class="badge badge-baixo">${baixos}</span>` : '';
+    const rotuloFinal = aba === 'cadastro' && typeof estaEditandoProduto === 'function' && estaEditandoProduto() ? 'Editar produto' : rotulo;
+    return `<button type="button" class="subtab ${aba === ativa ? 'active' : ''}" data-subtab="${aba}" ${aba === ativa ? 'aria-current="page"' : ''}>${rotuloFinal}${contador}</button>`;
+  }).join('');
 }
 
 function changeTab(tabId) {
-  DOM.navItems.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
-  DOM.panels.forEach(panel => panel.classList.toggle('active', panel.id === tabId));
-  moverIndicadorAtivo(tabId);
-  atualizarTituloPagina(tabId);
+  let destino = tabId;
 
-  if (tabId === 'equipe') renderEquipe();
-  if (tabId === 'vendas') atualizarAbaVendas();
-
-  const activePanel = document.getElementById(tabId);
-  if (activePanel) {
-    activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // "Estoque baixo" é a lista de produtos com o filtro de estoque baixo.
+  if (destino === 'estoque-baixo') {
+    DOM.filterStock.value = 'low';
+    applyFilters();
+    destino = 'estoque';
   }
 
-  if (window.innerWidth <= 760) {
-    DOM.sidebar.classList.remove('active');
+  if (!abasPermitidas().includes(destino)) {
+    destino = abasPermitidas()[0] || 'vendas';
   }
-}
 
-function moverIndicadorAtivo(tabId) {
-  const btnAtivo = Array.from(DOM.navItems).find(btn => btn.dataset.tab === tabId);
-  if (!btnAtivo || !DOM.navIndicator) return;
+  const anterior = abaAtual;
+  if (anterior === 'cadastro' && destino !== 'cadastro' && typeof cadastroAoSair === 'function') cadastroAoSair();
 
-  // btnAtivo.offsetTop já é relativo ao .sidebar-nav (offsetParent), que corresponde
-  // à posição estática "top: 16px" do indicador — por isso o deslocamento é a diferença.
-  DOM.navIndicator.style.height = `${btnAtivo.offsetHeight}px`;
-  DOM.navIndicator.style.transform = `translateY(${btnAtivo.offsetTop - 16}px)`;
-}
-
-function toggleSidebar() {
-  DOM.sidebar.classList.toggle('active');
-  DOM.sidebarBackdrop.classList.toggle('active');
-}
-
-function closeSidebar() {
-  DOM.sidebar.classList.remove('active');
-  DOM.sidebarBackdrop.classList.remove('active');
-}
-
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = current === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  saveTheme(newTheme);
-}
-
-// ============================================
-// MODAL DE CONFIRMAÇÃO
-// ============================================
-
-function abrirModalConfirmacao({ titulo, mensagem, textoConfirmar = 'Confirmar', aoConfirmar }) {
-  DOM.modalBody.innerHTML = `
-    <h3 class="modal-title">${esc(titulo)}</h3>
-    <p class="modal-message">${esc(mensagem)}</p>
-    <div class="modal-actions">
-      <button type="button" class="secondary" id="modal-cancel-btn">Cancelar</button>
-      <button type="button" class="danger" id="modal-confirm-btn">${textoConfirmar}</button>
-    </div>
-  `;
-
-  DOM.modalBody.querySelector('#modal-cancel-btn').addEventListener('click', fecharModal);
-  DOM.modalBody.querySelector('#modal-confirm-btn').addEventListener('click', () => {
-    fecharModal();
-    aoConfirmar();
+  abaAtual = destino;
+  const grupo = GRUPO_DA_ABA[destino];
+  DOM.navItems.forEach(btn => {
+    const ativo = btn.dataset.nav === grupo;
+    btn.classList.toggle('active', ativo);
+    if (ativo) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
   });
+  DOM.panels.forEach(panel => panel.classList.toggle('active', panel.id === destino));
 
-  abrirModal();
+  atualizarCabecalho();
+  renderSubtabs();
+
+  if (destino === 'vendas' && typeof renderPdv === 'function') renderPdv();
+  if (destino === 'historico') atualizarAbaVendas();
+  if (destino === 'equipe') renderEquipe();
+  if (destino === 'analises' && typeof carregarAnalises === 'function') carregarAnalises();
+  if (destino === 'metas' && typeof renderMetas === 'function') renderMetas();
+  if (destino === 'config' && typeof renderConfig === 'function') renderConfig();
+  if (destino === 'cadastro' && typeof cadastroAoEntrar === 'function') cadastroAoEntrar();
+
+  if (anterior !== destino) window.scrollTo({ top: 0, behavior: prefereMenosMovimento() ? 'auto' : 'smooth' });
 }
+
+function handleCliqueSubtab(e) {
+  const btn = e.target.closest('[data-subtab]');
+  if (!btn) return;
+  const aba = btn.dataset.subtab;
+  // Sair de "Estoque baixo" para "Todos os produtos" tira o filtro.
+  if (aba === 'estoque' && DOM.filterStock.value === 'low') {
+    DOM.filterStock.value = '';
+    applyFilters();
+  }
+  changeTab(aba);
+}
+
+function aplicarPermissoesNaTela() {
+  const permitidas = abasPermitidas();
+  DOM.navItems.forEach(btn => {
+    const temAlguma = NAV[btn.dataset.nav].paginas.some(([aba]) => permitidas.includes(aba));
+    btn.classList.toggle('hidden', !temAlguma);
+  });
+  document.body.classList.toggle('papel-vendedor', !souDono());
+}
+
+// ============================================
+// MODAL
+// ============================================
 
 let timerFechamentoModal = null;
+let focoAntesDoModal = null;
 
-function abrirModal() {
+function abrirModal(html, { largo = false } = {}) {
+  if (html !== undefined) DOM.modalBody.innerHTML = html;
   // Se um modal acabou de fechar, cancela o fim da animação dele — senão o timer
-  // fecharia este que está abrindo agora (ex.: escolha de IMEI → recibo).
+  // fecharia este que está abrindo agora (ex.: confirmação → recibo).
   clearTimeout(timerFechamentoModal);
+  focoAntesDoModal = document.activeElement;
   DOM.modalContent.classList.remove('closing');
+  DOM.modalContent.classList.toggle('modal-content--wide', largo);
   DOM.modalBackdrop.classList.add('active');
   DOM.modal.classList.add('active');
+  requestAnimationFrame(() => {
+    const alvo = DOM.modalBody.querySelector('[autofocus], input, .btn-primary, .btn-danger, button');
+    alvo?.focus();
+  });
 }
 
 function fecharModal() {
@@ -1886,27 +1285,53 @@ function fecharModal() {
   timerFechamentoModal = setTimeout(() => {
     DOM.modal.classList.remove('active');
     DOM.modalContent.classList.remove('closing');
+    focoAntesDoModal?.focus?.();
   }, 150);
 }
 
-function showToast(message, type = 'info', duration = 3000) {
+function abrirModalConfirmacao({ titulo, mensagem, textoConfirmar = 'Confirmar', aoConfirmar, perigo = true }) {
+  abrirModal(`
+    <h3 class="modal-title">${esc(titulo)}</h3>
+    <p class="modal-message">${esc(mensagem)}</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Cancelar</button>
+      <button type="button" class="btn ${perigo ? 'btn-danger' : 'btn-primary'}" id="modal-confirm-btn">${esc(textoConfirmar)}</button>
+    </div>
+  `);
+
+  DOM.modalBody.querySelector('#modal-cancel-btn').addEventListener('click', fecharModal);
+  DOM.modalBody.querySelector('#modal-confirm-btn').addEventListener('click', () => {
+    fecharModal();
+    aoConfirmar();
+  });
+}
+
+// ============================================
+// AVISOS (toasts)
+// ============================================
+
+const TOAST_ICONES = { success: 'ti-check', error: 'ti-x', warning: 'ti-alert-triangle', info: 'ti-info-small' };
+
+function showToast(message, type = 'info', duration = 3200) {
+  // Mensagens antigas vinham com emoji na frente; o ícone do aviso já faz esse papel.
+  const texto = String(message).replace(/^[\s✅❌⚠️📋🎉️]+/u, '');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
+  toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
   toast.innerHTML = `
-    <div class="toast-icon"></div>
-    <div class="toast-message">${esc(message)}</div>
+    <span class="toast-icone"><i class="ti ${TOAST_ICONES[type] || TOAST_ICONES.info}"></i></span>
+    <div class="toast-message">${esc(texto)}</div>
   `;
-  
   DOM.toastContainer.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.classList.add('removing');
-    setTimeout(() => toast.remove(), 300);
+    setTimeout(() => toast.remove(), 220);
   }, duration);
 }
 
 // ============================================
-// AUTH / MULTI-TENANT (loja atual)
+// LOGIN E LOJA
 // ============================================
 
 let modoCadastro = false;
@@ -1915,16 +1340,6 @@ function mostrarTela(nome) {
   DOM.loginScreen.classList.toggle('active', nome === 'login');
   DOM.onboardingScreen.classList.toggle('active', nome === 'onboarding');
   DOM.appContainer.classList.toggle('active', nome === 'app');
-
-  if (nome === 'app') {
-    // A sidebar só existe em layout (display:flex) a partir daqui — antes disso,
-    // qualquer offsetTop/offsetHeight medido dá 0, e é por isso que o indicador da aba
-    // ativa (a pílula atrás de "Dashboard") nascia com altura zero e ficava invisível
-    // até a pessoa clicar em outra aba pra recalcular. Recalcula agora que dá pra medir.
-    requestAnimationFrame(() => {
-      moverIndicadorAtivo(document.querySelector('.nav-item.active')?.dataset.tab || 'dashboard');
-    });
-  }
 }
 
 function aplicarModoLogin(cadastro) {
@@ -1933,80 +1348,70 @@ function aplicarModoLogin(cadastro) {
   DOM.loginSubmitBtn.textContent = modoCadastro ? 'Criar conta' : 'Entrar';
   DOM.loginToggleText.textContent = modoCadastro ? 'Já tem conta?' : 'Ainda não tem conta?';
   DOM.loginToggleMode.textContent = modoCadastro ? 'Entrar' : 'Criar conta';
-}
-
-function handleLoginToggleMode() {
-  aplicarModoLogin(!modoCadastro);
+  DOM.loginPassword.autocomplete = modoCadastro ? 'new-password' : 'current-password';
 }
 
 async function handleAuthSubmit(event) {
   event.preventDefault();
-
   const email = DOM.loginEmail.value.trim();
   const senha = DOM.loginPassword.value;
+  DOM.loginSubmitBtn.disabled = true;
 
-  if (modoCadastro) {
-    const { data, error } = await cadastrarUsuario(email, senha);
+  try {
+    if (modoCadastro) {
+      const { data, error } = await cadastrarUsuario(email, senha);
+      if (error) {
+        showToast(error.message, 'error');
+        return;
+      }
+      if (!data.session) {
+        showToast('Conta criada! Confirme seu e-mail e depois entre.', 'success', 5000);
+        aplicarModoLogin(false);
+        DOM.loginForm.reset();
+        return;
+      }
+      await carregarContextoLoja(data.user);
+      return;
+    }
+
+    const { data, error } = await entrarComSenha(email, senha);
     if (error) {
-      showToast(`❌ ${error.message}`, 'error');
+      showToast('E-mail ou senha inválidos.', 'error');
       return;
     }
-
-    if (!data.session) {
-      showToast('✅ Conta criada! Confirme seu e-mail e depois faça login.', 'success');
-      aplicarModoLogin(false);
-      DOM.loginForm.reset();
-      return;
-    }
-
     await carregarContextoLoja(data.user);
-    return;
+  } finally {
+    DOM.loginSubmitBtn.disabled = false;
   }
-
-  const { data, error } = await entrarComSenha(email, senha);
-  if (error) {
-    showToast('❌ E-mail ou senha inválidos.', 'error');
-    return;
-  }
-
-  await carregarContextoLoja(data.user);
 }
 
 async function handleOnboardingSubmit(event) {
   event.preventDefault();
-
   const nome = DOM.onboardingNome.value.trim();
   const tipo = DOM.onboardingTipo.value;
 
   if (!nome) {
-    showToast('❌ Informe o nome da loja.', 'error');
+    showToast('Informe o nome da loja.', 'error');
     return;
   }
 
   const resultado = await criarLojaEVincularDono(nome, tipo, usuarioAtual);
   if (resultado.error) {
     console.error('Erro ao criar a loja:', resultado.error);
-    showToast(`❌ Erro ao criar a loja: ${resultado.error.message}`, 'error');
+    showToast(`Não foi possível criar a loja: ${resultado.error.message}`, 'error', 5000);
     return;
   }
 
   lojaAtual = resultado.loja;
   membroAtual = resultado.membro;
-
-  mostrarTela('app');
-  atualizarCabecalhoLoja();
-  aplicarGatingDeModulos();
-  await carregarDadosDoApp();
-  showToast(`✅ Loja "${lojaAtual.nome}" criada!`, 'success');
+  await entrarNoApp();
+  showToast(`Loja "${lojaAtual.nome}" criada!`, 'success');
 }
 
 async function carregarContextoLoja(usuario) {
   usuarioAtual = usuario;
   membroAtual = await buscarMembroDoUsuario(usuario.id);
-
-  if (!membroAtual) {
-    membroAtual = await aceitarConviteSeExistir(usuario);
-  }
+  if (!membroAtual) membroAtual = await aceitarConviteSeExistir(usuario);
 
   if (!membroAtual) {
     mostrarTela('onboarding');
@@ -2014,22 +1419,25 @@ async function carregarContextoLoja(usuario) {
   }
 
   lojaAtual = await buscarLoja(membroAtual.loja_id);
-  mostrarTela('app');
-  atualizarCabecalhoLoja();
-  aplicarGatingDeModulos();
-  await carregarDadosDoApp();
+  await entrarNoApp();
+}
 
-  // Vendedor não tem Dashboard no menu — a tela inicial já cai direto em Vendas.
-  if (membroAtual.papel === 'vendedor') {
-    changeTab('vendas');
-  }
+async function entrarNoApp() {
+  mostrarTela('app');
+  atualizarIdentidade();
+  aplicarPermissoesNaTela();
+  changeTab(souDono() ? 'dashboard' : 'vendas');
+  await carregarDadosDoApp();
 }
 
 async function carregarDadosDoApp() {
   renderSkeletonRows();
-  renderDashboardSkeleton();
-  await loadProducts();
+  if (typeof renderDashboardSkeleton === 'function') renderDashboardSkeleton();
+  await Promise.all([loadProducts(), carregarCatalogo()]);
   applyFilters();
+  renderSubtabs();
+  if (typeof renderPdv === 'function') renderPdv();
+  if (typeof cadastroAoCarregar === 'function') cadastroAoCarregar();
   updateDashboard();
 }
 
@@ -2039,58 +1447,77 @@ async function iniciarSessao() {
     mostrarTela('login');
     return;
   }
-
   await carregarContextoLoja(sessao.user);
 }
 
-function obterIniciaisLoja(nome) {
-  if (!nome) return '--';
-  const palavras = nome.trim().split(/\s+/).filter(Boolean);
-  if (palavras.length === 1) return palavras[0].slice(0, 2).toUpperCase();
-  return (palavras[0][0] + palavras[1][0]).toUpperCase();
-}
-
-function atualizarCabecalhoLoja() {
+function atualizarIdentidade() {
+  const nome = nomeUsuario();
+  const iniciais = obterIniciaisPessoa(nome);
   DOM.lojaAtualNome.textContent = lojaAtual ? lojaAtual.nome : '';
-  DOM.dashboardSaudacao.textContent = lojaAtual ? `Olá, ${lojaAtual.nome}!` : '';
-  DOM.userDisplay.textContent = usuarioAtual ? usuarioAtual.email : '';
-  DOM.headerAvatar.textContent = obterIniciaisLoja(lojaAtual?.nome);
+  DOM.sidebarUserName.textContent = nome;
+  DOM.sidebarAvatar.textContent = iniciais;
+  DOM.mobileAvatar.textContent = iniciais;
+  if (GRUPO_DA_ABA[abaAtual] === 'inicio') atualizarCabecalho();
 }
 
 function souDono() {
   return membroAtual?.papel === 'dono';
 }
 
-function aplicarGatingDeModulos() {
-  const tipo = lojaAtual?.tipo_negocio || 'ambos';
-  const modulosRestritosPorTipoNegocio = {
-    cadastro: ['revenda', 'ambos'],
-    estoque: ['revenda', 'ambos'],
-    vendas: ['revenda', 'ambos'],
-  };
+// Conta: nome de exibição (fica no perfil do usuário no Supabase Auth), loja e sair.
+function abrirModalConta() {
+  abrirModal(`
+    <div class="detalhe-topo">
+      <span class="avatar">${esc(obterIniciaisPessoa(nomeUsuario()))}</span>
+      <div>
+        <h3 class="modal-title" style="padding:0">Minha conta</h3>
+        <p class="card-desc">${esc(usuarioAtual?.email || '')}</p>
+      </div>
+    </div>
+    <form class="modal-form" id="conta-form">
+      <label class="field">
+        <span class="field-label">Como quer ser chamado?</span>
+        <input type="text" id="conta-nome" maxlength="40" value="${esc(usuarioAtual?.user_metadata?.nome || '')}" placeholder="${esc(nomeDoEmail(usuarioAtual?.email))}" />
+      </label>
+      <dl class="detalhe-lista">
+        <div><dt>Loja</dt><dd>${esc(lojaAtual?.nome || '')}</dd></div>
+        <div><dt>Perfil</dt><dd>${esc(PAPEL_LABELS[membroAtual?.papel] || '')}</dd></div>
+      </dl>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="conta-sair" style="margin-right:auto"><i class="ti ti-logout"></i>Sair</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  `);
 
-  // Vendedor só acessa Vendas, independente do tipo de negócio da loja — a real barreira
-  // de permissão é o RLS no Supabase, isso aqui só evita mostrar botão pra algo que a
-  // pessoa não pode usar.
-  const souVendedor = membroAtual?.papel === 'vendedor';
-  const modulosPermitidosVendedor = ['vendas'];
-
-  DOM.navItems.forEach(btn => {
-    const tab = btn.dataset.tab;
-    const permitidoPorTipoNegocio = !modulosRestritosPorTipoNegocio[tab] || modulosRestritosPorTipoNegocio[tab].includes(tipo);
-    const permitidoPorPapel = !souVendedor || modulosPermitidosVendedor.includes(tab);
-    btn.classList.toggle('hidden', !(permitidoPorTipoNegocio && permitidoPorPapel));
+  DOM.modalBody.querySelector('#conta-sair').addEventListener('click', () => { fecharModal(); handleLogout(); });
+  DOM.modalBody.querySelector('#conta-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = DOM.modalBody.querySelector('#conta-nome').value.trim().slice(0, 40);
+    const { data, error } = await supabaseClient.auth.updateUser({ data: { nome } });
+    if (error) {
+      showToast('Não foi possível salvar o nome.', 'error');
+      return;
+    }
+    if (data?.user) usuarioAtual = data.user;
+    else usuarioAtual = { ...usuarioAtual, user_metadata: { ...(usuarioAtual.user_metadata || {}), nome } };
+    atualizarIdentidade();
+    fecharModal();
+    showToast('Nome atualizado.', 'success');
   });
 }
 
 function handleLogout() {
   abrirModalConfirmacao({
-    titulo: 'Sair',
-    mensagem: 'Tem certeza que deseja sair?',
+    titulo: 'Sair da conta?',
+    mensagem: 'Você vai precisar do e-mail e da senha para entrar de novo.',
     textoConfirmar: 'Sair',
+    perigo: false,
     aoConfirmar: async () => {
       await sair();
       products = [];
+      produtosArquivados = [];
+      if (typeof limparCarrinho === 'function') limparCarrinho();
       DOM.loginForm.reset();
       aplicarModoLogin(false);
       mostrarTela('login');
@@ -2109,7 +1536,10 @@ function podeGerenciarEquipe() {
 
 function sincronizarPapelSelector() {
   const papel = DOM.invitePapel.value;
-  DOM.papelOptions.forEach(btn => btn.classList.toggle('active', btn.dataset.papel === papel));
+  DOM.papelOptions.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.papel === papel);
+    btn.setAttribute('aria-checked', String(btn.dataset.papel === papel));
+  });
   DOM.papelDescricao.textContent = PAPEL_DESCRICOES[papel] || '';
 }
 
@@ -2119,125 +1549,100 @@ function selecionarPapelConvite(papel) {
 }
 
 function renderBadgePapel(papel) {
-  const classe = papel === 'dono' ? 'badge-papel--dono' : 'badge-papel--vendedor';
-  return `<span class="badge-papel ${classe}">${esc(PAPEL_LABELS[papel] || papel)}</span>`;
+  const classe = papel === 'dono' ? 'badge-roxo' : 'badge-blue';
+  return `<span class="badge badge-plain ${classe}">${esc(PAPEL_LABELS[papel] || papel)}</span>`;
 }
 
 async function renderEquipe() {
   DOM.inviteForm.classList.toggle('hidden', !podeGerenciarEquipe());
+  DOM.equipeTableBody.innerHTML = '<tr><td colspan="5"><span class="skeleton" style="height:14px;width:40%"></span></td></tr>';
 
   const [membros, convites] = await Promise.all([
     buscarMembrosDaLoja(lojaAtual.id),
     podeGerenciarEquipe() ? buscarConvitesPendentes(lojaAtual.id) : Promise.resolve([]),
   ]);
 
-  DOM.equipeTableBody.innerHTML = '';
-
-  membros.forEach(m => {
-    const tr = document.createElement('tr');
-    const desde = new Date(m.created_at).toLocaleDateString('pt-BR');
-
-    tr.innerHTML = `
-      <td>${renderPessoaChip(m.email)}</td>
-      <td>${renderBadgePapel(m.papel)}</td>
-      <td>${desde}</td>
-      <td class="product-actions"></td>
-    `;
-
-    const acoesCellMembro = tr.querySelector('td:last-child');
-    acoesCellMembro.innerHTML = '<span class="action-spacer"></span>';
-
-    if (podeGerenciarEquipe() && m.usuario_id !== usuarioAtual.id) {
-      const btnRemover = document.createElement('button');
-      btnRemover.className = 'delete';
-      btnRemover.title = 'Remover membro';
-      btnRemover.innerHTML = ICONES_ACAO.excluir;
-      btnRemover.addEventListener('click', () => removerMembroDaEquipe(m));
-      acoesCellMembro.appendChild(btnRemover);
-    } else {
-      acoesCellMembro.insertAdjacentHTML('beforeend', '<span class="action-spacer"></span>');
-    }
-
-    DOM.equipeTableBody.appendChild(tr);
+  const linhasMembros = membros.map(m => {
+    const ehVoce = m.usuario_id === usuarioAtual.id;
+    const nome = ehVoce ? nomeUsuario() : null;
+    const podeRemover = podeGerenciarEquipe() && !ehVoce;
+    return `
+      <tr>
+        <td data-label="" class="td-titulo">${renderPessoaChip(m.email, nome)}${ehVoce ? ' <span class="texto-muted">(você)</span>' : ''}</td>
+        <td data-label="Perfil">${renderBadgePapel(m.papel)}</td>
+        <td data-label="Situação"><span class="badge badge-ok">Ativo</span></td>
+        <td data-label="Desde">${new Date(m.created_at).toLocaleDateString('pt-BR')}</td>
+        <td data-label=""><div class="acoes">${podeRemover ? `<button type="button" class="icon-btn icon-btn--danger" data-remover-membro="${esc(m.id)}" title="Remover da equipe" aria-label="Remover ${esc(m.email)}"><i class="ti ti-user-minus"></i></button>` : ''}</div></td>
+      </tr>`;
   });
 
-  convites.forEach(c => {
-    const tr = document.createElement('tr');
-    const enviado = new Date(c.created_at).toLocaleDateString('pt-BR');
+  const linhasConvites = convites.map(c => `
+      <tr>
+        <td data-label="" class="td-titulo">
+          <span class="vendedor-chip"><span class="avatar avatar--sm avatar--soft"><i class="ti ti-mail"></i></span>${esc(c.email)}</span>
+        </td>
+        <td data-label="Perfil">${renderBadgePapel(c.papel)}</td>
+        <td data-label="Situação"><span class="badge badge-baixo">Convite pendente</span></td>
+        <td data-label="Enviado">${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+        <td data-label="">
+          <div class="acoes">
+            <button type="button" class="icon-btn" data-reenviar="${esc(c.id)}" title="Reenviar convite" aria-label="Reenviar convite"><i class="ti ti-send"></i></button>
+            <button type="button" class="icon-btn icon-btn--danger" data-cancelar="${esc(c.id)}" title="Cancelar convite" aria-label="Cancelar convite"><i class="ti ti-x"></i></button>
+          </div>
+        </td>
+      </tr>`);
 
-    tr.innerHTML = `
-      <td>
-        <span class="vendedor-chip">
-          <span class="vendedor-avatar vendedor-avatar--pendente"><i class="ti ti-clock"></i></span>
-          <span>
-            ${esc(c.email)}
-            <span class="convite-pendente-texto">Convite pendente</span>
-          </span>
-        </span>
-      </td>
-      <td>${renderBadgePapel(c.papel)}</td>
-      <td>${enviado}</td>
-      <td class="product-actions"></td>
-    `;
-
-    const acoesCell = tr.querySelector('td:last-child');
-
-    const btnReenviar = document.createElement('button');
-    btnReenviar.title = 'Reenviar convite';
-    btnReenviar.innerHTML = '<i class="ti ti-send"></i>';
-    btnReenviar.addEventListener('click', () => reenviarConvite(c));
-    acoesCell.appendChild(btnReenviar);
-
-    const btnCancelar = document.createElement('button');
-    btnCancelar.className = 'delete';
-    btnCancelar.title = 'Cancelar convite';
-    btnCancelar.innerHTML = ICONES_ACAO.excluir;
-    btnCancelar.addEventListener('click', () => cancelarConviteNaTela(c));
-    acoesCell.appendChild(btnCancelar);
-
-    DOM.equipeTableBody.appendChild(tr);
-  });
+  DOM.equipeTableBody.innerHTML = [...linhasMembros, ...linhasConvites].join('');
+  DOM.equipeTableBody.onclick = (e) => {
+    const remover = e.target.closest('[data-remover-membro]');
+    const reenviar = e.target.closest('[data-reenviar]');
+    const cancelar = e.target.closest('[data-cancelar]');
+    if (remover) removerMembroDaEquipe(membros.find(m => String(m.id) === remover.dataset.removerMembro));
+    if (reenviar) reenviarConvite(convites.find(c => String(c.id) === reenviar.dataset.reenviar));
+    if (cancelar) cancelarConviteNaTela(convites.find(c => String(c.id) === cancelar.dataset.cancelar));
+  };
 }
 
 function removerMembroDaEquipe(membro) {
+  if (!membro) return;
   abrirModalConfirmacao({
-    titulo: 'Remover membro',
-    mensagem: `Tem certeza que deseja remover ${membro.email} da equipe?`,
+    titulo: 'Remover da equipe?',
+    mensagem: `${membro.email} perde o acesso à loja.`,
     textoConfirmar: 'Remover',
     aoConfirmar: async () => {
-      const ok = await removerMembro(membro.id);
-      if (!ok) {
-        showToast('❌ Erro ao remover membro.', 'error');
+      if (!(await removerMembro(membro.id))) {
+        showToast('Não foi possível remover.', 'error');
         return;
       }
-      showToast('✅ Membro removido.', 'success');
+      showToast('Pessoa removida da equipe.', 'success');
       renderEquipe();
     },
   });
 }
 
 async function reenviarConvite(convite) {
+  if (!convite) return;
   const resultado = await convidarMembro(convite.email, convite.papel, lojaAtual.id);
   if (resultado.error) {
-    showToast(`❌ ${resultado.error}`, 'error');
+    showToast(resultado.error, 'error');
     return;
   }
-  showToast(`✅ Convite reenviado para ${convite.email}!`, 'success');
+  showToast(`Convite reenviado para ${convite.email}.`, 'success');
   renderEquipe();
 }
 
 function cancelarConviteNaTela(convite) {
+  if (!convite) return;
   abrirModalConfirmacao({
-    titulo: 'Cancelar convite',
-    mensagem: `Cancelar o convite pendente enviado para ${convite.email}?`,
+    titulo: 'Cancelar convite?',
+    mensagem: `O convite enviado para ${convite.email} deixa de valer.`,
     textoConfirmar: 'Cancelar convite',
     aoConfirmar: async () => {
-      const ok = await cancelarConvite(convite.id);
-      if (!ok) {
-        showToast('❌ Erro ao cancelar convite.', 'error');
+      if (!(await cancelarConvite(convite.id))) {
+        showToast('Não foi possível cancelar o convite.', 'error');
         return;
       }
-      showToast('✅ Convite cancelado.', 'success');
+      showToast('Convite cancelado.', 'success');
       renderEquipe();
     },
   });
@@ -2245,126 +1650,100 @@ function cancelarConviteNaTela(convite) {
 
 async function handleInviteSubmit(event) {
   event.preventDefault();
-
   const email = DOM.inviteEmail.value.trim();
   const papel = DOM.invitePapel.value;
 
   const resultado = await convidarMembro(email, papel, lojaAtual.id);
   if (resultado.error) {
-    showToast(`❌ ${resultado.error}`, 'error');
+    showToast(resultado.error, 'error');
     return;
   }
 
-  showToast(`✅ Convite enviado para ${email}!`, 'success');
+  showToast(`Convite enviado para ${email}.`, 'success');
   DOM.inviteForm.reset();
+  DOM.invitePapel.value = 'vendedor';
   sincronizarPapelSelector();
   renderEquipe();
 }
 
 // ============================================
-// EVENT LISTENERS
+// EVENTOS
 // ============================================
 
 function initEventListeners() {
-  // Auth
+  // Login
   DOM.loginForm.addEventListener('submit', handleAuthSubmit);
-  DOM.loginToggleMode.addEventListener('click', handleLoginToggleMode);
+  DOM.loginToggleMode.addEventListener('click', () => aplicarModoLogin(!modoCadastro));
   DOM.onboardingForm.addEventListener('submit', handleOnboardingSubmit);
   DOM.logoutButton.addEventListener('click', handleLogout);
-  DOM.themeToggle.addEventListener('click', toggleTheme);
+  DOM.sidebarUserBtn.addEventListener('click', abrirModalConta);
+  DOM.mobileAvatar.addEventListener('click', abrirModalConta);
+
+  // Navegação
+  DOM.navItems.forEach(btn => btn.addEventListener('click', () => {
+    const aba = primeiraAbaDoGrupo(btn.dataset.nav);
+    if (!aba) return;
+    // Voltar a "Produtos" pelo menu mostra todos (sem o filtro de estoque baixo).
+    if (aba === 'estoque' && DOM.filterStock.value === 'low') { DOM.filterStock.value = ''; applyFilters(); }
+    changeTab(aba);
+  }));
+  DOM.subtabs.addEventListener('click', handleCliqueSubtab);
+  $('acao-nova-venda').addEventListener('click', () => changeTab('vendas'));
+  $('acao-novo-produto').addEventListener('click', () => changeTab('cadastro'));
 
   // Equipe
   DOM.inviteForm.addEventListener('submit', handleInviteSubmit);
   DOM.papelOptions.forEach(btn => btn.addEventListener('click', () => selecionarPapelConvite(btn.dataset.papel)));
 
-  // Sidebar
-  DOM.menuToggle.addEventListener('click', toggleSidebar);
-  DOM.sidebarClose.addEventListener('click', closeSidebar);
-  DOM.navItems.forEach(btn => btn.addEventListener('click', () => changeTab(btn.dataset.tab)));
+  // Cadastro, início, frente de caixa, análises e gestão têm os próprios eventos.
+  if (typeof initCadastro === 'function') initCadastro();
+  if (typeof initDashboard === 'function') initDashboard();
+  if (typeof initPdv === 'function') initPdv();
+  if (typeof initAnalises === 'function') initAnalises();
+  if (typeof initGestao === 'function') initGestao();
 
-  // Cadastro: eventos próprios em cadastro.js
-  initCadastro();
-
-  // Dashboard: aviso de custo pendente leva direto à lista de produtos sem custo.
-  DOM.dashCustoPendenteLink.addEventListener('click', () => {
-    DOM.filterStock.value = 'sem_custo';
-    applyFilters();
-    changeTab('estoque');
-  });
-
-  // Filters - Stock
-  [DOM.filterSearch, DOM.filterBrand, DOM.filterStock].forEach(el => {
-    el.addEventListener('change', applyFilters);
-    el.addEventListener('input', applyFilters);
-  });
-  DOM.typeQuickfilterBtns.forEach(btn => btn.addEventListener('click', () => selecionarFiltroTipo(btn.dataset.type)));
+  // Produtos: busca, filtros, tabela
+  DOM.filterSearch.addEventListener('input', applyFilters);
+  [DOM.filterType, DOM.filterBrand, DOM.filterVariacao, DOM.filterStock].forEach(el => el.addEventListener('change', applyFilters));
   DOM.filtersToggleBtn.addEventListener('click', () => toggleFiltersPanel());
-  DOM.statusChips.addEventListener('click', (e) => {
-    const btn = e.target.closest('.status-chip');
-    if (btn) selecionarChipStatus(btn.dataset.stock);
-  });
+  DOM.filtersClear.addEventListener('click', clearAllFilters);
   DOM.exportCsvBtn.addEventListener('click', exportarEstoqueCSV);
-  DOM.exportHistoricoCsvBtn.addEventListener('click', exportarHistoricoCSV);
-
-  // Ordenação da tabela
+  DOM.productTableBody.addEventListener('click', handleCliqueTabelaProdutos);
+  DOM.produtosCards.addEventListener('click', handleCliqueTabelaProdutos);
+  DOM.produtosCards.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCliqueTabelaProdutos(e); }
+  });
   DOM.sortableHeaders.forEach(th => {
+    th.tabIndex = 0;
     th.addEventListener('click', () => ordenarPor(th.dataset.sort));
+    th.addEventListener('keydown', (e) => { if (e.key === 'Enter') ordenarPor(th.dataset.sort); });
   });
+  DOM.emptyStateCta.addEventListener('click', () => changeTab('cadastro'));
 
-  // Filters - Sales
-  DOM.filterSalesSearch.addEventListener('input', applyFilters);
-  DOM.filterSalesBrand.addEventListener('change', applyFilters);
-
-  // Filters - Histórico de vendas
+  // Histórico de vendas
   DOM.filterHistoricoSearch.addEventListener('input', renderHistoricoVendas);
-  DOM.filterHistoricoPeriodo.addEventListener('change', async () => {
-    await carregarHistoricoVendas();
-    updateHistoricoBrandFilter();
-    renderHistoricoVendas();
-  });
+  DOM.filterHistoricoPeriodo.addEventListener('change', atualizarAbaVendas);
   DOM.filterHistoricoBrand.addEventListener('change', renderHistoricoVendas);
-
-
-  // Close sidebar on outside click (mobile)
-  document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 760 && DOM.sidebar.classList.contains('active')) {
-      if (!DOM.sidebar.contains(e.target) && !DOM.menuToggle.contains(e.target)) {
-        closeSidebar();
-      }
-    }
-  });
-
-  DOM.sidebarBackdrop.addEventListener('click', closeSidebar);
+  DOM.exportHistoricoCsvBtn.addEventListener('click', exportarHistoricoCSV);
 
   // Modal
   DOM.modalClose.addEventListener('click', fecharModal);
   DOM.modalBackdrop.addEventListener('click', fecharModal);
+  DOM.modal.addEventListener('click', (e) => { if (e.target === DOM.modal) fecharModal(); });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && DOM.modal.classList.contains('active')) {
-      fecharModal();
-    }
+    if (e.key === 'Escape' && DOM.modal.classList.contains('active')) fecharModal();
   });
-
-  // Empty state CTA
-  DOM.emptyStateCta.addEventListener('click', () => changeTab('cadastro'));
-
-  // Dashboard - painéis de marcas e estoque baixo
-  DOM.dashboardBrandlistCta.addEventListener('click', () => changeTab('cadastro'));
-  DOM.lowStockVerTodos.addEventListener('click', irParaEstoqueBaixo);
 }
 
 // ============================================
-// INITIALIZATION
+// INÍCIO
 // ============================================
 
 async function init() {
-  loadTheme();
   initEventListeners();
   sincronizarPapelSelector();
   aplicarModoLogin(false);
-  moverIndicadorAtivo(document.querySelector('.nav-item.active')?.dataset.tab || 'dashboard');
   await iniciarSessao();
 }
 
-// Start app
 document.addEventListener('DOMContentLoaded', init);
