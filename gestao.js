@@ -29,8 +29,8 @@ async function renderMetas() {
   GST.remover.classList.toggle('hidden', !meta);
   GST.alcancado.classList.add('is-loading');
 
-  const { erro, vendas } = await buscarVendasEntre(inicioDoMes(), null, 'total');
-  const alcancado = vendas.reduce((s, m) => s + (Number(m.total) || 0), 0);
+  const { erro, vendas } = await buscarVendasEntre(inicioDoMes(), null);
+  const alcancado = reais(resumirLancamentos(vendas).faturamento);
   animarContagem(GST.alcancado, alcancado, formatCurrency);
 
   const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();

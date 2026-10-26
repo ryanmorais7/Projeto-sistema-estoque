@@ -4,13 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#101A32" />
-  <title>Vault Gestão</title>
-  <meta name="description" content="Vault Gestão: estoque, vendas e lucro para lojas de capinhas, películas e acessórios de celular." />
-  <meta property="og:title" content="Vault Gestão" />
-  <meta property="og:description" content="Estoque, vendas e lucro para lojas de acessórios de celular." />
+  <title>CASEON | Gestão inteligente</title>
+  <meta name="description" content="CASEON: gestão inteligente para lojas de tecnologia. Estoque, vendas, descontos, lucro e relatórios para lojas de capinhas, películas, acessórios e smartphones." />
+  <meta name="application-name" content="CASEON" />
+  <meta name="apple-mobile-web-app-title" content="CASEON" />
+  <meta property="og:title" content="CASEON | Gestão inteligente para lojas de tecnologia" />
+  <meta property="og:description" content="Estoque, vendas, lucro e relatórios para lojas de capinhas, películas, acessórios e smartphones." />
   <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233B6CFF'/%3E%3Cstop offset='1' stop-color='%237C5CFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M9 10l7 13 7-13' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <meta property="og:site_name" content="CASEON" />
+  <meta property="og:image" content="icon-512.png" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233B6CFF'/%3E%3Cstop offset='1' stop-color='%237C5CFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='60' height='60' rx='18' fill='url(%23g)'/%3E%3Cpath d='M41.6 22.4A13.6 13.6 0 1 0 41.6 41.6' fill='none' stroke='white' stroke-width='6.4' stroke-linecap='round'/%3E%3Ccircle cx='44.2' cy='32' r='3.9' fill='white'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -22,11 +27,11 @@
   <div class="auth-screen" id="login-screen">
     <div class="auth-card">
       <div class="auth-brand">
-        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
-        <span class="logo-text">VAULT</span>
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.6 8.4A5.1 5.1 0 1 0 15.6 15.6"/><circle cx="16.6" cy="12" r="1.45"/></svg></span>
+        <span class="logo-text">CASE<span class="logo-on">ON</span></span>
       </div>
       <h1 class="auth-title" id="login-subtitle">Entrar na sua conta</h1>
-      <p class="auth-desc">Estoque, vendas e lucro da sua loja num só lugar.</p>
+      <p class="auth-desc">Gestão inteligente para lojas de tecnologia.</p>
       <form id="login-form" class="auth-form">
         <label class="field">
           <span class="field-label">E-mail</span>
@@ -49,8 +54,8 @@
   <div class="auth-screen" id="onboarding-screen">
     <div class="auth-card">
       <div class="auth-brand">
-        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
-        <span class="logo-text">VAULT</span>
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.6 8.4A5.1 5.1 0 1 0 15.6 15.6"/><circle cx="16.6" cy="12" r="1.45"/></svg></span>
+        <span class="logo-text">CASE<span class="logo-on">ON</span></span>
       </div>
       <h1 class="auth-title">Vamos criar a sua loja</h1>
       <p class="auth-desc">Leva menos de um minuto.</p>
@@ -76,9 +81,8 @@
     <!-- Menu lateral (computador) -->
     <aside class="sidebar" id="sidebar" aria-label="Menu principal">
       <div class="sidebar-brand">
-        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
-        <span class="logo-text">VAULT</span>
-        <span class="logo-tag">Gestão</span>
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.6 8.4A5.1 5.1 0 1 0 15.6 15.6"/><circle cx="16.6" cy="12" r="1.45"/></svg></span>
+        <span class="logo-text">CASE<span class="logo-on">ON</span></span>
       </div>
       <nav class="sidebar-nav">
         <button type="button" class="nav-item" data-nav="inicio"><i class="ti ti-layout-dashboard"></i><span>Início</span></button>
@@ -103,8 +107,8 @@
       <!-- Barra do topo no celular -->
       <div class="mobile-topbar">
         <div class="sidebar-brand">
-          <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7l6 11 6-11"/></svg></span>
-          <span class="logo-text">VAULT</span>
+          <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.6 8.4A5.1 5.1 0 1 0 15.6 15.6"/><circle cx="16.6" cy="12" r="1.45"/></svg></span>
+          <span class="logo-text">CASE<span class="logo-on">ON</span></span>
         </div>
         <button type="button" class="avatar avatar-btn" id="mobile-avatar" aria-label="Minha conta">--</button>
       </div>
@@ -246,9 +250,42 @@
               <i class="ti ti-shopping-cart"></i>
               <p>Toque em um produto para adicionar.</p>
             </div>
+            <div class="pdv-extras" id="pdv-extras">
+              <div class="pdv-bloco">
+                <div class="pdv-bloco-head">
+                  <label class="field-label" for="pdv-desconto">Desconto</label>
+                  <div class="segmented segmented--sm" id="pdv-desconto-tipo" role="radiogroup" aria-label="Tipo de desconto">
+                    <button type="button" data-tipo="valor" class="active" aria-checked="true">R$</button>
+                    <button type="button" data-tipo="percentual" aria-checked="false">%</button>
+                  </div>
+                </div>
+                <div class="input-limpavel">
+                  <input type="text" inputmode="decimal" id="pdv-desconto" placeholder="Sem desconto" autocomplete="off" maxlength="12" />
+                  <button type="button" class="icon-btn hidden" id="pdv-desconto-limpar" aria-label="Remover desconto"><i class="ti ti-x"></i></button>
+                </div>
+                <p class="pdv-erro hidden" id="pdv-desconto-erro" role="alert"></p>
+              </div>
+              <div class="pdv-bloco">
+                <span class="field-label" id="pdv-pagamento-rotulo">Pagamento</span>
+                <div class="pagamento-grid" id="pdv-pagamento" role="radiogroup" aria-labelledby="pdv-pagamento-rotulo">
+                  <button type="button" data-forma="pix" aria-checked="false"><i class="ti ti-qrcode"></i>Pix</button>
+                  <button type="button" data-forma="dinheiro" aria-checked="false"><i class="ti ti-cash"></i>Dinheiro</button>
+                  <button type="button" data-forma="debito" aria-checked="false"><i class="ti ti-credit-card"></i>Débito</button>
+                  <button type="button" data-forma="credito" aria-checked="false"><i class="ti ti-credit-card-pay"></i>Crédito</button>
+                </div>
+                <div class="troco hidden" id="pdv-troco-bloco">
+                  <label class="troco-campo">
+                    <span>Valor recebido</span>
+                    <input type="text" inputmode="decimal" id="pdv-recebido" placeholder="Opcional" autocomplete="off" maxlength="12" />
+                  </label>
+                  <span class="troco-valor" id="pdv-troco" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
             <div class="pdv-totais">
               <div class="linha-valor"><span>Itens</span><span id="pdv-unidades">0</span></div>
               <div class="linha-valor"><span>Subtotal</span><span id="pdv-subtotal">R$ 0,00</span></div>
+              <div class="linha-valor linha-valor--desconto hidden" id="pdv-desconto-linha"><span>Desconto <small id="pdv-desconto-pct"></small></span><span id="pdv-desconto-valor"></span></div>
               <div class="linha-valor linha-valor--total"><span>Total</span><strong id="pdv-total">R$ 0,00</strong></div>
             </div>
             <button type="button" class="btn btn-primary btn-lg btn-block" id="pdv-finalizar" disabled><i class="ti ti-check"></i>Finalizar venda</button>
@@ -273,38 +310,48 @@
         <div class="toolbar">
           <div class="search">
             <i class="ti ti-search"></i>
-            <input type="search" id="filter-historico-search" placeholder="Buscar marca ou modelo..." />
+            <input type="search" id="hist-busca" placeholder="Buscar produto ou nº da venda (ex: 15)" />
           </div>
-          <select id="filter-historico-periodo" aria-label="Período">
+          <select id="hist-periodo" aria-label="Período">
+            <option value="hoje">Hoje</option>
+            <option value="ontem">Ontem</option>
             <option value="7">Últimos 7 dias</option>
             <option value="30" selected>Últimos 30 dias</option>
+            <option value="mes">Este mês</option>
+            <option value="mes_anterior">Mês anterior</option>
             <option value="90">Últimos 90 dias</option>
-            <option value="0">Tudo</option>
+            <option value="custom">Personalizado</option>
           </select>
-          <select id="filter-historico-brand" aria-label="Marca">
-            <option value="">Todas as marcas</option>
+          <select id="hist-forma" aria-label="Forma de pagamento">
+            <option value="">Todos os pagamentos</option>
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="debito">Débito</option>
+            <option value="credito">Crédito</option>
+            <option value="nao_informado">Não informado</option>
           </select>
-          <button type="button" class="icon-btn icon-btn--bordered" id="export-historico-csv-btn" title="Exportar CSV" aria-label="Exportar CSV"><i class="ti ti-download"></i></button>
+          <button type="button" class="icon-btn icon-btn--bordered" id="hist-csv" title="Exportar planilha (CSV)" aria-label="Exportar planilha"><i class="ti ti-table-export"></i></button>
         </div>
-        <div class="filter-chips hidden" id="filters-historico-chips"></div>
+        <div class="periodo-custom periodo-custom--toolbar hidden" id="hist-periodo-custom">
+          <input type="date" id="hist-de" aria-label="De" />
+          <span>até</span>
+          <input type="date" id="hist-ate" aria-label="Até" />
+        </div>
 
         <div class="card table-card">
           <div class="table-wrap">
-            <table class="table table--cards" id="historico-vendas-table">
+            <table class="table table--cards table--clicavel" id="hist-tabela">
               <thead>
-                <tr><th>Data</th><th>Produto</th><th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Total</th><th>Vendido por</th></tr>
+                <tr><th>Nº</th><th>Data</th><th>Produtos</th><th class="num">Qtd</th><th class="num col-subtotal">Subtotal</th><th class="num">Desconto</th><th class="num">Total</th><th>Pagamento</th><th>Vendedor</th><th>Situação</th></tr>
               </thead>
-              <tbody id="historico-vendas-body"></tbody>
-              <tfoot>
-                <tr class="hidden" id="historico-total-row"><td colspan="4">Total no período</td><td class="num" id="historico-total-valor"></td><td></td></tr>
-              </tfoot>
+              <tbody id="hist-corpo"></tbody>
             </table>
           </div>
-          <div class="empty hidden" id="historico-vendas-empty">
+          <div class="empty hidden" id="hist-vazio">
             <i class="ti ti-receipt-off"></i>
-            <p>Nenhuma venda nesse período.</p>
+            <p id="hist-vazio-texto">Nenhuma venda nesse período.</p>
           </div>
-          <div class="table-foot"><span id="historico-count">0 vendas no período</span></div>
+          <div class="table-foot"><span id="hist-contagem">0 vendas</span><strong id="hist-total"></strong></div>
         </div>
       </section>
 
@@ -316,7 +363,7 @@
             <input type="search" id="filter-search" placeholder="Buscar produto, marca, modelo ou linha..." />
           </div>
           <button type="button" class="btn btn-secondary" id="filters-toggle-btn" aria-expanded="false"><i class="ti ti-filter"></i>Filtrar<span class="badge badge-blue hidden" id="filters-count"></span></button>
-          <button type="button" class="icon-btn icon-btn--bordered" id="export-csv-btn" title="Exportar CSV" aria-label="Exportar CSV"><i class="ti ti-download"></i></button>
+          <button type="button" class="btn btn-secondary" id="pdf-estoque-btn" title="Relatório de estoque em PDF, com os filtros da tela"><i class="ti ti-file-type-pdf"></i>Baixar PDF</button>
         </div>
 
         <div class="card filters-panel hidden" id="filters-panel">
@@ -527,15 +574,75 @@
 
       <!-- ================= ANÁLISES ================= -->
       <section id="analises" class="tab-panel" aria-label="Análises">
-        <div class="toolbar toolbar--end">
-          <div class="segmented" id="analises-periodo" role="group" aria-label="Período">
-            <button type="button" data-dias="7">7 dias</button>
-            <button type="button" data-dias="30" class="active">30 dias</button>
-            <button type="button" data-dias="90">90 dias</button>
-            <button type="button" data-dias="mes">Este mês</button>
+        <div class="toolbar">
+          <select id="anl-periodo" aria-label="Período">
+            <option value="hoje">Hoje</option>
+            <option value="ontem">Ontem</option>
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="mes">Este mês</option>
+            <option value="mes_anterior">Mês anterior</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="custom">Personalizado</option>
+          </select>
+          <div class="periodo-custom hidden" id="anl-periodo-custom">
+            <input type="date" id="anl-de" aria-label="De" />
+            <span>até</span>
+            <input type="date" id="anl-ate" aria-label="Até" />
+          </div>
+          <button type="button" class="btn btn-secondary" id="anl-filtros-btn" aria-expanded="false"><i class="ti ti-filter"></i>Filtrar<span class="badge badge-blue hidden" id="anl-filtros-qtd"></span></button>
+          <div class="menu-wrap toolbar-fim">
+            <button type="button" class="btn btn-primary" id="anl-pdf-btn" aria-haspopup="menu" aria-expanded="false"><i class="ti ti-file-type-pdf"></i>Baixar relatório PDF<i class="ti ti-chevron-down"></i></button>
+            <div class="menu hidden" id="anl-pdf-menu" role="menu">
+              <button type="button" role="menuitem" data-pdf="aba"><i class="ti ti-file-text"></i><span><strong id="anl-pdf-aba-rotulo">Esta aba</strong><small>Só o que está na tela, com os filtros</small></span></button>
+              <button type="button" role="menuitem" data-pdf="completo"><i class="ti ti-files"></i><span><strong>Relatório completo</strong><small>Resumo, vendas, produtos, financeiro e estoque</small></span></button>
+            </div>
           </div>
         </div>
-        <div id="analises-conteudo"></div>
+
+        <div class="card filters-panel hidden" id="anl-filtros">
+          <label class="field">
+            <span class="field-label">Categoria</span>
+            <select id="anl-f-categoria">
+              <option value="">Todas</option>
+              <option value="capinhas">Capinhas</option>
+              <option value="peliculas">Películas</option>
+              <option value="acessorios">Acessórios</option>
+              <option value="aparelhos">Aparelhos</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Produto</span>
+            <input type="search" id="anl-f-produto" list="anl-f-produtos" placeholder="Nome, marca ou modelo" autocomplete="off" />
+            <datalist id="anl-f-produtos"></datalist>
+          </label>
+          <label class="field">
+            <span class="field-label">Vendedor</span>
+            <select id="anl-f-vendedor"><option value="">Todos</option></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Pagamento</span>
+            <select id="anl-f-forma">
+              <option value="">Todos</option>
+              <option value="pix">Pix</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="debito">Débito</option>
+              <option value="credito">Crédito</option>
+              <option value="nao_informado">Não informado</option>
+            </select>
+          </label>
+          <button type="button" class="btn-link" id="anl-filtros-limpar">Limpar filtros</button>
+        </div>
+        <div class="filter-chips hidden" id="anl-chips"></div>
+
+        <nav class="subtabs subtabs--internas" id="anl-abas" role="tablist" aria-label="Relatórios">
+          <button type="button" class="subtab active" role="tab" data-aba="geral" aria-selected="true">Visão geral</button>
+          <button type="button" class="subtab" role="tab" data-aba="vendas" aria-selected="false">Vendas</button>
+          <button type="button" class="subtab" role="tab" data-aba="produtos" aria-selected="false">Produtos</button>
+          <button type="button" class="subtab" role="tab" data-aba="financeiro" aria-selected="false">Financeiro</button>
+        </nav>
+        <p class="anl-escopo" id="anl-escopo"></p>
+        <div id="analises-conteudo" role="tabpanel"></div>
       </section>
 
       <!-- ================= GESTÃO: METAS ================= -->
@@ -635,7 +742,9 @@
   <script src="dashboard.js"></script>
   <script src="cadastro.js"></script>
   <script src="pdv.js"></script>
+  <script src="historico.js"></script>
   <script src="analises.js"></script>
   <script src="gestao.js"></script>
+  <script src="pdf.js"></script>
 </body>
 </html>

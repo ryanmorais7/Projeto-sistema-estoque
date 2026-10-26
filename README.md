@@ -1,8 +1,10 @@
-# 📦 Vault — Sistema de Controle de Estoque
+# CASEON — Gestão inteligente para lojas de tecnologia
 
-Sistema web de gerenciamento de estoque para lojas de celulares e acessórios, desenvolvido com HTML, CSS e JavaScript.
+Sistema web de gestão comercial para lojas de capinhas, películas, acessórios e smartphones (antes chamado Vault Gestão), desenvolvido com HTML, CSS e JavaScript, com Supabase como banco.
 
-O projeto possui dashboard administrativo, controle de produtos, métricas de estoque, filtros, login e ações CRUD para gerenciamento dos itens.
+Estoque, cadastro em lote, frente de caixa com desconto e formas de pagamento, histórico de vendas com cancelamento e devolução, relatórios comerciais e financeiros e PDFs.
+
+A marca (símbolo e logo para fundo claro e escuro, em SVG) fica em [`marca/`](marca/).
 
  https://vaultrmorais.vercel.app/
 ---

@@ -739,11 +739,6 @@ function validarCadastro() {
 
 // ---- Salvar --------------------------------------------------------------------------------
 
-function erroDeFuncaoAusente(error) {
-  const texto = `${error?.code || ''} ${error?.message || ''}`;
-  return /PGRST202|42883|Could not find the function|does not exist/i.test(texto);
-}
-
 async function salvarNovos(dados) {
   const itensRpc = dados.itens.map(item => {
     const existente = existenteDoItem(item);

@@ -175,33 +175,26 @@ function contagemSituacoes() {
 
 async function renderIndicadores() {
   const [hoje, mes] = await Promise.all([
-    buscarVendasEntre(inicioDoDia(), null, 'id, venda_id, quantidade, total, custo_unitario'),
-    buscarVendasEntre(inicioDoMes(), null, 'total'),
+    buscarVendasEntre(inicioDoDia(), null),
+    buscarVendasEntre(inicioDoMes(), null),
   ]);
+  const rHoje = resumirLancamentos(hoje.vendas);
 
-  // Vendas de hoje
-  const valorHoje = hoje.vendas.reduce((s, m) => s + (Number(m.total) || 0), 0);
-  const nVendas = contarVendas(hoje.vendas);
-  animarContagem(DASH.vendasValor, valorHoje, formatCurrency);
+  // Vendas de hoje (já com descontos, devoluções e cancelamentos)
+  animarContagem(DASH.vendasValor, reais(rHoje.faturamento), formatCurrency);
   DASH.vendasSub.textContent = hoje.erro
     ? 'Não foi possível carregar'
-    : nVendas ? `${nVendas} ${pluralize(nVendas, 'venda realizada', 'vendas realizadas')}` : 'Nenhuma venda ainda';
+    : rHoje.nVendas ? `${rHoje.nVendas} ${pluralize(rHoje.nVendas, 'venda realizada', 'vendas realizadas')}` : 'Nenhuma venda ainda';
 
   // Lucro bruto de hoje (só itens com custo gravado no momento da venda)
-  let lucro = 0, receitaComCusto = 0, semCusto = 0;
-  hoje.vendas.forEach(m => {
-    const l = lucroDaMovimentacao(m);
-    if (l === null) semCusto += 1;
-    else { lucro += l; receitaComCusto += Number(m.total) || 0; }
-  });
-  animarContagem(DASH.lucroValor, lucro, formatCurrency);
+  animarContagem(DASH.lucroValor, reais(rHoje.lucro), formatCurrency);
   if (!hoje.vendas.length) DASH.lucroSub.textContent = 'Sem vendas hoje';
-  else if (semCusto) DASH.lucroSub.textContent = `${semCusto} ${pluralize(semCusto, 'item', 'itens')} sem custo fora da conta`;
-  else DASH.lucroSub.textContent = `Margem de ${formatarPercentual(receitaComCusto ? (lucro / receitaComCusto) * 100 : 0)}`;
+  else if (rHoje.semCusto) DASH.lucroSub.textContent = `${rHoje.semCusto} ${pluralize(rHoje.semCusto, 'item', 'itens')} sem custo fora da conta`;
+  else DASH.lucroSub.textContent = rHoje.margem === null ? '—' : `Margem de ${formatarPercentual(rHoje.margem)}`;
 
   // Meta mensal
   const meta = Number(lojaAtual?.meta_mensal) || 0;
-  const alcancado = mes.vendas.reduce((s, m) => s + (Number(m.total) || 0), 0);
+  const alcancado = reais(resumirLancamentos(mes.vendas).faturamento);
   DASH.metaValor.classList.remove('is-loading');
   if (!meta) {
     DASH.metaValor.textContent = formatCurrency(alcancado);
@@ -243,43 +236,61 @@ function intervaloDoPeriodo() {
   return { inicio: de, fim };
 }
 
-// Um ponto por dia; acima de ~3 meses agrupa por mês para o gráfico continuar legível.
-function montarSeries(vendas, inicio, fim) {
+// Agrupa lançamentos por dia, semana ou mês. 'auto' = dia até ~3 meses, depois mês.
+// Somas em centavos; os campos vendas/lucro saem em reais para o gráfico.
+function montarSeries(lancamentos, inicio, fim, granularidade = 'auto') {
   const dias = Math.round((fim - inicio) / 86400000);
-  const porMes = dias > 93;
+  const modo = granularidade === 'auto' ? (dias > 93 ? 'mes' : 'dia') : granularidade;
   const pontos = [];
   const indice = {};
 
-  const cursor = new Date(inicio);
+  // Semana começa na segunda-feira.
+  const inicioSemana = (d) => { const x = inicioDoDia(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  const chaveDe = (d) => (modo === 'mes' ? `${d.getFullYear()}-${d.getMonth()}` : modo === 'semana' ? chaveDia(inicioSemana(d)) : chaveDia(d));
+
+  const cursor = modo === 'semana' ? inicioSemana(inicio) : new Date(inicio);
   while (cursor < fim) {
-    const chave = porMes ? `${cursor.getFullYear()}-${cursor.getMonth()}` : chaveDia(cursor);
+    const chave = chaveDe(cursor);
     if (!indice[chave]) {
-      const rotulo = porMes
-        ? cursor.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
-        : dias <= 7
+      let rotulo, completo;
+      if (modo === 'mes') {
+        rotulo = cursor.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+        completo = cursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      } else if (modo === 'semana') {
+        const fimSemana = somarDias(cursor, 6);
+        rotulo = cursor.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        completo = `Semana de ${formatarData(cursor)} a ${formatarData(fimSemana)}`;
+      } else {
+        rotulo = dias <= 7
           ? cursor.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' })
           : cursor.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      const completo = porMes
-        ? cursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-        : cursor.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-      indice[chave] = { rotulo, completo, vendas: 0, lucro: 0, temLucro: false, semCusto: 0 };
+        completo = cursor.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+      }
+      indice[chave] = { rotulo, completo, vendasC: 0, lucroC: 0, descontosC: 0, temLucro: false, semCusto: 0, chavesVenda: new Set() };
       pontos.push(indice[chave]);
     }
-    if (porMes) cursor.setMonth(cursor.getMonth() + 1, 1);
-    else cursor.setDate(cursor.getDate() + 1);
+    if (modo === 'mes') cursor.setMonth(cursor.getMonth() + 1, 1);
+    else cursor.setDate(cursor.getDate() + (modo === 'semana' ? 7 : 1));
   }
 
-  vendas.forEach(m => {
-    const d = new Date(m.created_at);
-    const chave = porMes ? `${d.getFullYear()}-${d.getMonth()}` : chaveDia(d);
-    const ponto = indice[chave];
+  lancamentos.forEach(m => {
+    const ponto = indice[chaveDe(new Date(m.created_at))];
     if (!ponto) return;
-    ponto.vendas += Number(m.total) || 0;
-    const l = lucroDaMovimentacao(m);
-    if (l === null) ponto.semCusto += 1;
-    else { ponto.lucro += l; ponto.temLucro = true; }
+    ponto.vendasC += centavos(m.total);
+    if ((m.tipo || 'venda') === 'venda') {
+      ponto.descontosC += centavos(m.desconto);
+      if (m.venda_status !== 'cancelada') ponto.chavesVenda.add(chaveVenda(m));
+    }
+    const cmv = cmvCentavos(m);
+    if (cmv === null) { if ((m.tipo || 'venda') === 'venda') ponto.semCusto += 1; }
+    else { ponto.lucroC += centavos(m.total) - cmv; ponto.temLucro = true; }
   });
 
+  pontos.forEach(p => {
+    p.vendas = reais(p.vendasC);
+    p.lucro = reais(p.lucroC);
+    p.nVendas = p.chavesVenda.size;
+  });
   return pontos;
 }
 
@@ -384,7 +395,7 @@ async function carregarGrafico() {
 
   const minhaRequisicao = ++requisicaoGrafico;
   mostrarEstadoGrafico('carregando');
-  const { erro, vendas } = await buscarVendasEntre(intervalo.inicio, intervalo.fim, 'total, quantidade, custo_unitario, created_at');
+  const { erro, vendas } = await buscarVendasEntre(intervalo.inicio, intervalo.fim);
   if (minhaRequisicao !== requisicaoGrafico) return; // o usuário trocou de período no meio
 
   if (erro) {
@@ -393,8 +404,8 @@ async function carregarGrafico() {
   }
 
   dadosGrafico = montarSeries(vendas, intervalo.inicio, intervalo.fim);
-  const totalVendas = dadosGrafico.reduce((s, p) => s + p.vendas, 0);
-  const totalLucro = dadosGrafico.reduce((s, p) => s + p.lucro, 0);
+  const totalVendas = reais(dadosGrafico.reduce((s, p) => s + p.vendasC, 0));
+  const totalLucro = reais(dadosGrafico.reduce((s, p) => s + p.lucroC, 0));
   const semCusto = dadosGrafico.reduce((s, p) => s + p.semCusto, 0);
 
   animarContagem(DASH.totalVendas, totalVendas, formatCurrency);

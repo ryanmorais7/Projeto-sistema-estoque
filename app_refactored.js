@@ -1,5 +1,5 @@
 // ============================================
-// VAULT GESTÃO · núcleo do app
+// CASEON · núcleo do app (antigo Vault Gestão)
 // ============================================
 // Este arquivo tem o que as telas compartilham: dados de produtos e custos, regras de
 // estoque, navegação, tabela de produtos, histórico de vendas, equipe, login, modal e
@@ -104,7 +104,7 @@ const DOM = {
   estoqueEmptyTexto: $('estoque-empty-texto'),
   emptyStateCta: $('empty-state-cta'),
   sortableHeaders: document.querySelectorAll('#estoque-table th.sortable'),
-  exportCsvBtn: $('export-csv-btn'),
+  pdfEstoqueBtn: $('pdf-estoque-btn'),
   filterSearch: $('filter-search'),
   filterType: $('filter-type'),
   filterBrand: $('filter-brand'),
@@ -116,22 +116,6 @@ const DOM = {
   filtersClear: $('filters-clear'),
   filtersChips: $('filters-chips'),
   filterResultCount: $('filter-result-count'),
-
-  // Histórico de vendas
-  resumoVendasHoje: $('resumo-vendas-hoje'),
-  resumoVendas7dias: $('resumo-vendas-7dias'),
-  resumoVendasMes: $('resumo-vendas-mes'),
-  filterHistoricoSearch: $('filter-historico-search'),
-  filterHistoricoPeriodo: $('filter-historico-periodo'),
-  filterHistoricoBrand: $('filter-historico-brand'),
-  filtersHistoricoChips: $('filters-historico-chips'),
-  historicoCount: $('historico-count'),
-  historicoVendasTable: $('historico-vendas-table'),
-  historicoVendasBody: $('historico-vendas-body'),
-  historicoVendasEmpty: $('historico-vendas-empty'),
-  historicoTotalRow: $('historico-total-row'),
-  historicoTotalValor: $('historico-total-valor'),
-  exportHistoricoCsvBtn: $('export-historico-csv-btn'),
 
   // Equipe
   inviteForm: $('invite-form'),
@@ -161,7 +145,6 @@ let products = [];
 let produtosArquivados = [];
 let filteredProducts = [];
 let sortConfig = { field: null, direction: 'asc' };
-let historicoVendas = [];
 let abaAtual = 'dashboard';
 
 // ============================================
@@ -753,32 +736,6 @@ function updateFilterOptions() {
 }
 
 // ============================================
-// EXPORTAÇÃO CSV
-// ============================================
-
-function exportarEstoqueCSV() {
-  if (!products.length) {
-    showToast('Não há produtos para exportar.', 'warning');
-    return;
-  }
-
-  const cabecalho = ['Categoria', 'Marca', 'Modelo', 'Linha/Tipo', 'Preço de venda'];
-  if (souDono()) cabecalho.push('Preço de custo');
-  cabecalho.push('Quantidade', 'Estoque mínimo', 'Situação', 'Observações');
-
-  const linhas = products.map(p => {
-    const custo = custoDoProduto(p.id);
-    const linha = [TIPO_LABEL_SINGULAR[p.type] || p.type, p.brand, p.model, p.variacao, p.price];
-    if (souDono()) linha.push(custo === null ? '' : custo);
-    linha.push(p.quantity, estoqueMinimo(p), SITUACAO_INFO[situacaoEstoque(p)].label, p.notes);
-    return linha;
-  });
-
-  baixarArquivo(gerarCSV(cabecalho, linhas), `vault-estoque-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
-  showToast('Planilha do estoque exportada.', 'success');
-}
-
-// ============================================
 // EXCLUIR, ARQUIVAR E RESTAURAR
 // ============================================
 
@@ -881,104 +838,135 @@ function formatarDataHora(iso) {
   });
 }
 
-// Vendas do livro-caixa entre duas datas (fim exclusivo). Usado por início e análises.
-async function buscarVendasEntre(inicio, fim, colunas = 'quantidade, total, custo_unitario, created_at, venda_id, id, produto_id, produto_snapshot') {
+// ============================================
+// DINHEIRO E LANÇAMENTOS DE VENDA
+// ============================================
+// Contas de dinheiro são feitas em centavos inteiros (sem erro de ponto flutuante) e
+// só viram reais na hora de mostrar.
+//
+// Um "lançamento" é uma linha do livro-caixa: venda (+), devolução (−) ou estorno de
+// cancelamento (−). Faturamento, custo e lucro somam todos os lançamentos do período,
+// cada um na data em que aconteceu. O lucro usa o custo gravado no momento da venda,
+// nunca o custo atual do cadastro.
+
+const centavos = (valor) => Math.round((Number(valor) || 0) * 100);
+const reais = (c) => c / 100;
+const brlC = (c) => formatCurrency(c / 100);
+
+const FORMAS_PAGAMENTO = {
+  pix: { label: 'Pix', icone: 'ti-qrcode' },
+  dinheiro: { label: 'Dinheiro', icone: 'ti-cash' },
+  debito: { label: 'Débito', icone: 'ti-credit-card' },
+  credito: { label: 'Crédito', icone: 'ti-credit-card-pay' },
+  misto: { label: 'Misto', icone: 'ti-arrows-split' },
+};
+
+const STATUS_VENDA = {
+  concluida: { label: 'Concluída', classe: 'badge-ok' },
+  cancelada: { label: 'Cancelada', classe: 'badge-zerado' },
+  devolvida: { label: 'Devolvida', classe: 'badge-arquivado' },
+  devolucao_parcial: { label: 'Devolução parcial', classe: 'badge-baixo' },
+};
+
+function rotuloPagamento(forma) {
+  return FORMAS_PAGAMENTO[forma]?.label || 'Não informado';
+}
+
+// Lançamentos (venda, devolução, estorno) entre duas datas (fim exclusivo).
+// Usa vendas_periodo (sql/014), que só entrega o custo para o dono. Sem o 014, lê o
+// livro-caixa direto, como antes.
+async function buscarVendasEntre(inicio, fim) {
+  const { data, error } = await supabaseClient.rpc('vendas_periodo', {
+    p_loja_id: lojaAtual.id,
+    p_inicio: inicio.toISOString(),
+    p_fim: fim ? fim.toISOString() : null,
+  });
+  if (!error) return { erro: false, vendas: data || [] };
+  if (!erroDeFuncaoAusente(error)) return { erro: true, vendas: [] };
+
   let query = supabaseClient
     .from('movimentacoes_estoque')
-    .select(colunas)
+    .select('id, tipo, produto_id, produto_snapshot, quantidade, preco_unitario, total, custo_unitario, venda_id, responsavel_email, created_at')
     .eq('loja_id', lojaAtual.id)
     .eq('tipo', 'venda')
     .gte('created_at', inicio.toISOString())
     .order('created_at', { ascending: true })
     .limit(10000);
   if (fim) query = query.lt('created_at', fim.toISOString());
-
-  const { data, error } = await query;
-  if (error) return { erro: true, vendas: [] };
-  return { erro: false, vendas: data };
-}
-
-// Lucro bruto de um lançamento de venda. Sem custo gravado = null (não vira zero).
-function lucroDaMovimentacao(m) {
-  if (m.custo_unitario === null || m.custo_unitario === undefined) return null;
-  return (Number(m.total) || 0) - Number(m.custo_unitario) * Math.abs(Number(m.quantidade) || 0);
-}
-
-// Uma venda do carrinho gera um lançamento por item com o mesmo venda_id. Vendas
-// antigas (um item por venda) não têm venda_id: cada lançamento é uma venda.
-function contarVendas(movimentacoes) {
-  return new Set(movimentacoes.map(m => m.venda_id || m.id)).size;
-}
-
-// ============================================
-// HISTÓRICO DE VENDAS
-// ============================================
-
-function inicioPeriodoISO(dias) {
-  if (!dias || dias === '0') return null;
-  return inicioDoDiaISO(Number(dias) - 1);
-}
-
-async function carregarHistoricoVendas() {
-  let query = supabaseClient
-    .from('movimentacoes_estoque')
-    .select('*')
-    .eq('loja_id', lojaAtual.id)
-    .eq('tipo', 'venda')
-    .order('created_at', { ascending: false })
-    .limit(500);
-
-  const desde = inicioPeriodoISO(DOM.filterHistoricoPeriodo.value);
-  if (desde) query = query.gte('created_at', desde);
-
-  const { data, error } = await query;
-  if (error) {
-    showToast('Não foi possível carregar o histórico de vendas.', 'error');
-    historicoVendas = [];
-    return;
-  }
-  historicoVendas = data;
-}
-
-function updateHistoricoBrandFilter() {
-  const marcas = [...new Set(historicoVendas.map(m => m.produto_snapshot?.brand).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  preencherSelect(DOM.filterHistoricoBrand, marcas, 'Todas as marcas');
-}
-
-const PERIODO_LABELS = { '7': 'Últimos 7 dias', '30': 'Últimos 30 dias', '90': 'Últimos 90 dias', '0': 'Tudo' };
-
-function filtrarHistoricoAtual() {
-  const marca = DOM.filterHistoricoBrand.value;
-  const busca = DOM.filterHistoricoSearch.value;
-
-  return historicoVendas.filter(m => {
-    const snap = m.produto_snapshot || {};
-    return (!marca || snap.brand === marca) && matchesSearchTerm(snap, busca);
-  });
-}
-
-function renderHistoricoFilterChips() {
-  const chips = [];
-  if (DOM.filterHistoricoBrand.value) {
-    chips.push({ label: `Marca: ${DOM.filterHistoricoBrand.value}`, limpar: () => { DOM.filterHistoricoBrand.value = ''; renderHistoricoVendas(); } });
-  }
-  if (DOM.filterHistoricoPeriodo.value !== '30') {
-    chips.push({
-      label: PERIODO_LABELS[DOM.filterHistoricoPeriodo.value] || DOM.filterHistoricoPeriodo.value,
-      limpar: () => { DOM.filterHistoricoPeriodo.value = '30'; atualizarAbaVendas(); },
-    });
-  }
-
-  DOM.filtersHistoricoChips.classList.toggle('hidden', chips.length === 0);
-  DOM.filtersHistoricoChips.innerHTML = chips.map((chip, i) => `
-    <span class="filter-chip">${esc(chip.label)}<button type="button" data-chip="${i}" aria-label="Remover filtro"><i class="ti ti-x"></i></button></span>
-  `).join('');
-  DOM.filtersHistoricoChips.onclick = (e) => {
-    const alvo = e.target.closest('[data-chip]');
-    if (alvo) chips[Number(alvo.dataset.chip)].limpar();
+  const antigo = await query;
+  if (antigo.error) return { erro: true, vendas: [] };
+  return {
+    erro: false,
+    vendas: antigo.data.map(m => ({ ...m, subtotal: m.total, desconto: 0, venda_numero: null, venda_status: null, forma_pagamento: null })),
   };
 }
+
+// Função do banco ainda não criada (o SQL da etapa não rodou).
+function erroDeFuncaoAusente(error) {
+  const texto = `${error?.code || ''} ${error?.message || ''}`;
+  return /PGRST202|42883|Could not find the function|does not exist/i.test(texto);
+}
+
+const temCusto = (m) => m.custo_unitario !== null && m.custo_unitario !== undefined;
+
+// Unidades do lançamento: venda conta positivo, devolução/estorno negativo.
+const unidadesDo = (m) => -(Number(m.quantidade) || 0);
+
+// Custo das mercadorias de um lançamento, em centavos (null se o custo não foi gravado).
+function cmvCentavos(m) {
+  return temCusto(m) ? centavos(m.custo_unitario) * unidadesDo(m) : null;
+}
+
+// Lucro bruto de um lançamento, em reais. Sem custo gravado = null (não vira zero).
+function lucroDaMovimentacao(m) {
+  const cmv = cmvCentavos(m);
+  return cmv === null ? null : reais(centavos(m.total) - cmv);
+}
+
+// Chave da venda: o carrinho grava todos os itens com o mesmo venda_id; vendas antigas
+// (sem venda_id) são uma venda por lançamento.
+const chaveVenda = (m) => m.venda_id || m.id;
+
+// Vendas confirmadas: lançamentos de venda que não foram cancelados.
+function contarVendas(lancamentos) {
+  return new Set(lancamentos.filter(m => (m.tipo || 'venda') === 'venda' && m.venda_status !== 'cancelada').map(chaveVenda)).size;
+}
+
+// Resumo financeiro de um conjunto de lançamentos. Tudo em centavos.
+function resumirLancamentos(lancamentos) {
+  const r = {
+    bruto: 0, descontos: 0, devolucoes: 0, faturamento: 0,
+    cmv: 0, lucro: 0, receitaComCusto: 0, semCusto: 0, unidades: 0,
+    nVendas: contarVendas(lancamentos),
+    canceladas: new Set(lancamentos.filter(m => m.venda_status === 'cancelada' && (m.tipo || 'venda') === 'venda').map(chaveVenda)).size,
+  };
+  lancamentos.forEach(m => {
+    const total = centavos(m.total);
+    r.faturamento += total;
+    r.unidades += unidadesDo(m);
+    if ((m.tipo || 'venda') === 'venda') {
+      r.bruto += centavos(m.subtotal ?? m.total);
+      r.descontos += centavos(m.desconto);
+    } else {
+      r.devolucoes -= total;
+    }
+    const cmv = cmvCentavos(m);
+    if (cmv === null) {
+      if ((m.tipo || 'venda') === 'venda') r.semCusto += 1;
+    } else {
+      r.cmv += cmv;
+      r.lucro += total - cmv;
+      r.receitaComCusto += total;
+    }
+  });
+  r.ticket = r.nVendas ? Math.round(r.faturamento / r.nVendas) : 0;
+  r.margem = r.receitaComCusto ? (r.lucro / r.receitaComCusto) * 100 : null;
+  return r;
+}
+
+// ============================================
+// PESSOAS
+// ============================================
 
 function obterIniciaisPessoa(texto) {
   if (!texto) return '?';
@@ -995,9 +983,15 @@ function nomeDoEmail(email) {
   return usuario.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).trim();
 }
 
+function nomeDoVendedor(email) {
+  if (!email) return 'Não informado';
+  if (email === usuarioAtual?.email) return nomeUsuario();
+  return nomeDoEmail(email);
+}
+
 function renderPessoaChip(email, nome = null) {
   if (!email) return '<span class="texto-muted">—</span>';
-  const exibicao = nome || nomeDoEmail(email);
+  const exibicao = nome || nomeDoVendedor(email);
   return `
     <span class="vendedor-chip">
       <span class="avatar avatar--sm avatar--soft">${esc(obterIniciaisPessoa(exibicao))}</span>
@@ -1005,85 +999,101 @@ function renderPessoaChip(email, nome = null) {
     </span>`;
 }
 
-function renderHistoricoVendas() {
-  const filtrado = filtrarHistoricoAtual();
+// ============================================
+// PERÍODOS (filtros de relatório e histórico)
+// ============================================
+// Sempre no horário do aparelho: "hoje" vai de 00:00 de hoje até 00:00 de amanhã.
+// O fim é exclusivo, então uma venda às 23:59:59 entra no dia certo.
 
-  DOM.historicoCount.textContent = `${filtrado.length} ${pluralize(filtrado.length, 'item vendido', 'itens vendidos')} no período`;
-  DOM.historicoVendasTable.classList.toggle('hidden', filtrado.length === 0);
-  DOM.historicoVendasEmpty.classList.toggle('hidden', filtrado.length > 0);
+const PERIODOS = {
+  hoje: 'Hoje',
+  ontem: 'Ontem',
+  '7': 'Últimos 7 dias',
+  '30': 'Últimos 30 dias',
+  mes: 'Este mês',
+  mes_anterior: 'Mês anterior',
+  '90': 'Últimos 90 dias',
+  tudo: 'Tudo',
+  custom: 'Personalizado',
+};
 
-  DOM.historicoVendasBody.innerHTML = filtrado.map(m => {
-    const snap = m.produto_snapshot || {};
-    return `
-      <tr>
-        <td data-label="Data" class="texto-muted">${formatarDataHora(m.created_at)}</td>
-        <td data-label="" class="td-titulo">${renderProdutoCell(snap, { comCategoria: true })}</td>
-        <td data-label="Quantidade" class="num">${Math.abs(m.quantidade)}</td>
-        <td data-label="Preço unit." class="num">${formatCurrency(m.preco_unitario)}</td>
-        <td data-label="Total" class="num"><strong>${formatCurrency(m.total)}</strong></td>
-        <td data-label="Vendido por">${renderPessoaChip(m.responsavel_email)}</td>
-      </tr>`;
-  }).join('');
-
-  const totalPeriodo = filtrado.reduce((soma, m) => soma + (Number(m.total) || 0), 0);
-  DOM.historicoTotalRow.classList.toggle('hidden', filtrado.length === 0);
-  DOM.historicoTotalValor.textContent = formatCurrency(totalPeriodo);
-
-  renderHistoricoFilterChips();
+function somarDias(data, dias) {
+  const d = new Date(data);
+  d.setDate(d.getDate() + dias);
+  return d;
 }
 
-function exportarHistoricoCSV() {
-  const filtrado = filtrarHistoricoAtual();
-  if (!filtrado.length) {
-    showToast('Não há vendas para exportar nesse período.', 'warning');
-    return;
+function dataDoInput(valor) {
+  return valor ? new Date(`${valor}T00:00:00`) : null;
+}
+
+function formatarData(d) {
+  return d.toLocaleDateString('pt-BR');
+}
+
+// { inicio, fim, rotulo } ou null se o período personalizado estiver incompleto.
+function intervaloPeriodo(chave, de = '', ate = '') {
+  const hoje = inicioDoDia();
+  const amanha = somarDias(hoje, 1);
+  let inicio, fim = amanha;
+
+  switch (chave) {
+    case 'hoje': inicio = hoje; break;
+    case 'ontem': inicio = somarDias(hoje, -1); fim = hoje; break;
+    case '7': case '30': case '90': inicio = somarDias(hoje, -(Number(chave) - 1)); break;
+    case 'mes': inicio = inicioDoMes(); break;
+    case 'mes_anterior': inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1); fim = inicioDoMes(); break;
+    case 'tudo': inicio = new Date(2000, 0, 1); break;
+    case 'custom': {
+      const a = dataDoInput(de), b = dataDoInput(ate);
+      if (!a || !b || a > b) return null;
+      inicio = a; fim = somarDias(b, 1);
+      break;
+    }
+    default: inicio = somarDias(hoje, -29);
   }
 
-  const linhas = filtrado.map(m => {
-    const snap = m.produto_snapshot || {};
-    return [
-      formatarDataHora(m.created_at),
-      TIPO_LABEL_SINGULAR[snap.type] || snap.type,
-      snap.brand, snap.model, snap.variacao,
-      Math.abs(m.quantidade), m.preco_unitario, m.total, m.responsavel_email,
-    ];
-  });
-  const cabecalho = ['Data', 'Categoria', 'Marca', 'Modelo', 'Linha/Tipo', 'Quantidade', 'Preço unitário', 'Total', 'Vendido por'];
-  baixarArquivo(gerarCSV(cabecalho, linhas), `vault-vendas-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
-  showToast('Planilha de vendas exportada.', 'success');
-}
-
-async function carregarResumoVendas() {
-  const { erro, vendas } = await buscarVendasEntre(new Date(inicioDoDiaISO(31)), null, 'total, created_at');
-  const alvos = [DOM.resumoVendasHoje, DOM.resumoVendas7dias, DOM.resumoVendasMes];
-  if (erro) {
-    alvos.forEach(el => { el.textContent = formatCurrency(0); });
-    return;
+  const ultimoDia = somarDias(fim, -1);
+  let rotulo = PERIODOS[chave] || 'Período';
+  if (chave === 'custom' || chave === 'mes_anterior' || chave === 'mes') {
+    rotulo = inicio.getTime() === ultimoDia.getTime() ? formatarData(inicio) : `${formatarData(inicio)} a ${formatarData(ultimoDia)}`;
+  } else if (chave !== 'tudo') {
+    rotulo = `${PERIODOS[chave]} (${inicio.getTime() === ultimoDia.getTime() ? formatarData(inicio) : `${formatarData(inicio)} a ${formatarData(ultimoDia)}`})`;
   }
-
-  const hojeChave = chaveDia(new Date());
-  const seteDiasAtras = new Date(inicioDoDiaISO(6));
-  const mes = inicioDoMes();
-  let hoje = 0, seteDias = 0, noMes = 0;
-
-  vendas.forEach(m => {
-    const data = new Date(m.created_at);
-    const valor = Number(m.total) || 0;
-    if (chaveDia(data) === hojeChave) hoje += valor;
-    if (data >= seteDiasAtras) seteDias += valor;
-    if (data >= mes) noMes += valor;
-  });
-
-  animarContagem(DOM.resumoVendasHoje, hoje, formatCurrency);
-  animarContagem(DOM.resumoVendas7dias, seteDias, formatCurrency);
-  animarContagem(DOM.resumoVendasMes, noMes, formatCurrency);
+  return { inicio, fim, rotulo, chave };
 }
 
-async function atualizarAbaVendas() {
-  await carregarHistoricoVendas();
-  updateHistoricoBrandFilter();
-  renderHistoricoVendas();
-  await carregarResumoVendas();
+// Período de comparação: o mesmo tamanho logo antes. "Este mês" compara com os mesmos
+// dias do mês passado; "Mês anterior" com o mês inteiro antes dele.
+function periodoAnterior(intervalo) {
+  if (!intervalo || intervalo.chave === 'tudo') return null;
+  if (intervalo.chave === 'mes') {
+    const dias = Math.round((intervalo.fim - intervalo.inicio) / 86400000);
+    const inicio = new Date(intervalo.inicio.getFullYear(), intervalo.inicio.getMonth() - 1, 1);
+    const fim = new Date(Math.min(somarDias(inicio, dias).getTime(), intervalo.inicio.getTime()));
+    return { inicio, fim, rotulo: 'mesmo período do mês passado' };
+  }
+  if (intervalo.chave === 'mes_anterior') {
+    const inicio = new Date(intervalo.inicio.getFullYear(), intervalo.inicio.getMonth() - 1, 1);
+    return { inicio, fim: intervalo.inicio, rotulo: 'mês anterior a ele' };
+  }
+  const dias = Math.round((intervalo.fim - intervalo.inicio) / 86400000);
+  return { inicio: somarDias(intervalo.inicio, -dias), fim: intervalo.inicio, rotulo: `${dias} ${pluralize(dias, 'dia anterior', 'dias anteriores')}` };
+}
+
+// Liga um <select> de período e dois <input type="date"> de "de/até".
+function ligarSeletorPeriodo({ select, caixaCustom, de, ate, aoMudar }) {
+  const sincronizar = () => {
+    caixaCustom.classList.toggle('hidden', select.value !== 'custom');
+    if (select.value === 'custom' && !de.value) {
+      de.value = chaveDia(somarDias(new Date(), -13));
+      ate.value = chaveDia(new Date());
+    }
+  };
+  select.addEventListener('change', () => { sincronizar(); aoMudar(); });
+  [de, ate].forEach(el => el.addEventListener('change', aoMudar));
+  sincronizar();
+  return () => intervaloPeriodo(select.value, de.value, ate.value);
 }
 
 // ============================================
@@ -1223,7 +1233,7 @@ function changeTab(tabId) {
   renderSubtabs();
 
   if (destino === 'vendas' && typeof renderPdv === 'function') renderPdv();
-  if (destino === 'historico') atualizarAbaVendas();
+  if (destino === 'historico' && typeof carregarHistorico === 'function') carregarHistorico();
   if (destino === 'equipe') renderEquipe();
   if (destino === 'analises' && typeof carregarAnalises === 'function') carregarAnalises();
   if (destino === 'metas' && typeof renderMetas === 'function') renderMetas();
@@ -1272,7 +1282,10 @@ function abrirModal(html, { largo = false } = {}) {
   DOM.modalBackdrop.classList.add('active');
   DOM.modal.classList.add('active');
   requestAnimationFrame(() => {
-    const alvo = DOM.modalBody.querySelector('[autofocus], input, .btn-primary, .btn-danger, button');
+    // Foco no que é seguro: campo marcado, primeiro campo, botão principal. Nunca começa
+    // num botão destrutivo.
+    const alvo = ['[autofocus]', 'input:not([type="hidden"])', '.btn-primary', 'button:not(.btn-danger):not(.btn-ghost)']
+      .map(sel => DOM.modalBody.querySelector(sel)).find(Boolean);
     alvo?.focus();
   });
 }
@@ -1699,6 +1712,7 @@ function initEventListeners() {
   if (typeof initCadastro === 'function') initCadastro();
   if (typeof initDashboard === 'function') initDashboard();
   if (typeof initPdv === 'function') initPdv();
+  if (typeof initHistorico === 'function') initHistorico();
   if (typeof initAnalises === 'function') initAnalises();
   if (typeof initGestao === 'function') initGestao();
 
@@ -1707,7 +1721,7 @@ function initEventListeners() {
   [DOM.filterType, DOM.filterBrand, DOM.filterVariacao, DOM.filterStock].forEach(el => el.addEventListener('change', applyFilters));
   DOM.filtersToggleBtn.addEventListener('click', () => toggleFiltersPanel());
   DOM.filtersClear.addEventListener('click', clearAllFilters);
-  DOM.exportCsvBtn.addEventListener('click', exportarEstoqueCSV);
+  DOM.pdfEstoqueBtn.addEventListener('click', () => baixarPdfEstoque());
   DOM.productTableBody.addEventListener('click', handleCliqueTabelaProdutos);
   DOM.produtosCards.addEventListener('click', handleCliqueTabelaProdutos);
   DOM.produtosCards.addEventListener('keydown', (e) => {
@@ -1719,12 +1733,6 @@ function initEventListeners() {
     th.addEventListener('keydown', (e) => { if (e.key === 'Enter') ordenarPor(th.dataset.sort); });
   });
   DOM.emptyStateCta.addEventListener('click', () => changeTab('cadastro'));
-
-  // Histórico de vendas
-  DOM.filterHistoricoSearch.addEventListener('input', renderHistoricoVendas);
-  DOM.filterHistoricoPeriodo.addEventListener('change', atualizarAbaVendas);
-  DOM.filterHistoricoBrand.addEventListener('change', renderHistoricoVendas);
-  DOM.exportHistoricoCsvBtn.addEventListener('click', exportarHistoricoCSV);
 
   // Modal
   DOM.modalClose.addEventListener('click', fecharModal);

@@ -98,6 +98,17 @@ Cada etapa vai num branch próprio, vira preview na Vercel e só entra na `main`
 - **SQL:** `013_vault_3.sql` (aditivo). Testado em Postgres local (PGlite): 23/23. Sem ele o site continua funcionando: cadastro em lote avisa, venda de 1 item usa a função antiga.
 - Testes de navegador (Supabase falso): 18/18 em dono, vendedor e banco sem 013. Telas conferidas em 1440px e 390px, sem rolagem horizontal.
 
+### Gestão 3.0 + CASEON — Vendas, descontos, relatórios, PDF e nova marca ✅ (branch `gestao-3/vendas-relatorios-caseon`)
+- **Frente de caixa:** desconto em R$ ou % dentro do carrinho, forma de pagamento (Pix, dinheiro, débito, crédito) e troco. O servidor recalcula tudo em centavos: desconto nunca negativo, % até 100, R$ até o subtotal; o desconto é rateado entre os itens com os centavos fechando exatamente. Limite de desconto por funcionário preparado (`membros_loja.desconto_maximo_pct`, nulo = sem limite; falta a tela para o dono definir).
+- **Lucro com desconto:** cada item grava subtotal, desconto e total recebido; o lucro usa o valor recebido e o custo histórico.
+- **Histórico:** uma linha por venda com número, produtos, quantidade, subtotal, desconto, total, pagamento, vendedor e situação; busca por produto ou número; período (hoje, ontem, 7/30/90 dias, mês, mês anterior, personalizado). Detalhe da venda com itens e correções. Só o dono cancela ou devolve (parcial ou total): o estoque volta e o faturamento cai na data da correção, sem apagar nada.
+- **Produtos:** "Exportar CSV" virou "Baixar PDF" (relatório de estoque com filtros, totais e aviso de custo parcial).
+- **Análises:** abas Visão geral, Vendas, Produtos e Financeiro; filtros por período, categoria, produto, vendedor e pagamento; comparação com o período anterior; PDF da aba ou relatório completo. Lucro líquido não é mostrado (o sistema não registra despesas nem taxas).
+- **Permissões:** custo e lucro só para o dono, também na camada de dados (`vendas_periodo` e `sql/015`).
+- **CASEON:** nome, logo (C com ponto de "ligado"), favicon, ícones do app, manifesto, títulos, login, menu e PDFs. Domínio e identificadores técnicos (banco, Supabase, Vercel) não mudaram.
+- **SQL:** `014_vendas_descontos.sql` (aditivo, rodar antes de publicar) e `015_custo_so_dono.sql` (rodar **depois** de publicar). Testados em Postgres local: 32/32.
+- Testes de navegador: 31/31 em dono, vendedor, vendedor com limite, banco sem 014 e banco sem 013. PDFs conferidos (incluindo um estoque de 422 produtos, em 23 páginas sem cortes).
+
 ### Etapa 2 — Base comercial
 - Cadastro: custo, lucro, margem e markup ao vivo; alerta de preço abaixo do custo; estoque mínimo; campos por categoria (acessório com nome livre, película com tipo, capinha com material).
 - Produtos antigos com selo "Custo não informado".

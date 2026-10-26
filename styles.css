@@ -1,5 +1,5 @@
 /* =====================================================================
-   VAULT GESTÃO 3.0 · Design system
+   CASEON · Design system (antigo Vault Gestão 3.0)
    Light premium com sidebar azul-marinho.
    Cores semânticas: azul = produtos/estoque · turquesa = vendas ·
    verde = lucro/confirmação · roxo = metas · laranja = atenção ·
@@ -131,12 +131,22 @@ ul { margin: 0; padding: 0; list-style: none; }
   box-shadow: 0 4px 12px rgba(59, 108, 255, 0.35);
 }
 .logo-mark svg {
-  width: 18px; height: 18px; fill: none; stroke: #fff;
-  stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  width: 20px; height: 20px; fill: none; stroke: #fff;
+  stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round;
 }
+.logo-mark svg circle { fill: #fff; stroke: none; }
 .logo-text {
-  font-weight: 700; letter-spacing: 0.14em; font-size: 15px;
+  font-weight: 700; letter-spacing: 0.12em; font-size: 15px;
 }
+/* "ON" em gradiente: claro no fundo azul-marinho, da marca no fundo claro. */
+.logo-on {
+  background: linear-gradient(135deg, #8FB0FF 0%, #C2B3FF 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.auth-brand .logo-on { background-image: var(--grad); }
+.auth-brand .logo-text { font-size: 18px; color: var(--navy); }
+.auth-brand .logo-mark { width: 38px; height: 38px; border-radius: 11px; }
+.auth-brand .logo-mark svg { width: 24px; height: 24px; }
 .logo-tag {
   font-size: 11px; font-weight: 500; color: var(--navy-text);
   padding: 2px 8px; border: 1px solid var(--navy-line); border-radius: var(--r-pill);
@@ -354,10 +364,14 @@ input[aria-invalid="true"] { border-color: var(--red); }
   width: max-content; max-width: 240px; padding: 8px 10px;
   background: var(--navy); color: #fff; border-radius: var(--r-sm);
   font-size: var(--fs-xs); font-weight: 500; line-height: 1.45; text-align: left;
-  opacity: 0; pointer-events: none; transition: opacity var(--dur), transform var(--dur);
-  z-index: 20;
+  pointer-events: none; z-index: 20;
+  /* Escondida não ocupa espaço (senão alarga a página no celular). */
+  display: none;
 }
-.info-tip:hover::after, .info-tip:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+.info-tip:hover::after, .info-tip:focus-visible::after { display: block; transform: translateX(-50%) translateY(0); animation: dica 140ms var(--ease); }
+@keyframes dica { from { opacity: 0; } to { opacity: 1; } }
+/* Nos cartões da direita, a dica abre para a esquerda. */
+.kpi-grid > :nth-child(2n) .info-tip::after, .anl-kpis > :nth-child(2n) .info-tip::after, .resumo-valor .info-tip::after { left: auto; right: -8px; transform: none; }
 
 /* Estados vazios e carregamento */
 .empty {
@@ -737,6 +751,94 @@ input[aria-invalid="true"] { border-color: var(--red); }
 .pdv-barra { display: none; }
 .sheet-backdrop { display: none; }
 
+/* Desconto e pagamento dentro do carrinho */
+.pdv-extras { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+.pdv-bloco { display: flex; flex-direction: column; gap: 8px; }
+.pdv-bloco-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.segmented--sm { padding: 2px; }
+.segmented--sm button { height: 28px; padding: 0 12px; font-size: var(--fs-sm); }
+.input-limpavel { position: relative; }
+.input-limpavel input { height: 40px; padding-right: 40px; font-size: var(--fs-md); }
+.input-limpavel .icon-btn { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; }
+.pdv-erro { font-size: var(--fs-sm); color: var(--red-ink); font-weight: 500; }
+.pagamento-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.pagamento-grid button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: 52px; padding: 0 4px; border: 1px solid var(--border-strong); border-radius: 10px;
+  background: var(--surface); color: var(--text-2); font-size: var(--fs-xs); font-weight: 600;
+  transition: border-color var(--dur), background var(--dur), color var(--dur);
+}
+.pagamento-grid button i { font-size: 19px; }
+.pagamento-grid button:hover { border-color: #B9C3D6; color: var(--text); }
+.pagamento-grid button.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-ink); box-shadow: 0 0 0 1px var(--blue) inset; }
+.troco { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.troco-campo { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--text-2); }
+.troco-campo input { height: 36px; width: 130px; font-size: var(--fs); }
+.troco-valor { font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; text-align: right; }
+.troco-valor--erro { color: var(--red-ink); font-weight: 600; font-size: var(--fs-sm); }
+.linha-valor--desconto { color: var(--green); font-weight: 600; }
+.linha-valor--desconto small { font-weight: 500; color: var(--text-2); }
+.texto-desconto { color: var(--green); font-weight: 600; }
+.recibo-sub span:first-child, .recibo-desconto span:first-child { color: var(--text-2); }
+.recibo-desconto span:last-child { color: var(--green); font-weight: 600; }
+
+/* Histórico */
+.table--clicavel tbody tr { cursor: pointer; }
+.nowrap, .table .num { white-space: nowrap; }
+#hist-tabela th, #hist-tabela td { padding-left: 10px; padding-right: 10px; }
+#hist-tabela th:first-child, #hist-tabela td:first-child { padding-left: 16px; }
+#hist-tabela .badge { padding: 0 8px; }
+.hist-produtos { max-width: 220px; }
+@media (min-width: 861px) and (max-width: 1366px) {
+  #hist-tabela .col-subtotal { display: none; }
+  #hist-tabela .hist-produtos { max-width: 170px; }
+  #hist-tabela .vendedor-chip .avatar { display: none; }
+}
+.hist-produtos { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; font-weight: 500; }
+.periodo-custom--toolbar { margin: -6px 0 16px; }
+.detalhe-subtitulo { font-size: var(--fs); font-weight: 700; margin: 18px 0 4px; }
+.detalhe-tabela { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--r); }
+.detalhe-tabela .table td, .detalhe-tabela .table th { padding-left: 12px; padding-right: 12px; }
+.devolucao-lista { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r); }
+.devolucao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; }
+.devolucao-item + .devolucao-item { border-top: 1px solid var(--border); }
+
+/* Menu suspenso (PDF) */
+.menu-wrap { position: relative; }
+.toolbar-fim { margin-left: auto; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 300px;
+  display: flex; flex-direction: column; padding: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow-md);
+}
+.menu button {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 0; border-radius: 8px;
+  background: none; text-align: left; color: var(--text);
+}
+.menu button:hover, .menu button:focus-visible { background: var(--surface-hover); }
+.menu button i { font-size: 19px; color: var(--blue); margin-top: 1px; }
+.menu button span { display: flex; flex-direction: column; gap: 1px; }
+.menu button small { color: var(--muted); font-size: var(--fs-xs); }
+
+/* Análises */
+.subtabs--internas { margin-top: 0; margin-bottom: 12px; }
+.anl-escopo { color: var(--muted); font-size: var(--fs-sm); margin-bottom: 16px; }
+.anl-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-bottom: var(--gap); }
+.kpi--anl { min-height: 132px; }
+.kpi--anl .kpi-value { font-size: 24px; }
+.analise-card + .analise-card, .analise-card + .analise-grid, .analise-grid + .analise-grid, .analise-grid + .analise-card, .analise-kpis + .analise-card { margin-top: var(--gap); }
+.analise-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.analise-grid.analise-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.analise-grid > .analise-card { margin-top: 0; }
+.ordenar { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--text-2); font-weight: 600; }
+.ordenar select { height: 36px; width: auto; font-size: var(--fs-sm); }
+.aviso-parcial { display: flex; gap: 8px; align-items: flex-start; padding: 10px 14px; margin-bottom: var(--gap); border-radius: var(--r-sm); background: var(--orange-soft); color: var(--orange-ink); font-size: var(--fs-sm); font-weight: 500; }
+.aviso-parcial i { font-size: 16px; margin-top: 1px; flex: none; }
+.analise-card .aviso-parcial { margin: 12px 0 0; }
+.dre td { padding: 10px 0; }
+.dre tr.dre-total td { font-weight: 700; border-top: 1px solid var(--border-strong); }
+.dre tbody tr:hover { background: none; }
+
 /* Comprovante */
 .recibo { border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin: 16px 0; background: var(--surface-2); }
 .recibo-item { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-variant-numeric: tabular-nums; }
@@ -1041,6 +1143,8 @@ input[aria-invalid="true"] { border-color: var(--red); }
   .analise-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .analise-kpis .stat:nth-child(3) { border-left: 0; }
   .analise-kpis .stat:nth-child(n + 3) { border-top: 1px solid var(--border); }
+  .anl-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analise-grid.analise-grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .config-grid { grid-template-columns: 1fr; }
 }
 
@@ -1141,6 +1245,20 @@ input[aria-invalid="true"] { border-color: var(--red); }
     box-shadow: var(--shadow-lg);
   }
   .pdv-carrinho.aberto { transform: translateY(0); }
+  .pdv-carrinho { overflow-y: auto; }
+  .pdv-itens { overflow: visible; flex: none; }
+  .troco-campo input { width: 120px; height: 40px; }
+  .anl-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi--anl { min-width: 0; padding: 14px; }
+  .kpi--anl .kpi-head { gap: 8px; align-items: flex-start; }
+  .kpi--anl .kpi-head .icon-box { display: none; }
+  .kpi--anl .kpi-value { font-size: 18px; white-space: normal; overflow-wrap: anywhere; }
+  .analise-grid.analise-grid--3 { grid-template-columns: 1fr; }
+  .toolbar-fim { margin-left: 0; width: 100%; }
+  .toolbar-fim > .btn { width: 100%; }
+  .menu { left: 0; right: 0; min-width: 0; }
+  .toolbar #anl-periodo { flex: 1 1 100%; }
+  .hist-produtos { max-width: 60vw; white-space: normal; }
   .pdv-fechar { display: inline-grid; }
   .sheet-backdrop { display: block; position: fixed; inset: 0; background: rgba(10, 17, 35, 0.45); z-index: 49; opacity: 0; pointer-events: none; transition: opacity 200ms; }
   .sheet-backdrop.active { opacity: 1; pointer-events: auto; }
